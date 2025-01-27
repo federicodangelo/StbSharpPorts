@@ -6,7 +6,7 @@ namespace StbTrueTypeSharp;
 //
 static public class PrintHelloWorld
 {
-    static public int Main(string[] args)
+    static public void Run(string[] args)
     {
         BytePtr[] screen = new BytePtr[20];
         for (int i = 0; i < screen.Length; i++)
@@ -53,7 +53,5 @@ static public class PrintHelloWorld
                 line += " .:ioVM@"[screen[j][i] >> 5];
             Console.WriteLine("\n");
         }
-
-        return 0;
     }
 }

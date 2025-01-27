@@ -11,7 +11,7 @@ static public class OpenGlExample
 
     static private uint ftex;
 
-    static private void my_stbtt_initfont()
+    static public void Initfont()
     {
         ttf_buffer = File.ReadAllBytes("c:/windows/fonts/times.ttf");
 
@@ -26,7 +26,7 @@ static public class OpenGlExample
         //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     }
 
-    static private void my_stbtt_print(float x, float y, ReadOnlySpan<char> text)
+    static public void Run(float x, float y, ReadOnlySpan<char> text)
     {
         // assume orthographic projection with units = screen pixels, origin at top left
         //glEnable(GL_BLEND);
@@ -42,7 +42,7 @@ static public class OpenGlExample
             if (c >= 32 && c < 128)
             {
                 StbTrueType.stbtt_aligned_quad q;
-                StbTrueType.stbtt_GetBakedQuad(cdata, 512, 512, c - 32, ref x, ref y, out q, 1);//1=opengl & d3d10+,0=d3d9
+                StbTrueType.stbtt_GetBakedQuad(cdata, 512, 512, c - 32, ref x, ref y, out q, true);//1=opengl & d3d10+,0=d3d9
 
                 //glTexCoord2f(q.s0, q.t0); glVertex2f(q.x0, q.y0);
                 //glTexCoord2f(q.s1, q.t0); glVertex2f(q.x1, q.y0);

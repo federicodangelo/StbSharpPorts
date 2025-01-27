@@ -1811,7 +1811,11 @@ public class StbTrueType
    //   if you use STBTT_MACSTYLE_DONTCARE, use a font name like "Arial Bold".
    //   if you use any other flag, use a font name like "Arial"; this checks
    //     the 'macStyle' header field; i don't know if fonts set this consistently
-   static public int stbtt_FindMatchingFont(byte[] fontdata, string name, STBTT_MACSTYLE flags);
+   static public int stbtt_FindMatchingFont(BytePtr fontdata, BytePtr name, STBTT_MACSTYLE flags)
+   {
+      return stbtt_FindMatchingFont_internal(fontdata, name, flags);
+   }
+
 
    [Flags]
    public enum STBTT_MACSTYLE : int
@@ -2239,6 +2243,8 @@ public class StbTrueType
 
    static int stbtt_InitFont_internal(out stbtt_fontinfo info, BytePtr data, int fontstart)
    {
+      info = default;
+
       stbtt_uint32 cmap, t;
       stbtt_int32 i, numTables;
 
@@ -2255,7 +2261,6 @@ public class StbTrueType
       info.kern = (int)stbtt__find_table(data, (stbtt_uint32)fontstart, "kern"); // not required
       info.gpos = (int)stbtt__find_table(data, (stbtt_uint32)fontstart, "GPOS"); // not required
 
-      info = default;
       if (cmap == 0 || info.head == 0 || info.hhea == 0 || info.hmtx == 0)
       {
          return 0;
@@ -4029,7 +4034,7 @@ static void stbtt__rasterize_sorted_edges(ref stbtt__bitmap result, Ptr<stbtt__e
                }
             }
          }
-         e = e.next;
+         ePtr = e.next;
       }
    }
 
@@ -5147,12 +5152,7 @@ static void stbtt__rasterize_sorted_edges(ref stbtt__bitmap result, Ptr<stbtt__e
 
 
 
-   static public int stbtt_FindMatchingFont(BytePtr fontdata, BytePtr name, STBTT_MACSTYLE flags)
-   {
-      return stbtt_FindMatchingFont_internal(fontdata, name, flags);
-   }
-
-
+   
    // FULL VERSION HISTORY
    //
    //   1.25 (2021-07-11) many fixes

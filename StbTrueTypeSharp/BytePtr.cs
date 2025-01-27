@@ -7,7 +7,7 @@ public readonly struct BytePtr(byte[] bytes, int offset = 0)
     private readonly byte[] bytes = bytes;
     private readonly int offset = offset;
 
-    public readonly bool IsNull => bytes.Length == 0;
+    public readonly bool IsNull => bytes == null || bytes.Length == 0;
 
     public readonly int Length => Math.Max(bytes.Length - offset, 0);
 
@@ -66,7 +66,7 @@ public readonly struct Ptr<T>(T[] elements, int offset = 0)
     private readonly T[] elements = elements;
     private readonly int offset = offset;
 
-    public readonly bool IsNull => elements.Length == 0;
+    public readonly bool IsNull => elements == null || elements.Length == 0;
 
     public readonly int Length => Math.Max(elements != null ? elements.Length : 0 - offset, 0);
 

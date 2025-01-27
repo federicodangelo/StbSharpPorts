@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace StbTrueTypeSharp;
 
 //////////////////////////////////////////////////////////////////////////////
@@ -6,10 +8,10 @@ namespace StbTrueTypeSharp;
 //
 static public class PrintAsciiArt
 {
-    static public int Main(string[] args)
+    static public void Run(string[] args)
     {
         StbTrueType.stbtt_fontinfo font;
-        byte[] bitmap;
+        byte[]? bitmap;
 
         int c = args.Length > 1 ? int.Parse(args[1]) : 'a';
         int s = args.Length > 2 ? int.Parse(args[2]) : 20;
@@ -17,20 +19,26 @@ static public class PrintAsciiArt
 
         var ttf_buffer = File.ReadAllBytes(fileName);;
 
-        StbTrueType.stbtt_InitFont(out font, ttf_buffer, StbTrueType.stbtt_GetFontOffsetForIndex(ttf_buffer, 0));
-
-        bitmap = StbTrueType.stbtt_GetCodepointBitmap(ref font, 0, StbTrueType.stbtt_ScaleForPixelHeight(ref font, s), c, out int w, out int h, 0, 0);
-
-        for (var j = 0; j < h; ++j)
+        if (StbTrueType.stbtt_InitFont(out font, ttf_buffer, StbTrueType.stbtt_GetFontOffsetForIndex(ttf_buffer, 0)) == 0)
         {
-            string line = "";
-
-            for (var i = 0; i < w; ++i)
-                line += " .:ioVM@"[bitmap[j * w + i] >> 5];
-
-            Console.WriteLine(line);
+            Console.Error.WriteLine("Failed to initialize font " + fileName);
+            return;
         }
-        return 0;
+
+        bitmap = StbTrueType.stbtt_GetCodepointBitmap(ref font, 0, StbTrueType.stbtt_ScaleForPixelHeight(ref font, s), c, out int w, out int h, out _, out _);
+
+        if (bitmap != null)
+        {
+            for (var j = 0; j < h; ++j)
+            {
+                string line = "";
+
+                for (var i = 0; i < w; ++i)
+                    line += " .:ioVM@"[bitmap[j * w + i] >> 5];
+
+                Console.WriteLine(line);
+            }
+        }
     }
 }
 //
