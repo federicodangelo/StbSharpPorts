@@ -1,3 +1,5 @@
+using System.Data.SqlTypes;
+
 namespace StbTrueTypeSharp;
 
 public readonly struct BytePtr(byte[] bytes, int offset = 0)
@@ -9,11 +11,32 @@ public readonly struct BytePtr(byte[] bytes, int offset = 0)
 
     public readonly int Length => Math.Max(bytes.Length - offset, 0);
 
+    public readonly byte[] Raw => bytes;
+
+    public void Fill(byte value, int len)
+    {
+        Array.Fill(bytes, value, offset, len);
+    }
+
+    public int FirstIndexOf(byte value)
+    {
+        for (int i = offset; i < bytes.Length; i++)
+            if (bytes[i] == value)
+                return i - offset;
+
+        return 0;
+    }
+
     public readonly BytePtr this[int index] { get => new(bytes, offset + index); }
 
     static public BytePtr operator +(BytePtr left, int offset)
     {
         return new BytePtr(left.bytes, left.offset + offset);
+    }
+
+    static public BytePtr operator +(BytePtr left, uint offset)
+    {
+        return new BytePtr(left.bytes, (int) (left.offset + offset));
     }
 
     static public BytePtr operator ++(BytePtr left)
