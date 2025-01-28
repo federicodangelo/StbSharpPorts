@@ -3564,6 +3564,7 @@ static Ptr<stbtt__active_edge> stbtt__new_active(ref stbtt__hheap hh, ref stbtt_
       z.sy = e.y0;
       z.ey = e.y1;
       z.next = Ptr<stbtt__active_edge>.Null;
+      zPtr.GetRef() = z;
       return zPtr;
    }
 #else

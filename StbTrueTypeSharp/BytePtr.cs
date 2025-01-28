@@ -68,7 +68,7 @@ public readonly struct Ptr<T>(T[] elements, int offset = 0)
 
     public readonly bool IsNull => elements == null || elements.Length == 0;
 
-    public readonly int Length => Math.Max(elements != null ? elements.Length : 0 - offset, 0);
+    public readonly int Length => Math.Max((elements != null ? elements.Length : 0) - offset, 0);
 
     public readonly Ptr<T> this[int index] { get => new(elements, offset + index); }
 
