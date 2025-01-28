@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 namespace StbTrueTypeSharp;
 
 //////////////////////////////////////////////////////////////////////////////
@@ -8,40 +6,36 @@ namespace StbTrueTypeSharp;
 //
 static public class PrintAsciiArt
 {
-    static public void Run(string[] args)
+    static public void Run(string fileName = "c:/windows/fonts/arialbd.ttf", char character = 'a', int fontSize = 20)
     {
-        StbTrueType.stbtt_fontinfo font;
-        byte[]? bitmap;
+        var ttf_buffer = File.ReadAllBytes(fileName); ;
 
-        int c = args.Length > 1 ? int.Parse(args[1]) : 'a';
-        int s = args.Length > 2 ? int.Parse(args[2]) : 20;
-        string fileName = args.Length > 3 ? args[3] : "c:/windows/fonts/arialbd.ttf";
-
-        var ttf_buffer = File.ReadAllBytes(fileName);;
-
-        if (StbTrueType.stbtt_InitFont(out font, ttf_buffer, StbTrueType.stbtt_GetFontOffsetForIndex(ttf_buffer, 0)) == 0)
+        if (StbTrueType.stbtt_InitFont(out StbTrueType.stbtt_fontinfo font, ttf_buffer, StbTrueType.stbtt_GetFontOffsetForIndex(ttf_buffer, 0)) == 0)
         {
             Console.Error.WriteLine("Failed to initialize font " + fileName);
             return;
         }
 
-        bitmap = StbTrueType.stbtt_GetCodepointBitmap(ref font, 0, StbTrueType.stbtt_ScaleForPixelHeight(ref font, s), c, out int w, out int h, out _, out _);
+        var bitmap = StbTrueType.stbtt_GetCodepointBitmap(ref font, 0, StbTrueType.stbtt_ScaleForPixelHeight(ref font, fontSize), character, out int w, out int h, out _, out _);
 
-        if (bitmap != null)
+        if (bitmap == null)
         {
-            for (var j = 0; j < h; ++j)
+            Console.Error.WriteLine($"Failed to generate bitmap font {fileName}");
+            return;
+        }
+
+        for (var j = 0; j < h; ++j)
+        {
+            string line = "";
+
+            for (var i = 0; i < w; ++i)
             {
-                string line = "";
+                //line += bitmap[j * w + i].ToString("X2");
 
-                for (var i = 0; i < w; ++i)
-                {
-                    //line += bitmap[j * w + i].ToString("X2");
-
-                    line += " .:ioVM@"[bitmap[j * w + i] >> 5];
-                }
-
-                Console.WriteLine(line);
+                line += " .:ioVM@"[bitmap[j * w + i] >> 5];
             }
+
+            Console.WriteLine(line);
         }
     }
 }

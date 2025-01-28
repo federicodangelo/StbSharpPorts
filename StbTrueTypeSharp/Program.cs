@@ -1,14 +1,13 @@
-﻿// See https://aka.ms/new-console-template for more information
-
-namespace StbTrueTypeSharp;
+﻿namespace StbTrueTypeSharp;
 
 public class Program
 {
     static public void Main(string[] args)
     {
-        PrintAsciiArt.Run(args);
+        PrintAsciiArt.Run("SampleFonts/Karla-Regular.ttf", 'L', 32);
         //PrintHelloWorld.Run(args);
-
+        //BatchBuildFontsExample.BuildBitmapFonts();
     }
+
 }
 
