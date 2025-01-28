@@ -1,4 +1,4 @@
-#define DEBUG_USING_SVG
+//#define DEBUG_USING_SVG
 #define STB_RECT_PACK_VERSION
 
 //   Starting with version 1.06, the rasterizer was replaced with a new,
@@ -3449,73 +3449,54 @@ public class StbTrueType
    //
    //  Rasterizer
 
-   struct stbtt__hheap_chunk
-   {
-      public Ptr<stbtt__hheap_chunk> next;
-      public Ptr<stbtt__active_edge> data;
-   }
-
-   struct stbtt__hheap
-   {
-      public Ptr<stbtt__hheap_chunk> head;
-      public Ptr<stbtt__active_edge> first_free;
-      public int num_remaining_in_head_chunk;
-   }
-
-   static Ptr<stbtt__active_edge> stbtt__hheap_alloc(ref stbtt__hheap hh)
-   {
-      if (!hh.first_free.IsNull)
-      {
-         var p = hh.first_free;
-         hh.first_free = p.GetRef().next;
-         return p;
-      }
-      else
-      {
-         if (hh.num_remaining_in_head_chunk == 0)
-         {
-            int count = 2000; //(size < 32 ? 2000 : size < 128 ? 800 : 100);
-            Ptr<stbtt__hheap_chunk> c = new stbtt__hheap_chunk[1];
-            //if (c == NULL)
-            //   return NULL;
-            c.GetRef().data = new stbtt__active_edge[count];
-            c.GetRef().next = hh.head;
-            hh.head = c;
-            hh.num_remaining_in_head_chunk = count;
-         }
-         --hh.num_remaining_in_head_chunk;
-         return hh.head.GetRef().data[hh.num_remaining_in_head_chunk];
-      }
-   }
-
-   static void stbtt__hheap_free(ref stbtt__hheap hh, Ptr<stbtt__active_edge> p)
-   {
-      p.GetRef().next = hh.first_free;
-      hh.first_free = p;
-   }
-
-   static void stbtt__hheap_cleanup(ref stbtt__hheap hh)
-   {
-      Ptr<stbtt__hheap_chunk> c = hh.head;
-      while (!c.IsNull)
-      {
-         Ptr<stbtt__hheap_chunk> n = c.GetRef().next;
-         //STBTT_free(c, userdata);
-         c = n;
-      }
-   }
-
    struct stbtt__edge
    {
       public float x0, y0, x1, y1;
       public bool invert;
    };
 
+   
+
+   struct stbtt__active_edge_collection 
+   {
+      public stbtt__active_edge[] active_edges;
+
+      public int active_edges_count;
+
+      public int[] active_indices;
+      public int active_indices_count;
+   }
+
+   static void stbtt__init_active_collection(out stbtt__active_edge_collection collection, int maxActiveEdgesCount)
+   {
+      collection = new();
+
+      collection.active_edges = new stbtt__active_edge[maxActiveEdgesCount];
+      collection.active_indices_count = 0;
+
+      collection.active_indices = new int[maxActiveEdgesCount];
+      collection.active_indices_count = 0;
+   }
+
+   static void stbtt__free_active_collection(ref stbtt__active_edge_collection collection)
+   {
+      //
+   }
+
+   static void stbtt__remove_from_active_collection(ref stbtt__active_edge_collection collection, int active_index)
+   {
+      if (collection.active_indices_count == 1)
+      {
+         collection.active_indices_count = 0;
+         return;
+      }
+
+      collection.active_indices[active_index] = collection.active_indices[collection.active_indices_count - 1];
+      collection.active_indices_count--;
+   }
 
    struct stbtt__active_edge
    {
-      public Ptr<stbtt__active_edge> next;
-
 #if STBTT_RASTERIZER_VERSION_1
       public int x, dx;
       public float ey;
@@ -3535,48 +3516,96 @@ public class StbTrueType
    const int STBTT_FIX = (1 << STBTT_FIXSHIFT);
    const int STBTT_FIXMASK = (STBTT_FIX - 1);
 
-   static Ptr<stbtt__active_edge> stbtt__new_active(ref stbtt__hheap hh, ref stbtt__edge e, int off_x, float start_point)
+   static int stbtt__new_active(ref stbtt__active_edge_collection coll, ref stbtt__edge e, int off_x, float start_point)
    {
-      Ptr<stbtt__active_edge> zPtr = stbtt__hheap_alloc(ref hh);
-      var z = zPtr.GetRef();
+      STBTT_assert(coll.active_edges_count + 1 < coll.active_edges.Length);
+      STBTT_assert(coll.active_indices_count + 1 < coll.active_indices.Length);
+
+      stbtt__active_edge active_edge = new ();
       float dxdy = (e.x1 - e.x0) / (e.y1 - e.y0);
       // STBTT_assert(z != NULL);
       // if (!z) return z;
 
       // round dx down to avoid overshooting
       if (dxdy < 0)
-         z.dx = -STBTT_ifloor(STBTT_FIX * -dxdy);
+         active_edge.dx = -STBTT_ifloor(STBTT_FIX * -dxdy);
       else
-         z.dx = STBTT_ifloor(STBTT_FIX * dxdy);
+         active_edge.dx = STBTT_ifloor(STBTT_FIX * dxdy);
 
-      z.x = STBTT_ifloor(STBTT_FIX * e.x0 + z.dx * (start_point - e.y0)); // use z.dx so when we offset later it's by the same amount
-      z.x -= off_x * STBTT_FIX;
+      active_edge.x = STBTT_ifloor(STBTT_FIX * e.x0 + active_edge.dx * (start_point - e.y0)); // use z.dx so when we offset later it's by the same amount
+      active_edge.x -= off_x * STBTT_FIX;
 
-      z.ey = e.y1;
-      z.next = Ptr<stbtt__active_edge>.Null;
-      z.direction = e.invert ? 1 : -1;
-      zPtr.GetRef() = z;
-      return zPtr;
+      active_edge.ey = e.y1;
+      active_edge.direction = e.invert ? 1 : -1;
+
+      int index = coll.active_edges_count;
+
+      coll.active_edges[index] = active_edge;
+      coll.active_edges_count++;
+
+
+      // find insertion point
+      int insert_index;
+
+      if (coll.active_indices_count == 0)
+      {
+         // first element
+         insert_index = 0;
+      }
+      else if (active_edge.x < coll.active_edges[coll.active_indices[0]].x)
+      {
+         // insert at front
+         insert_index = 0;
+      }
+      else // TODO: Maybe we can validate against the last element too
+      {
+         
+         // find thing to insert AFTER
+         insert_index = 0;
+         while(insert_index < coll.active_indices_count &&
+               coll.active_edges[coll.active_indices[insert_index]].x < active_edge.x)
+         {
+            insert_index++;
+         }
+      }
+      if (insert_index < coll.active_indices_count)
+      {
+         // Displace items below
+         Array.Copy(coll.active_indices, insert_index, coll.active_indices, insert_index + 1, coll.active_indices_count - insert_index);
+      }
+      coll.active_indices[insert_index] = index;
+      coll.active_indices_count++;
+
+      return index;
    }
+
 #elif STBTT_RASTERIZER_VERSION_2
-   static Ptr<stbtt__active_edge> stbtt__new_active(ref stbtt__hheap hh, ref stbtt__edge e, int off_x, float start_point)
+   static int stbtt__new_active(ref stbtt__active_edge_collection coll, ref stbtt__edge e, int off_x, float start_point)
    {
-      Ptr<stbtt__active_edge> zPtr = stbtt__hheap_alloc(ref hh);
-      var z = zPtr.GetRef();
+      STBTT_assert(coll.active_edges_count + 1 < coll.active_edges.Length);
+      STBTT_assert(coll.active_indices_count + 1 < coll.active_indices.Length);
+
       float dxdy = (e.x1 - e.x0) / (e.y1 - e.y0);
-      //STBTT_assert(z != NULL);
       //STBTT_assert(e.y0 <= start_point);
       //if (!z) return z;
-      z.fdx = dxdy;
-      z.fdy = dxdy != 0.0f ? (1.0f / dxdy) : 0.0f;
-      z.fx = e.x0 + dxdy * (start_point - e.y0);
-      z.fx -= off_x;
-      z.direction = e.invert ? 1.0f : -1.0f;
-      z.sy = e.y0;
-      z.ey = e.y1;
-      z.next = Ptr<stbtt__active_edge>.Null;
-      zPtr.GetRef() = z;
-      return zPtr;
+      stbtt__active_edge active_edge = new ();
+      active_edge.fdx = dxdy;
+      active_edge.fdy = dxdy != 0.0f ? (1.0f / dxdy) : 0.0f;
+      active_edge.fx = e.x0 + dxdy * (start_point - e.y0);
+      active_edge.fx -= off_x;
+      active_edge.direction = e.invert ? 1.0f : -1.0f;
+      active_edge.sy = e.y0;
+      active_edge.ey = e.y1;
+
+      int index = coll.active_edges_count;
+
+      coll.active_edges[index] = active_edge;
+      coll.active_edges_count++;
+
+      coll.active_indices[coll.active_indices_count] = index;
+      coll.active_indices_count++;
+
+      return index;
    }
 #else
 #error "Unrecognized value of STBTT_RASTERIZER_VERSION"
@@ -3586,14 +3615,14 @@ public class StbTrueType
    // note: this routine clips fills that extend off the edges... ideally this
    // wouldn't happen, but it could happen if the truetype glyph bounding boxes
    // are wrong, or if the user supplies a too-small bitmap
-   static void stbtt__fill_active_edges(Span<byte> scanline, int len, Ptr<stbtt__active_edge> ePtr, int max_weight)
+   static void stbtt__fill_active_edges(Span<byte> scanline, int len, ref stbtt__active_edge_collection hh, int max_weight)
    {
       // non-zero winding fill
       int x0 = 0, w = 0;
 
-      while (!ePtr.IsNull)
+      for (int idx = 0; idx < hh.active_edges_count; idx++)
       {
-         var e = ePtr.GetRef();
+         ref var e = ref hh.active_edges[hh.active_indices[idx]];
          if (w == 0)
          {
             // if we're currently at zero, we need to record the edge start point
@@ -3633,22 +3662,23 @@ public class StbTrueType
                }
             }
          }
-
-         ePtr = e.next;
       }
    }
 
-   static void stbtt__rasterize_sorted_edges(ref stbtt__bitmap result, Ptr<stbtt__edge> e, int n, int vsubsample, int off_x, int off_y)
+   static void stbtt__rasterize_sorted_edges(ref stbtt__bitmap result, stbtt__edge[] e, int n, int vsubsample, int off_x, int off_y)
    {
-      stbtt__hheap hh = new();
-      Ptr<stbtt__active_edge> active = Ptr<stbtt__active_edge>.Null;
+      stbtt__active_edge_collection hh;
+      stbtt__init_active_collection(out hh, e.Length);
+
       int y, j = 0;
       int max_weight = (255 / vsubsample);  // weight per vertical scanline
       int s; // vertical subsample index
       Span<byte> scanline = result.w > 512 ? new byte[result.w] : stackalloc byte[512];
 
       y = off_y * vsubsample;
-      e[n].GetRef().y0 = (off_y + result.h) * (float)vsubsample + 1;
+      e[n].y0 = (off_y + result.h) * (float)vsubsample + 1;
+
+      int edgeIndex = 0;
 
       while (j < result.h)
       {
@@ -3658,24 +3688,18 @@ public class StbTrueType
          {
             // find center of pixel for this scanline
             float scan_y = y + 0.5f;
-            ref Ptr<stbtt__active_edge> step = ref active;
-
+            
             // update all active edges;
             // remove all active edges that terminate before the center of this scanline
-            while (!step.IsNull)
+            for (var idx = hh.active_indices_count - 1; idx >= 0; idx--)
             {
-               Ptr<stbtt__active_edge> z = step;
-               if (z.GetRef().ey <= scan_y)
+               ref var z = ref hh.active_edges[hh.active_indices[idx]];
+               
+               if (z.ey <= scan_y)
                {
-                  step = z.GetRef().next; // delete from list
-                  STBTT_assert(z.GetRef().direction != 0);
-                  z.GetRef().direction = 0;
-                  stbtt__hheap_free(ref hh, z);
-               }
-               else
-               {
-                  z.GetRef().x += z.GetRef().dx; // advance to position for current scanline
-                  step = step.GetRef().next; // advance through list
+                  stbtt__remove_from_active_collection(ref hh, idx);
+                  STBTT_assert(z.direction != 0);
+                  z.direction = 0;
                }
             }
 
@@ -3683,59 +3707,37 @@ public class StbTrueType
             for (; ; )
             {
                bool changed = false;
-               step = ref active;
-               while (!step.IsNull && !step.GetRef().next.IsNull)
+               
+               for (var idx = 0; idx < hh.active_indices_count - 1; idx++)
                {
-                  if (step.GetRef().x > step.GetRef().next.GetRef().x)
-                  {
-                     Ptr<stbtt__active_edge> t = step;
-                     Ptr<stbtt__active_edge> q = t.GetRef().next;
+                  ref var t = ref hh.active_edges[hh.active_indices[idx]];
+                  ref var q = ref hh.active_edges[hh.active_indices[idx + 1]];
 
-                     t.GetRef().next = q.GetRef().next;
-                     q.GetRef().next = t;
-                     step.GetRef() = q;
+                  if (t.x > q.x)
+                  {
+                     var tmp = hh.active_indices[idx];
+                     hh.active_indices[idx] = hh.active_indices[idx + 1];
+                     hh.active_indices[idx + 1] = tmp;
                      changed = true;
                   }
-                  step = step.GetRef().next;
                }
+
                if (!changed) break;
             }
 
             // insert all edges that start before the center of this scanline -- omit ones that also end on this scanline
-            while (e.GetRef().y0 <= scan_y)
+            while (e[edgeIndex].y0 <= scan_y)
             {
-               if (e.GetRef().y1 > scan_y)
+               if (e[edgeIndex].y1 > scan_y)
                {
-                  Ptr<stbtt__active_edge> z = stbtt__new_active(ref hh, ref e.GetRef(), off_x, scan_y);
-                  if (!z.IsNull)
-                  {
-                     // find insertion point
-                     if (active.IsNull)
-                        active = z;
-                     else if (z.GetRef().x < active.GetRef().x)
-                     {
-                        // insert at front
-                        z.GetRef().next = active;
-                        active = z;
-                     }
-                     else
-                     {
-                        // find thing to insert AFTER
-                        Ptr<stbtt__active_edge> p = active;
-                        while (!p.GetRef().next.IsNull && p.GetRef().next.GetRef().x < z.GetRef().x)
-                           p = p.GetRef().next;
-                        // at this point, p.next.x is NOT < z.x
-                        z.GetRef().next = p.GetRef().next;
-                        p.GetRef().next = z;
-                     }
-                  }
+                  stbtt__new_active(ref hh, ref e[edgeIndex], off_x, scan_y);
                }
-               ++e;
+               edgeIndex++;
             }
 
             // now process all active edges in XOR fashion
-            if (!active.IsNull)
-               stbtt__fill_active_edges(scanline, result.w, active, max_weight);
+            if (hh.active_indices_count > 0)
+               stbtt__fill_active_edges(scanline, result.w, ref hh, max_weight);
 
             ++y;
          }
@@ -3746,7 +3748,7 @@ public class StbTrueType
          ++j;
       }
 
-      stbtt__hheap_cleanup(ref hh);
+      stbtt__free_active_collection(ref hh);
 
       //if (scanline != scanline_data)
       //   STBTT_free(scanline, userdata);
@@ -3817,15 +3819,14 @@ public class StbTrueType
       return height * width / 2;
    }
 
-   static void stbtt__fill_active_edges_new(Span<float> scanline, Span<float> scanline_fill, Span<float> scanline_fill_minus_one, int len, Ptr<stbtt__active_edge> ePtr, float y_top)
+   static void stbtt__fill_active_edges_new(Span<float> scanline, Span<float> scanline_fill, Span<float> scanline_fill_minus_one, int len, ref stbtt__active_edge_collection hh, float y_top)
    {
       float y_bottom = y_top + 1;
 
-      while (!ePtr.IsNull)
+      for (int i = 0; i < hh.active_indices_count; i++)
       {
          // brute force every pixel
-
-         var e = ePtr.GetRef();
+         ref var e = ref hh.active_edges[hh.active_indices[i]];
 
          // compute intersection points with top & bottom
          STBTT_assert(e.ey >= y_top);
@@ -4066,15 +4067,15 @@ public class StbTrueType
                }
             }
          }
-         ePtr = e.next;
       }
    }
 
    // directly AA rasterize edges w/o supersampling
-   static void stbtt__rasterize_sorted_edges(ref stbtt__bitmap result, Ptr<stbtt__edge> e, int n, int vsubsample, int off_x, int off_y)
+   static void stbtt__rasterize_sorted_edges(ref stbtt__bitmap result, stbtt__edge[] e, int n, int vsubsample, int off_x, int off_y)
    {
-      stbtt__hheap hh = new();
-      Ptr<stbtt__active_edge> active = Ptr<stbtt__active_edge>.Null;
+      stbtt__active_edge_collection hh;
+      stbtt__init_active_collection(out hh, e.Length);
+
       int y, j = 0, i;
       Span<float> scanline = result.w > 64 ? new float[result.w * 2 + 1] : stackalloc float[129];
       Span<float> scanline2 = scanline.Slice(result.w);
@@ -4082,64 +4083,62 @@ public class StbTrueType
       //STBTT__NOTUSED(vsubsample);
 
       y = off_y;
-      e[n].GetRef().y0 = (float)(off_y + result.h) + 1;
+      e[n].y0 = (float)(off_y + result.h) + 1;
+
+      int edgeIndex = 0;
 
       while (j < result.h)
       {
          // find center of pixel for this scanline
          float scan_y_top = y + 0.0f;
          float scan_y_bottom = y + 1.0f;
-         ref Ptr<stbtt__active_edge> step = ref active;
 
          scanline.Fill(0);
          scanline2.Fill(0);
 
          // update all active edges;
          // remove all active edges that terminate before the top of this scanline
-         while (!step.IsNull)
+         for (var idx = hh.active_indices_count - 1; idx >= 0; idx--)
          {
-            Ptr<stbtt__active_edge> z = step;
-            if (z.GetRef().ey <= scan_y_top)
+            ref var z = ref hh.active_edges[hh.active_indices[idx]];
+            
+            if (z.ey <= scan_y_top)
             {
-               step = z.GetRef().next; // delete from list
-               STBTT_assert(z.GetRef().direction != 0);
-               z.GetRef().direction = 0;
-               stbtt__hheap_free(ref hh, z);
-            }
-            else
-            {
-               step = step.GetRef().next; // advance through list
+               stbtt__remove_from_active_collection(ref hh, idx);
+               STBTT_assert(z.direction != 0);
+               z.direction = 0;
             }
          }
 
          // insert all edges that start before the bottom of this scanline
-         while (e.GetRef().y0 <= scan_y_bottom)
+         while (e[edgeIndex].y0 <= scan_y_bottom)
          {
-            if (e.GetRef().y0 != e.GetRef().y1)
+            if (e[edgeIndex].y0 != e[edgeIndex].y1)
             {
-               Ptr<stbtt__active_edge> z = stbtt__new_active(ref hh, ref e.GetRef(), off_x, scan_y_top);
-               if (!z.IsNull)
+               var index = stbtt__new_active(ref hh, ref e[edgeIndex], off_x, scan_y_top);
+
+               ref var active_edge = ref hh.active_edges[index];
+
+               //if (!z.IsNull)
                {
                   if (j == 0 && off_y != 0)
                   {
-                     if (z.GetRef().ey < scan_y_top)
+                     if (active_edge.ey < scan_y_top)
                      {
                         // this can happen due to subpixel positioning and some kind of fp rounding error i think
-                        z.GetRef().ey = scan_y_top;
+                        active_edge.ey = scan_y_top;
                      }
                   }
-                  STBTT_assert(z.GetRef().ey >= scan_y_top); // if we get really unlucky a tiny bit of an edge can be out of bounds
+                  STBTT_assert(active_edge.ey >= scan_y_top); // if we get really unlucky a tiny bit of an edge can be out of bounds
                                                              // insert at front
-                  z.GetRef().next = active;
-                  active = z;
                }
             }
-            ++e;
+            edgeIndex++;
          }
 
          // now process all active edges
-         if (!active.IsNull)
-            stbtt__fill_active_edges_new(scanline, scanline2.Slice(1), scanline2, result.w, active, scan_y_top);
+         if (hh.active_indices_count > 0)
+            stbtt__fill_active_edges_new(scanline, scanline2.Slice(1), scanline2, result.w, ref hh, scan_y_top);
 
          {
             float sum = 0;
@@ -4155,20 +4154,19 @@ public class StbTrueType
                result.pixels[j * result.stride + i].GetRef() = (byte)m;
             }
          }
+         
          // advance all the edges
-         step = ref active;
-         while (!step.IsNull)
+         for (var idx = 0; idx < hh.active_indices_count; idx++)
          {
-            Ptr<stbtt__active_edge> z = step;
-            z.GetRef().fx += z.GetRef().fdx; // advance to position for current scanline
-            step = step.GetRef().next; // advance through list
+            ref var z = ref hh.active_edges[hh.active_indices[idx]];
+            z.fx += z.fdx; // advance to position for current scanline
          }
 
          ++y;
          ++j;
       }
 
-      stbtt__hheap_cleanup(ref hh);
+      stbtt__free_active_collection(ref hh);
 
       //if (scanline != scanline_data)
       //   STBTT_free(scanline, userdata);
