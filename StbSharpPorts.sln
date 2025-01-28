@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{35
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbTrueType.Examples", "Examples\StbTrueType.Examples\StbTrueType.Examples.csproj", "{59531959-4CF4-4169-80A0-3CD1D5CA89E4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbRectPack", "StbRectPack\StbRectPack.csproj", "{91096008-5D85-4914-9CAD-10E257BA7FFD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +34,10 @@ Global
 		{59531959-4CF4-4169-80A0-3CD1D5CA89E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{59531959-4CF4-4169-80A0-3CD1D5CA89E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{59531959-4CF4-4169-80A0-3CD1D5CA89E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91096008-5D85-4914-9CAD-10E257BA7FFD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91096008-5D85-4914-9CAD-10E257BA7FFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91096008-5D85-4914-9CAD-10E257BA7FFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91096008-5D85-4914-9CAD-10E257BA7FFD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{59531959-4CF4-4169-80A0-3CD1D5CA89E4} = {35C5903E-44A0-40C2-9758-5688F01E9F30}
