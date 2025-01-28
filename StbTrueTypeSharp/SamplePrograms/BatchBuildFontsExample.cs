@@ -26,8 +26,7 @@ public class BatchBuildFontsExample
             "SampleFonts/Roboto-Medium.ttf",
         ];
 
-        //float[] SampleFontSizes = [13.0f, 16.0f, 24.0f, 32.0f];
-        float[] SampleFontSizes = [32];
+        float[] SampleFontSizes = [13.0f, 16.0f, 24.0f, 32.0f];
 
         const string OutputDirectory = "OutputBitmapFonts";
 
