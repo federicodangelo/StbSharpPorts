@@ -465,9 +465,8 @@ public class StbTrueType
    // bilinear filtering).
    //
    // Returns 0 on failure, 1 on success.
-   static public int stbtt_PackBegin(ref stbtt_pack_context spc, BytePtr pixels, int pw, int ph, int stride_in_bytes, int padding)
+   static public int stbtt_PackBegin(out stbtt_pack_context spc, BytePtr pixels, int pw, int ph, int stride_in_bytes, int padding)
    {
-      stbrp_context context = new();
       int num_nodes = pw - padding;
       stbrp_node[] nodes = new stbrp_node[num_nodes];
 
@@ -480,7 +479,6 @@ public class StbTrueType
       spc.width = pw;
       spc.height = ph;
       spc.pixels = pixels;
-      spc.pack_info = context;
       spc.nodes = nodes;
       spc.padding = padding;
       spc.stride_in_bytes = stride_in_bytes != 0 ? stride_in_bytes : pw;
@@ -488,7 +486,7 @@ public class StbTrueType
       spc.v_oversample = 1;
       spc.skip_missing = false;
 
-      stbrp_init_target(out context, pw - padding, ph - padding, nodes, num_nodes);
+      stbrp_init_target(out spc.pack_info, pw - padding, ph - padding, nodes, num_nodes);
 
       if (!pixels.IsNull)
          pixels.Fill(0, pw * ph); // background of 0 around pixels

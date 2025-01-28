@@ -47,7 +47,7 @@ public class BatchBuildFontsExample
 
                 var bitmapOptions = new BuildFontBitmapExample.BitmapOptions();
 
-                var output = BuildFontBitmapExample.BuildFontBitmap(fontOptions, bitmapOptions);
+                var output = BuildFontBitmapExample.BuildFontBitmap(fontOptions, bitmapOptions, BuildFontBitmapExample.PackFormat.Better);
 
                 if (output == null)
                 {
