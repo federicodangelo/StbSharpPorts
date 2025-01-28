@@ -1,12 +1,15 @@
-namespace StbTrueTypeSharp;
+using StbSharp;
+using StbSharp.StbCommon;
+
+namespace StbSharp.Examples;
 
 //////////////////////////////////////////////////////////////////////////////
 //
 // Complete program (this compiles): get a single bitmap, print as ASCII art
 //
-static public class PrintAsciiArt
+static public class PrintCharacterAsciiArt
 {
-    static public void Run(string fileName = "c:/windows/fonts/arialbd.ttf", char character = 'a', int fontSize = 20)
+    static public void Run(char character = 'a', string fileName = "Fonts/Karla-Regular.ttf", int fontSize = 20)
     {
         var ttf_buffer = File.ReadAllBytes(fileName); ;
 
@@ -28,6 +31,9 @@ static public class PrintAsciiArt
         {
             string line = "";
 
+            if (j == 0)
+                Console.WriteLine(new string('-', w));
+
             for (var i = 0; i < w; ++i)
             {
                 //line += bitmap[j * w + i].ToString("X2");
@@ -36,6 +42,9 @@ static public class PrintAsciiArt
             }
 
             Console.WriteLine(line);
+
+            if (j == h - 1)
+                Console.WriteLine(new string('-', w));
         }
     }
 }

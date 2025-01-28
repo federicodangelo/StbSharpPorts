@@ -1,4 +1,7 @@
-namespace StbTrueTypeSharp;
+using StbSharp;
+using StbSharp.StbCommon;
+
+namespace StbSharp.Examples;
 
 //  Incomplete text-in-3d-api example, which draws quads properly aligned to be lossless.
 //  See "tests/truetype_demo_win32.c" for a complete version.
@@ -7,7 +10,7 @@ static public class BuildFontBitmapExample
 {
     public class FontOptions
     {
-        public string fontFilename = "SampleFonts/ProggyClean.ttf";
+        public string fontFilename = "Fonts/Karla-Regular.ttf";
         public float fontSize = 13;
         public int rangeFrom = 0x20;
         public int rangeTo = 0xFF;

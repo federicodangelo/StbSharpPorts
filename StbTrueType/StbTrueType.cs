@@ -23,6 +23,7 @@ using stbrp_coord = int;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using StbSharp.StbCommon;
 
 using stbtt_uint8 = byte;
 using stbtt_int8 = sbyte;
@@ -33,7 +34,7 @@ using stbtt_int32 = int;
 using stbtt_vertex_type = short;
 using size_t = int;
 
-namespace StbTrueTypeSharp;
+namespace StbSharp;
 
 public class StbTrueType
 {

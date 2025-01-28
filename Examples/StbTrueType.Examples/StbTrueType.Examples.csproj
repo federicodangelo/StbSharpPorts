@@ -8,16 +8,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="SampleFonts\*.*">
+    <Content Include="Fonts\*.ttf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>  
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="9.0.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Drawing.Common" Version="9.0.1" />
-  </ItemGroup>
+    <ProjectReference Include="..\..\StbCommon\StbCommon.csproj" />
+    <ProjectReference Include="..\..\StbTrueType\StbTrueType.csproj"/>
+  </ItemGroup>  
 
 </Project>

@@ -1,27 +1,29 @@
-namespace StbTrueTypeSharp;
+using StbSharp;
+using StbSharp.StbCommon;
+
+namespace StbSharp.Examples;
 
 //////////////////////////////////////////////////////////////////////////////
 //
 // Complete program: print "Hello World!" banner, with bugs
 //
-static public class PrintHelloWorld
+static public class PrintTextAsciiArt
 {
-    static public void Run(string[] args)
+    static public void Run(string text = "hello World", string fileName = "Fonts/Karla-Regular.ttf", int fontSize = 20)
     {
-        const int ScreenWidth = 100;
-        const int ScreenHeight = 20;
+        int ScreenWidth = 100;
+        int ScreenHeight = fontSize;
 
         BytePtr screen = new BytePtr(new byte[ScreenHeight * ScreenWidth]);
 
         StbTrueType.stbtt_fontinfo font;
         int baseline, ch = 0;
         float scale, xpos = 2; // leave a little padding in case the character extends left
-        ReadOnlySpan<char> text = "Heljo World!"; // intentionally misspelled to show 'lj' brokenness
-
-        byte[] buffer = File.ReadAllBytes("c:/windows/fonts/arialbd.ttf");
+        
+        byte[] buffer = File.ReadAllBytes(fileName);
         StbTrueType.stbtt_InitFont(out font, buffer, 0);
 
-        scale = StbTrueType.stbtt_ScaleForPixelHeight(ref font, 15);
+        scale = StbTrueType.stbtt_ScaleForPixelHeight(ref font, fontSize);
         StbTrueType.stbtt_GetFontVMetrics(ref font, out int ascent, out _, out int _);
         
         baseline = (int)(ascent * scale);

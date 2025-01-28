@@ -1,10 +1,12 @@
 #pragma warning disable CA1416 // Validate platform compatibility
 
+using StbSharp;
+using StbSharp.StbCommon;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Text.Json;
 
-namespace StbTrueTypeSharp;
+namespace StbSharp.Examples;
 
 public class BatchBuildFontsExample
 {
@@ -18,19 +20,20 @@ public class BatchBuildFontsExample
     static public void BuildBitmapFonts()
     {
         string[] SampleFonts = [
-            "SampleFonts/Cousine-Regular.ttf",
-            "SampleFonts/DroidSans.ttf",
-            "SampleFonts/Karla-Regular.ttf",
-            "SampleFonts/ProggyClean.ttf",
-            "SampleFonts/ProggyTiny.ttf",
-            "SampleFonts/Roboto-Medium.ttf",
+            "Fonts/Cousine-Regular.ttf",
+            "Fonts/DroidSans.ttf",
+            "Fonts/Karla-Regular.ttf",
+            "Fonts/ProggyClean.ttf",
+            "Fonts/ProggyTiny.ttf",
+            "Fonts/Roboto-Medium.ttf",
         ];
 
         float[] SampleFontSizes = [13.0f, 16.0f, 24.0f, 32.0f];
 
         const string OutputDirectory = "OutputBitmapFonts";
 
-        Directory.Delete(OutputDirectory, true);
+        if (Directory.Exists(OutputDirectory))
+            Directory.Delete(OutputDirectory, true);
 
         foreach (var sampleFont in SampleFonts)
         {

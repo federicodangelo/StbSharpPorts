@@ -1,6 +1,4 @@
-using System.Data.SqlTypes;
-
-namespace StbTrueTypeSharp;
+namespace StbSharp.StbCommon;
 
 public readonly struct BytePtr(byte[] bytes, int offset = 0)
 {
