@@ -8,11 +8,10 @@ static public class PrintHelloWorld
 {
     static public void Run(string[] args)
     {
-        BytePtr[] screen = new BytePtr[20];
-        for (int i = 0; i < screen.Length; i++)
-        {
-            screen[i] = new BytePtr(new byte[79]);
-        }
+        const int ScreenWidth = 100;
+        const int ScreenHeight = 20;
+
+        BytePtr screen = new BytePtr(new byte[ScreenHeight * ScreenWidth]);
 
         StbTrueType.stbtt_fontinfo font;
         int baseline, ch = 0;
@@ -34,7 +33,7 @@ static public class PrintHelloWorld
 
             StbTrueType.stbtt_GetCodepointHMetrics(ref font, text[ch], out advance, out lsb);
             StbTrueType.stbtt_GetCodepointBitmapBoxSubpixel(ref font, text[ch], scale, scale, x_shift, 0, out x0, out y0, out x1, out y1);
-            StbTrueType.stbtt_MakeCodepointBitmapSubpixel(ref font, screen[baseline + y0][(int)xpos + x0], x1 - x0, y1 - y0, 79, scale, scale, x_shift, 0, text[ch]);
+            StbTrueType.stbtt_MakeCodepointBitmapSubpixel(ref font, screen[(baseline + y0) * ScreenWidth + (int)xpos + x0], x1 - x0, y1 - y0, ScreenWidth, scale, scale, x_shift, 0, text[ch]);
             
             // note that this stomps the old data, so where character boxes overlap (e.g. 'lj') it's wrong
             // because this API is really for baking character bitmaps into textures. if you want to render
@@ -46,12 +45,12 @@ static public class PrintHelloWorld
             ++ch;
         }
 
-        for (int j = 0; j < 20; ++j)
+        for (int j = 0; j < ScreenHeight; ++j)
         {
             string line = "";
-            for (int i = 0; i < 78; ++i)
-                line += " .:ioVM@"[screen[j][i] >> 5];
-            Console.WriteLine("\n");
+            for (int i = 0; i < ScreenWidth - 1; ++i)
+                line += " .:ioVM@"[(screen[j * ScreenWidth + i]) >> 5];
+            Console.WriteLine(line);
         }
     }
 }

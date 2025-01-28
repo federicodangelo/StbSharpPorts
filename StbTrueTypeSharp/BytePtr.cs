@@ -66,6 +66,9 @@ public readonly struct Ptr<T>(T[] elements, int offset = 0)
     private readonly T[] elements = elements;
     private readonly int offset = offset;
 
+    public readonly T[] Raw => elements;
+    public readonly int RawOffset => offset;
+
     public readonly bool IsNull => elements == null || elements.Length == 0;
 
     public readonly int Length => Math.Max((elements != null ? elements.Length : 0) - offset, 0);

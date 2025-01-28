@@ -1,3 +1,4 @@
+#define DEBUG_USING_SVG
 #define STB_RECT_PACK_VERSION
 
 //   Starting with version 1.06, the rasterizer was replaced with a new,
@@ -1493,6 +1494,11 @@ public class StbTrueType
       stbtt__point[]? windings = stbtt_FlattenCurves(vertices, num_verts, flatness_in_pixels / scale, out int[]? winding_lengths, out int winding_count);
       if (windings != null && winding_lengths != null)
       {
+#if DEBUG_USING_SVG
+         string svgPath = string.Join(" ", windings.Select((w, idx) => (idx > 0 ? "L " : "M ") + w.x.ToString(System.Globalization.CultureInfo.InvariantCulture) + " " + w.y.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+         Debug.WriteLine("- Windings SVG Path: " + svgPath);
+#endif
+
          stbtt__rasterize(ref result, windings, winding_lengths, winding_count, scale_x, scale_y, shift_x, shift_y, x_off, y_off, invert);
          //STBTT_free(winding_lengths, userdata);
          //STBTT_free(windings, userdata);
@@ -1634,6 +1640,8 @@ public class StbTrueType
                precompute[i] = 0.0f;
          }
 
+         Span<float> res = stackalloc float[] { 0.0f, 0.0f, 0.0f };
+
          for (y = iy0; y < iy1; ++y)
          {
             for (x = ix0; x < ix1; ++x)
@@ -1693,7 +1701,9 @@ public class StbTrueType
                         float ax = x1 - x0, ay = y1 - y0;
                         float bx = x0 - 2 * x1 + x2, by = y0 - 2 * y1 + y2;
                         float mx = x0 - sx, my = y0 - sy;
-                        Span<float> res = stackalloc float[] { 0.0f, 0.0f, 0.0f };
+                        res[0] = 0.0f;
+                        res[1] = 0.0f;
+                        res[2] = 0.0f;
                         float px, py, t, it, dist2;
                         float a_inv = precompute[i];
                         if (a_inv == 0.0)
@@ -3507,9 +3517,9 @@ public class StbTrueType
       public Ptr<stbtt__active_edge> next;
 
 #if STBTT_RASTERIZER_VERSION_1
-   public int x,dx;
-   public float ey;
-   public int direction;
+      public int x, dx;
+      public float ey;
+      public int direction;
 #elif STBTT_RASTERIZER_VERSION_2
       public float fx, fdx, fdy;
       public float direction;
@@ -3521,32 +3531,33 @@ public class StbTrueType
    }
 
 #if STBTT_RASTERIZER_VERSION_1
-const int STBTT_FIXSHIFT = 10;
-const int STBTT_FIX = (1 << STBTT_FIXSHIFT);
-const int STBTT_FIXMASK =   (STBTT_FIX-1);
+   const int STBTT_FIXSHIFT = 10;
+   const int STBTT_FIX = (1 << STBTT_FIXSHIFT);
+   const int STBTT_FIXMASK = (STBTT_FIX - 1);
 
-static Ptr<stbtt__active_edge> stbtt__new_active(ref stbtt__hheap hh, ref stbtt__edge e, int off_x, float start_point)
-{
-   Ptr<stbtt__active_edge> zPtr = stbtt__hheap_alloc(ref hh);
-   var z = zPtr.GetRef();
-   float dxdy = (e.x1 - e.x0) / (e.y1 - e.y0);
-   // STBTT_assert(z != NULL);
-   // if (!z) return z;
+   static Ptr<stbtt__active_edge> stbtt__new_active(ref stbtt__hheap hh, ref stbtt__edge e, int off_x, float start_point)
+   {
+      Ptr<stbtt__active_edge> zPtr = stbtt__hheap_alloc(ref hh);
+      var z = zPtr.GetRef();
+      float dxdy = (e.x1 - e.x0) / (e.y1 - e.y0);
+      // STBTT_assert(z != NULL);
+      // if (!z) return z;
 
-   // round dx down to avoid overshooting
-   if (dxdy < 0)
-      z.dx = -STBTT_ifloor(STBTT_FIX * -dxdy);
-   else
-      z.dx = STBTT_ifloor(STBTT_FIX * dxdy);
+      // round dx down to avoid overshooting
+      if (dxdy < 0)
+         z.dx = -STBTT_ifloor(STBTT_FIX * -dxdy);
+      else
+         z.dx = STBTT_ifloor(STBTT_FIX * dxdy);
 
-   z.x = STBTT_ifloor(STBTT_FIX * e.x0 + z.dx * (start_point - e.y0)); // use z.dx so when we offset later it's by the same amount
-   z.x -= off_x * STBTT_FIX;
+      z.x = STBTT_ifloor(STBTT_FIX * e.x0 + z.dx * (start_point - e.y0)); // use z.dx so when we offset later it's by the same amount
+      z.x -= off_x * STBTT_FIX;
 
-   z.ey = e.y1;
-   z.next = 0;
-   z.direction = e.invert ? 1 : -1;
-   return zPtr;
-}
+      z.ey = e.y1;
+      z.next = Ptr<stbtt__active_edge>.Null;
+      z.direction = e.invert ? 1 : -1;
+      zPtr.GetRef() = z;
+      return zPtr;
+   }
 #elif STBTT_RASTERIZER_VERSION_2
    static Ptr<stbtt__active_edge> stbtt__new_active(ref stbtt__hheap hh, ref stbtt__edge e, int off_x, float start_point)
    {
@@ -3572,154 +3583,174 @@ static Ptr<stbtt__active_edge> stbtt__new_active(ref stbtt__hheap hh, ref stbtt_
 #endif
 
 #if STBTT_RASTERIZER_VERSION_1
-// note: this routine clips fills that extend off the edges... ideally this
-// wouldn't happen, but it could happen if the truetype glyph bounding boxes
-// are wrong, or if the user supplies a too-small bitmap
-static void stbtt__fill_active_edges(Span<byte> scanline, int len, Ptr<stbtt__active_edge> ePtr, int max_weight)
-{
-   // non-zero winding fill
-   int x0=0, w=0;
+   // note: this routine clips fills that extend off the edges... ideally this
+   // wouldn't happen, but it could happen if the truetype glyph bounding boxes
+   // are wrong, or if the user supplies a too-small bitmap
+   static void stbtt__fill_active_edges(Span<byte> scanline, int len, Ptr<stbtt__active_edge> ePtr, int max_weight)
+   {
+      // non-zero winding fill
+      int x0 = 0, w = 0;
 
-   while (!ePtr.IsNull) {
-      ref var e = ePtr.GetRef();
-      if (w == 0) {
-         // if we're currently at zero, we need to record the edge start point
-         x0 = e.x; w += e.direction;
-      } else {
-         int x1 = e.x; w += e.direction;
-         // if we went to zero, we need to draw
-         if (w == 0) {
-            int i = x0 >> STBTT_FIXSHIFT;
-            int j = x1 >> STBTT_FIXSHIFT;
+      while (!ePtr.IsNull)
+      {
+         var e = ePtr.GetRef();
+         if (w == 0)
+         {
+            // if we're currently at zero, we need to record the edge start point
+            x0 = e.x; w += e.direction;
+         }
+         else
+         {
+            int x1 = e.x; w += e.direction;
+            // if we went to zero, we need to draw
+            if (w == 0)
+            {
+               int i = x0 >> STBTT_FIXSHIFT;
+               int j = x1 >> STBTT_FIXSHIFT;
 
-            if (i < len && j >= 0) {
-               if (i == j) {
-                  // x0,x1 are the same pixel, so compute combined coverage
-                  scanline[i] = scanline[i] + (stbtt_uint8) ((x1 - x0) * max_weight >> STBTT_FIXSHIFT);
-               } else {
-                  if (i >= 0) // add antialiasing for x0
-                     scanline[i] = scanline[i] + (stbtt_uint8) (((STBTT_FIX - (x0 & STBTT_FIXMASK)) * max_weight) >> STBTT_FIXSHIFT);
+               if (i < len && j >= 0)
+               {
+                  if (i == j)
+                  {
+                     // x0,x1 are the same pixel, so compute combined coverage
+                     scanline[i] = (byte)(scanline[i] + (stbtt_uint8)((x1 - x0) * max_weight >> STBTT_FIXSHIFT));
+                  }
                   else
-                     i = -1; // clip
+                  {
+                     if (i >= 0) // add antialiasing for x0
+                        scanline[i] = (byte)(scanline[i] + (stbtt_uint8)(((STBTT_FIX - (x0 & STBTT_FIXMASK)) * max_weight) >> STBTT_FIXSHIFT));
+                     else
+                        i = -1; // clip
 
-                  if (j < len) // add antialiasing for x1
-                     scanline[j] = scanline[j] + (stbtt_uint8) (((x1 & STBTT_FIXMASK) * max_weight) >> STBTT_FIXSHIFT);
-                  else
-                     j = len; // clip
+                     if (j < len) // add antialiasing for x1
+                        scanline[j] = (byte)(scanline[j] + (stbtt_uint8)(((x1 & STBTT_FIXMASK) * max_weight) >> STBTT_FIXSHIFT));
+                     else
+                        j = len; // clip
 
-                  for (++i; i < j; ++i) // fill pixels between x0 and x1
-                     scanline[i] = scanline[i] + (stbtt_uint8) max_weight;
-               }
-            }
-         }
-      }
-
-      ePtr = e.next;
-   }
-}
-
-static void stbtt__rasterize_sorted_edges(ref stbtt__bitmap result, Ptr<stbtt__edge> e, int n, int vsubsample, int off_x, int off_y)
-{
-   stbtt__hheap hh = { 0, 0, 0 };
-   Ptr<stbtt__active_edge> active = Ptr<stbtt__active_edge>.Null;
-   int y,j=0;
-   int max_weight = (255 / vsubsample);  // weight per vertical scanline
-   int s; // vertical subsample index
-   Span<byte> scanline_data = stackalloc byte[512];
-   Span<byte> scanline;
-
-   if (result.w > 512)
-      scanline = new byte[result.w];
-   else
-      scanline = scanline_data;
-
-   y = off_y * vsubsample;
-   e[n].GetRef().y0 = (off_y + result.h) * (float) vsubsample + 1;
-
-   while (j < result.h) {
-      scanline.Fill(0);
-
-      for (s=0; s < vsubsample; ++s) {
-         // find center of pixel for this scanline
-         float scan_y = y + 0.5f;
-         ref Ptr<stbtt__active_edge> step = ref active;
-
-         // update all active edges;
-         // remove all active edges that terminate before the center of this scanline
-         while (!step.IsNull) {
-            Ptr<stbtt__active_edge> z = step;
-            if (z.ey <= scan_y) {
-               step = ref z.next; // delete from list
-               STBTT_assert(z.direction != 0);
-               z.direction = 0;
-               stbtt__hheap_free(ref hh, z);
-            } else {
-               z.x += z.dx; // advance to position for current scanline
-               step = ref step.GetRef().next; // advance through list
-            }
-         }
-
-         // resort the list if needed
-         for(;;) {
-            bool changed=false;
-            step = ref active;
-            while (!step.IsNull && !step.GetRef().next.IsNull) {
-               if (step.x > step.GetRef().next.GetRef().x) {
-                  Ptr<stbtt__active_edge> t = step;
-                  Ptr<stbtt__active_edge> q = t.next;
-
-                  t.GetRef().next = q.GetRef().next;
-                  q.GetRef().next = t;
-                  step.GetRef() = q;
-                  changed = true;
-               }
-               step = ref step.GetRef().next;
-            }
-            if (!changed) break;
-         }
-
-         // insert all edges that start before the center of this scanline -- omit ones that also end on this scanline
-         while (e.y0 <= scan_y) {
-            if (e.y1 > scan_y) {
-               Ptr<stbtt__active_edge> z = stbtt__new_active(ref hh, ref e.GetRef(), off_x, scan_y);
-               if (!z.IsNull) {
-                  // find insertion point
-                  if (active.IsNull)
-                     active = z;
-                  else if (z.x < active.x) {
-                     // insert at front
-                     z.next = active;
-                     active = z;
-                  } else {
-                     // find thing to insert AFTER
-                     Ptr<stbtt__active_edge> p = active;
-                     while (!p.GetRef().next.IsNull && p.GetRef().next.GetRef().x < z.x)
-                        p = p.next;
-                     // at this point, p.next.x is NOT < z.x
-                     z.GetRef().next = p.GetRef().next;
-                     p.GetRef().next = z;
+                     for (++i; i < j; ++i) // fill pixels between x0 and x1
+                        scanline[i] = (byte)(scanline[i] + (stbtt_uint8)max_weight);
                   }
                }
             }
-            ++e;
          }
 
-         // now process all active edges in XOR fashion
-         if (!active.IsNull)
-            stbtt__fill_active_edges(scanline, result.w, active, max_weight);
-
-         ++y;
+         ePtr = e.next;
       }
-
-      Array.Copy(scanline, 0, result.pixels, j * result.stride, result.w);
-      ++j;
    }
 
-   stbtt__hheap_cleanup(ref hh);
+   static void stbtt__rasterize_sorted_edges(ref stbtt__bitmap result, Ptr<stbtt__edge> e, int n, int vsubsample, int off_x, int off_y)
+   {
+      stbtt__hheap hh = new();
+      Ptr<stbtt__active_edge> active = Ptr<stbtt__active_edge>.Null;
+      int y, j = 0;
+      int max_weight = (255 / vsubsample);  // weight per vertical scanline
+      int s; // vertical subsample index
+      Span<byte> scanline = result.w > 512 ? new byte[result.w] : stackalloc byte[512];
 
-   //if (scanline != scanline_data)
-   //   STBTT_free(scanline, userdata);
-}
+      y = off_y * vsubsample;
+      e[n].GetRef().y0 = (off_y + result.h) * (float)vsubsample + 1;
+
+      while (j < result.h)
+      {
+         scanline.Fill(0);
+
+         for (s = 0; s < vsubsample; ++s)
+         {
+            // find center of pixel for this scanline
+            float scan_y = y + 0.5f;
+            ref Ptr<stbtt__active_edge> step = ref active;
+
+            // update all active edges;
+            // remove all active edges that terminate before the center of this scanline
+            while (!step.IsNull)
+            {
+               Ptr<stbtt__active_edge> z = step;
+               if (z.GetRef().ey <= scan_y)
+               {
+                  step = z.GetRef().next; // delete from list
+                  STBTT_assert(z.GetRef().direction != 0);
+                  z.GetRef().direction = 0;
+                  stbtt__hheap_free(ref hh, z);
+               }
+               else
+               {
+                  z.GetRef().x += z.GetRef().dx; // advance to position for current scanline
+                  step = step.GetRef().next; // advance through list
+               }
+            }
+
+            // resort the list if needed
+            for (; ; )
+            {
+               bool changed = false;
+               step = ref active;
+               while (!step.IsNull && !step.GetRef().next.IsNull)
+               {
+                  if (step.GetRef().x > step.GetRef().next.GetRef().x)
+                  {
+                     Ptr<stbtt__active_edge> t = step;
+                     Ptr<stbtt__active_edge> q = t.GetRef().next;
+
+                     t.GetRef().next = q.GetRef().next;
+                     q.GetRef().next = t;
+                     step.GetRef() = q;
+                     changed = true;
+                  }
+                  step = step.GetRef().next;
+               }
+               if (!changed) break;
+            }
+
+            // insert all edges that start before the center of this scanline -- omit ones that also end on this scanline
+            while (e.GetRef().y0 <= scan_y)
+            {
+               if (e.GetRef().y1 > scan_y)
+               {
+                  Ptr<stbtt__active_edge> z = stbtt__new_active(ref hh, ref e.GetRef(), off_x, scan_y);
+                  if (!z.IsNull)
+                  {
+                     // find insertion point
+                     if (active.IsNull)
+                        active = z;
+                     else if (z.GetRef().x < active.GetRef().x)
+                     {
+                        // insert at front
+                        z.GetRef().next = active;
+                        active = z;
+                     }
+                     else
+                     {
+                        // find thing to insert AFTER
+                        Ptr<stbtt__active_edge> p = active;
+                        while (!p.GetRef().next.IsNull && p.GetRef().next.GetRef().x < z.GetRef().x)
+                           p = p.GetRef().next;
+                        // at this point, p.next.x is NOT < z.x
+                        z.GetRef().next = p.GetRef().next;
+                        p.GetRef().next = z;
+                     }
+                  }
+               }
+               ++e;
+            }
+
+            // now process all active edges in XOR fashion
+            if (!active.IsNull)
+               stbtt__fill_active_edges(scanline, result.w, active, max_weight);
+
+            ++y;
+         }
+
+         for (var c = 0; c < result.w; c++)
+            result.pixels.GetRef(j * result.stride + c) = scanline[c];
+            
+         ++j;
+      }
+
+      stbtt__hheap_cleanup(ref hh);
+
+      //if (scanline != scanline_data)
+      //   STBTT_free(scanline, userdata);
+   }
 
 #elif STBTT_RASTERIZER_VERSION_2
 
@@ -3759,7 +3790,7 @@ static void stbtt__rasterize_sorted_edges(ref stbtt__bitmap result, Ptr<stbtt__e
          scanline[x] += e.direction * (y1 - y0);
       }
       else if (x0 >= x + 1 && x1 >= x + 1)
-      { 
+      {
 
       }
       else
@@ -4070,14 +4101,14 @@ static void stbtt__rasterize_sorted_edges(ref stbtt__bitmap result, Ptr<stbtt__e
             Ptr<stbtt__active_edge> z = step;
             if (z.GetRef().ey <= scan_y_top)
             {
-               step = ref z.GetRef().next; // delete from list
+               step = z.GetRef().next; // delete from list
                STBTT_assert(z.GetRef().direction != 0);
                z.GetRef().direction = 0;
                stbtt__hheap_free(ref hh, z);
             }
             else
             {
-               step = ref step.GetRef().next; // advance through list
+               step = step.GetRef().next; // advance through list
             }
          }
 
@@ -4130,7 +4161,7 @@ static void stbtt__rasterize_sorted_edges(ref stbtt__bitmap result, Ptr<stbtt__e
          {
             Ptr<stbtt__active_edge> z = step;
             z.GetRef().fx += z.GetRef().fdx; // advance to position for current scanline
-            step = ref step.GetRef().next; // advance through list
+            step = step.GetRef().next; // advance through list
          }
 
          ++y;
@@ -4147,6 +4178,18 @@ static void stbtt__rasterize_sorted_edges(ref stbtt__bitmap result, Ptr<stbtt__e
 #endif
 
    static bool STBTT__COMPARE(ref stbtt__edge a, ref stbtt__edge b) => ((a).y0 < (b).y0);
+
+   static int STBTT__COMPARE_2(ref stbtt__edge a, ref stbtt__edge b)
+   {
+
+      if ((a).y0 < (b).y0) return -1;
+      if ((a).y0 > (b).y0) return 1;
+
+      if ((a).x0 < (b).x0) return -1;
+      if ((a).x0 > (b).x0) return 1;
+
+      return 0;
+   }
 
    static void stbtt__sort_edges_ins_sort(Ptr<stbtt__edge> p, int n)
    {
@@ -4197,7 +4240,7 @@ static void stbtt__rasterize_sorted_edges(ref stbtt__bitmap result, Ptr<stbtt__e
          }
          /* now p[m] is the median-of-three */
          /* swap it to the beginning so it won't move around */
-         t = p[0];
+         t = p[0].GetRef();
          p[0].GetRef() = p[m].GetRef();
          p[m].GetRef() = t;
 
@@ -4240,10 +4283,12 @@ static void stbtt__rasterize_sorted_edges(ref stbtt__bitmap result, Ptr<stbtt__e
       }
    }
 
-   static void stbtt__sort_edges(Ptr<stbtt__edge> p, int n)
+   static void stbtt__sort_edges(stbtt__edge[] p, int n)
    {
-      stbtt__sort_edges_quicksort(p, n);
-      stbtt__sort_edges_ins_sort(p, n);
+      p.AsSpan(0, n).Sort((a, b) => STBTT__COMPARE_2(ref a, ref b));
+
+      //stbtt__sort_edges_quicksort(p, n);
+      //stbtt__sort_edges_ins_sort(p, n);
    }
 
    struct stbtt__point
@@ -4257,7 +4302,7 @@ static void stbtt__rasterize_sorted_edges(ref stbtt__bitmap result, Ptr<stbtt__e
       stbtt__edge[] e;
       int n, i, j, k, m;
 #if STBTT_RASTERIZER_VERSION_1
-   int vsubsample = result.h < 8 ? 15 : 5;
+      int vsubsample = result.h < 8 ? 15 : 5;
 #elif STBTT_RASTERIZER_VERSION_2
       int vsubsample = 1;
 #else
@@ -4303,7 +4348,20 @@ static void stbtt__rasterize_sorted_edges(ref stbtt__bitmap result, Ptr<stbtt__e
 
       // now sort the edges by their highest point (should snap to integer, and then by x)
       //STBTT_sort(e, n, sizeof(e[0]), stbtt__edge_compare);
+
+#if DEBUG_USING_SVG
+      string svgPath = string.Join(" ", e.Select(w => "M " + w.x0.ToString(System.Globalization.CultureInfo.InvariantCulture) + " " + w.y0.ToString(System.Globalization.CultureInfo.InvariantCulture) +
+         "L " + w.x1.ToString(System.Globalization.CultureInfo.InvariantCulture) + " " + w.y1.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+      Debug.WriteLine("- Edges SVG Path: " + svgPath);
+#endif
+
       stbtt__sort_edges(e, n);
+
+#if DEBUG_USING_SVG
+      string svgPathSorted = string.Join(" ", e.Select(w => "M " + w.x0.ToString(System.Globalization.CultureInfo.InvariantCulture) + " " + w.y0.ToString(System.Globalization.CultureInfo.InvariantCulture) +
+         "L " + w.x1.ToString(System.Globalization.CultureInfo.InvariantCulture) + " " + w.y1.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+      Debug.WriteLine("- Edges SVG Path Sorted: " + svgPathSorted);
+#endif
 
       // now, traverse the scanlines and find the intersections on each scanline, use xor winding rule
       stbtt__rasterize_sorted_edges(ref result, e, n, vsubsample, off_x, off_y);
@@ -4311,7 +4369,7 @@ static void stbtt__rasterize_sorted_edges(ref stbtt__bitmap result, Ptr<stbtt__e
       //STBTT_free(e, userdata);
    }
 
-   static void stbtt__add_point(stbtt__point[] points, int n, float x, float y)
+   static void stbtt__add_point(stbtt__point[]? points, int n, float x, float y)
    {
       if (points == null) return; // during first pass, it's unallocated
       points[n].x = x;
@@ -4319,7 +4377,7 @@ static void stbtt__rasterize_sorted_edges(ref stbtt__bitmap result, Ptr<stbtt__e
    }
 
    // tessellate until threshold p is happy... @TODO warped to compensate for non-linear stretching
-   static int stbtt__tesselate_curve(stbtt__point[] points, ref int num_points, float x0, float y0, float x1, float y1, float x2, float y2, float objspace_flatness_squared, int n)
+   static int stbtt__tesselate_curve(stbtt__point[]? points, ref int num_points, float x0, float y0, float x1, float y1, float x2, float y2, float objspace_flatness_squared, int n)
    {
       // midpoint
       float mx = (x0 + 2 * x1 + x2) / 4;
@@ -4878,6 +4936,9 @@ static void stbtt__rasterize_sorted_edges(ref stbtt__bitmap result, Ptr<stbtt__e
       orig[0] = x;
       orig[1] = y;
 
+      Span<float> q0 = stackalloc float[2], q1 = stackalloc float[2], q2 = stackalloc float[2];
+      Span<float> hits = stackalloc float[4];
+
       // test a ray from (-infinity,y) to (x,y)
       for (i = 0; i < nverts; ++i)
       {
@@ -4901,8 +4962,6 @@ static void stbtt__rasterize_sorted_edges(ref stbtt__bitmap result, Ptr<stbtt__e
             int by = (int)STBTT_max(y0, STBTT_max(y1, y2));
             if (y > ay && y < by && x > ax)
             {
-               Span<float> q0 = stackalloc float[2], q1 = stackalloc float[2], q2 = stackalloc float[2];
-               Span<float> hits = stackalloc float[4];
                q0[0] = (float)x0;
                q0[1] = (float)y0;
                q1[0] = (float)x1;
@@ -5153,7 +5212,7 @@ static void stbtt__rasterize_sorted_edges(ref stbtt__bitmap result, Ptr<stbtt__e
 
 
 
-   
+
    // FULL VERSION HISTORY
    //
    //   1.25 (2021-07-11) many fixes

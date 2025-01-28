@@ -7,6 +7,7 @@ public class Program
     static public void Main(string[] args)
     {
         PrintAsciiArt.Run(args);
+        //PrintHelloWorld.Run(args);
 
     }
 }

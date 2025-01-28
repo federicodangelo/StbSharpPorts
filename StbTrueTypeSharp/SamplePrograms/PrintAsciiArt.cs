@@ -13,7 +13,7 @@ static public class PrintAsciiArt
         StbTrueType.stbtt_fontinfo font;
         byte[]? bitmap;
 
-        int c = args.Length > 1 ? int.Parse(args[1]) : 'a';
+        int c = args.Length > 1 ? int.Parse(args[1]) : 'O';
         int s = args.Length > 2 ? int.Parse(args[2]) : 20;
         string fileName = args.Length > 3 ? args[3] : "c:/windows/fonts/arialbd.ttf";
 
@@ -34,7 +34,11 @@ static public class PrintAsciiArt
                 string line = "";
 
                 for (var i = 0; i < w; ++i)
+                {
+                    //line += bitmap[j * w + i].ToString("X2");
+
                     line += " .:ioVM@"[bitmap[j * w + i] >> 5];
+                }
 
                 Console.WriteLine(line);
             }
