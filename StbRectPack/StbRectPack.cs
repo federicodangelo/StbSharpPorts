@@ -123,7 +123,7 @@ public class StbRectPack
             else
             {
                 stbrp__findresult fr = stbrp__skyline_pack_rectangle(ref context, rects[i].w, rects[i].h);
-                if (fr.prev_link_index != -1)
+                if (!fr.ref_prev_link_index.IsNull)
                 {
                     rects[i].x = (stbrp_coord)fr.x;
                     rects[i].y = (stbrp_coord)fr.y;
@@ -401,18 +401,82 @@ public class StbRectPack
         return min_y;
     }
 
-    struct stbrp__findresult
+    // This is a nightmare.. emulating pointers to pointers in C# is really tricky
+    ref struct RefInt
+    {
+        public enum RefType
+        {
+            Null,
+            stbrp_context_active_head,
+            stbrp_node_next,
+        }
+
+        private RefType type;
+        private ref stbrp_context c;
+        private int tmp;
+
+        public bool IsNull => type == RefType.Null;
+
+        public ref int GetRef()
+        {
+            STBRP_ASSERT(!IsNull);
+
+            switch (type)
+            {
+
+                case RefType.stbrp_context_active_head:
+                    return ref c.active_head_index;
+
+                case RefType.stbrp_node_next:
+                    return ref GetNode(ref c, tmp).next_index;
+
+                default:
+                case RefType.Null:
+                    throw new Exception("Cannont deference null");
+            }
+        }
+
+        public void SetNull()
+        {
+            type = RefType.Null;
+        }
+
+        public void SetActiveHead()
+        {
+            type = RefType.stbrp_context_active_head;
+        }
+
+        public void SetNextIndexOfNode(int node)
+        {
+            tmp = node;
+            type = RefType.stbrp_node_next;
+        }
+
+        public RefInt(ref stbrp_context c)
+        {
+            this.c = ref c;
+        }
+    }
+
+    ref struct stbrp__findresult
     {
         public int x, y;
-        public int prev_link_index;
+
+        public RefInt ref_prev_link_index;
+
+        public stbrp__findresult(ref stbrp_context c)
+        {
+            ref_prev_link_index = new RefInt(ref c);
+        }
     }
 
     static stbrp__findresult stbrp__skyline_find_best_pos(ref stbrp_context c, int width, int height)
     {
         int best_waste = (1 << 30), best_x, best_y = (1 << 30);
-        stbrp__findresult fr = new();
+        stbrp__findresult fr = new(ref c);
 
-        int prev = -1, node = -1, tail = -1, best = -1;
+        int node = -1, tail = -1;
+        RefInt ref_best = new(ref c), ref_prev = new(ref c);
 
         // align to multiple of c.align
         width = (width + c.align - 1);
@@ -422,13 +486,13 @@ public class StbRectPack
         // if it can't possibly fit, bail immediately
         if (width > c.width || height > c.height)
         {
-            fr.prev_link_index = -1;
+            fr.ref_prev_link_index.SetNull();
             fr.x = fr.y = 0;
             return fr;
         }
 
         node = c.active_head_index;
-        prev = c.active_head_index;
+        ref_prev.SetActiveHead();
         while (GetNode(ref c, node).x + width <= c.width)
         {
             int y, waste;
@@ -439,7 +503,7 @@ public class StbRectPack
                 if (y < best_y)
                 {
                     best_y = y;
-                    best = prev;
+                    ref_best = ref_prev;
                 }
             }
             else
@@ -452,15 +516,15 @@ public class StbRectPack
                     {
                         best_y = y;
                         best_waste = waste;
-                        best = prev;
+                        ref_best = ref_prev;
                     }
                 }
             }
-            prev = GetNode(ref c, node).next_index;
+            ref_prev.SetNextIndexOfNode(node);
             node = GetNode(ref c, node).next_index;
         }
 
-        best_x = (best == -1) ? 0 : GetNode(ref c, best).x;
+        best_x = (ref_best.IsNull) ? 0 : GetNode(ref c, ref_best.GetRef()).x;
 
         // if doing best-fit (BF), we also have to try aligning right edge to each node position
         //
@@ -483,7 +547,7 @@ public class StbRectPack
         {
             tail = c.active_head_index;
             node = c.active_head_index;
-            prev = c.active_head_index;
+            ref_prev.SetActiveHead();
             // find first node that's admissible
             while (GetNode(ref c, tail).x < width)
                 tail = GetNode(ref c, tail).next_index;
@@ -495,7 +559,7 @@ public class StbRectPack
                 // find the left position that matches this
                 while (GetNextNode(ref c, node).x <= xpos)
                 {
-                    prev = GetNode(ref c, node).next_index;
+                    ref_prev.SetNextIndexOfNode(node);
                     node = GetNode(ref c, node).next_index;
                 }
                 STBRP_ASSERT(GetNextNode(ref c, node).x > xpos && GetNode(ref c, node).x <= xpos);
@@ -510,7 +574,7 @@ public class StbRectPack
                             STBRP_ASSERT(y <= best_y);
                             best_y = y;
                             best_waste = waste;
-                            best = prev;
+                            ref_best = ref_prev;
                         }
                     }
                 }
@@ -518,69 +582,69 @@ public class StbRectPack
             }
         }
 
-        fr.prev_link_index = best;
+        fr.ref_prev_link_index = ref_best;
         fr.x = best_x;
         fr.y = best_y;
         return fr;
     }
 
-    static stbrp__findresult stbrp__skyline_pack_rectangle(ref stbrp_context context, int width, int height)
+    static stbrp__findresult stbrp__skyline_pack_rectangle(ref stbrp_context c, int width, int height)
     {
         // find best position according to heuristic
-        stbrp__findresult res = stbrp__skyline_find_best_pos(ref context, width, height);
+        stbrp__findresult res = stbrp__skyline_find_best_pos(ref c, width, height);
         int node = -1, cur = -1;
 
         // bail if:
         //    1. it failed
         //    2. the best node doesn't fit (we don't always check this)
         //    3. we're out of memory
-        if (res.prev_link_index == -1 || res.y + height > context.height || context.free_head_index == -1)
+        if (res.ref_prev_link_index.IsNull || res.y + height > c.height || c.free_head_index == -1)
         {
-            res.prev_link_index = -1;
+            res.ref_prev_link_index.SetNull();
             return res;
         }
 
         // on success, create new node
-        node = context.free_head_index;
-        GetNode(ref context, node).x = (stbrp_coord)res.x;
-        GetNode(ref context, node).y = (stbrp_coord)(res.y + height);
+        node = c.free_head_index;
+        GetNode(ref c, node).x = (stbrp_coord)res.x;
+        GetNode(ref c, node).y = (stbrp_coord)(res.y + height);
 
-        context.free_head_index = GetNode(ref context, node).next_index;
+        c.free_head_index = GetNode(ref c, node).next_index;
 
         // insert the new node into the right starting point, and
         // let 'cur' point to the remaining nodes needing to be
         // stiched back in
 
-        cur = res.prev_link_index;
-        if (GetNode(ref context, cur).x < res.x)
+        cur = res.ref_prev_link_index.GetRef();
+        if (GetNode(ref c, cur).x < res.x)
         {
             // preserve the existing one, so start testing with the next one
-            int next = GetNode(ref context, cur).next_index;
-            GetNode(ref context, cur).next_index = node;
+            int next = GetNode(ref c, cur).next_index;
+            GetNode(ref c, cur).next_index = node;
             cur = next;
         }
         else
         {
-            res.prev_link_index = node;
+            res.ref_prev_link_index.GetRef() = node;
         }
 
         // from here, traverse cur and free the nodes, until we get to one
         // that shouldn't be freed
-        while (GetNode(ref context, cur).next_index >= 0 &&
-               GetNextNode(ref context, cur).x <= res.x + width)
+        while (GetNode(ref c, cur).next_index >= 0 &&
+               GetNextNode(ref c, cur).x <= res.x + width)
         {
-            int next = GetNode(ref context, cur).next_index;
+            int next = GetNode(ref c, cur).next_index;
             // move the current node to the free list
-            GetNode(ref context, cur).next_index = context.free_head_index;
-            context.free_head_index = cur;
+            GetNode(ref c, cur).next_index = c.free_head_index;
+            c.free_head_index = cur;
             cur = next;
         }
 
         // stitch the list back in
-        GetNode(ref context, node).next_index = cur;
+        GetNode(ref c, node).next_index = cur;
 
-        if (GetNode(ref context, cur).x < res.x + width)
-            GetNode(ref context, cur).x = (stbrp_coord)(res.x + width);
+        if (GetNode(ref c, cur).x < res.x + width)
+            GetNode(ref c, cur).x = (stbrp_coord)(res.x + width);
 
 # if _DEBUG
         cur = context.active_head;

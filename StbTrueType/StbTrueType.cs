@@ -1,5 +1,5 @@
 //#define DEBUG_USING_SVG
-//#define STB_RECT_PACK_VERSION
+#define STB_RECT_PACK_VERSION
 
 //   Starting with version 1.06, the rasterizer was replaced with a new,
 //   faster and generally-more-precise rasterizer. The new rasterizer more
