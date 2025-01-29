@@ -18,7 +18,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        #os: [ubuntu-latest, windows-latest, macOS-latest] # The image loading library that we are using is only available in windows..
+        os: [windows-latest]
         
     steps:
     - uses: actions/checkout@v4
