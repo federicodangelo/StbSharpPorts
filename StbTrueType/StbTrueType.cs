@@ -2118,12 +2118,11 @@ public class StbTrueType
          _out[i] = stbtt__cff_int(ref operands);
    }
 
-   static void stbtt__dict_get_ints(ref stbtt__buf b, int key, int outcount, out stbtt_uint32 _out)
+   static void stbtt__dict_get_ints(ref stbtt__buf b, int key, int outcount, ref stbtt_uint32 _out)
    {
       STBTT_assert(outcount != 0);
       int i;
       stbtt__buf operands = stbtt__dict_get(ref b, key);
-      _out = 0;
       for (i = 0; i < outcount && operands.cursor < operands.size; i++)
          _out = stbtt__cff_int(ref operands);
    }
@@ -2241,7 +2240,7 @@ public class StbTrueType
       stbtt__dict_get_ints(ref fontdict, 18, 2, private_loc);
       if (private_loc[1] == 0 || private_loc[0] == 0) return stbtt__new_buf(BytePtr.Null, 0);
       pdict = stbtt__buf_range(ref cff, (int)private_loc[1], (int)private_loc[0]);
-      stbtt__dict_get_ints(ref pdict, 19, 1, out subrsoff);
+      stbtt__dict_get_ints(ref pdict, 19, 1, ref subrsoff);
       if (subrsoff == 0) return stbtt__new_buf(BytePtr.Null, 0);
       stbtt__buf_seek(ref cff, (int)(private_loc[1] + subrsoff));
       return stbtt__cff_get_index(ref cff);
@@ -2325,10 +2324,10 @@ public class StbTrueType
          stbtt__cff_get_index(ref b);  // string INDEX
          info.gsubrs = stbtt__cff_get_index(ref b);
 
-         stbtt__dict_get_ints(ref topdict, 17, 1, out charstrings);
-         stbtt__dict_get_ints(ref topdict, 0x100 | 6, 1, out cstype);
-         stbtt__dict_get_ints(ref topdict, 0x100 | 36, 1, out fdarrayoff);
-         stbtt__dict_get_ints(ref topdict, 0x100 | 37, 1, out fdselectoff);
+         stbtt__dict_get_ints(ref topdict, 17, 1, ref charstrings);
+         stbtt__dict_get_ints(ref topdict, 0x100 | 6, 1, ref cstype);
+         stbtt__dict_get_ints(ref topdict, 0x100 | 36, 1, ref fdarrayoff);
+         stbtt__dict_get_ints(ref topdict, 0x100 | 37, 1, ref fdselectoff);
          info.subrs = stbtt__get_subrs(b, topdict);
 
          // we only support Type 2 charstrings
@@ -2702,8 +2701,8 @@ public class StbTrueType
                tmp = new stbtt_vertex[num_vertices + comp_num_verts];
                //if (tmp == null)
                //{
-                  //if (vertices) STBTT_free(vertices, info.userdata);
-                  //if (comp_verts) STBTT_free(comp_verts, info.userdata);
+               //if (vertices) STBTT_free(vertices, info.userdata);
+               //if (comp_verts) STBTT_free(comp_verts, info.userdata);
                //   return 0;
                //}
                if (num_vertices > 0) Array.Copy(vertices, tmp, num_vertices);
@@ -3126,7 +3125,50 @@ public class StbTrueType
                         stbtt__csctx_rccurve_to(ref c, dx1, dy1, dx2, dy2, dx3, dy3);
                         stbtt__csctx_rccurve_to(ref c, dx4, dy4, dx5, dy5, dx6, dy6);
                         break;
-
+                     //case 0x03: // and
+                     //   if (sp < 11) return STBTT__CSERR("flex1 stack");
+                     //   break;
+                     //case 0x04: // or
+                     //   break;
+                     //case 0x05: // not
+                     //   break;
+                     //case 0x09: // abs
+                     //   if (sp < 1) return STBTT__CSERR("abs stack");
+                     //   s[sp - 1] = MathF.Abs(s[sp-1]);
+                     //   clear_stack = false;
+                     //   break;
+                     //case 0x0A: // add
+                     //   break;
+                     //case 0x0B: // sub
+                     //   break;
+                     //case 0x0C: // div
+                     //   break;
+                     //case 0x0E: // neg
+                     //   break;
+                     //case 0x0F: // eq
+                     //   break;
+                     //case 0x12: // drop
+                     //   break;
+                     //case 0x14: // put
+                     //   break;
+                     //case 0x15: // get
+                     //   break;
+                     //case 0x16: // ifelse
+                     //   break;
+                     //case 0x17: // random
+                     //   break;
+                     //case 0x18: // mul
+                     //   break;
+                     //case 0x1A: // sqrt
+                     //   break;
+                     //case 0x1B: // dup
+                     //   break;
+                     //case 0x1C: // exch
+                     //   break;
+                     //case 0x1D: // index
+                     //   break;
+                     //case 0x1E: // roll
+                     //   break;
                      default:
                         return STBTT__CSERR("unimplemented");
                   }

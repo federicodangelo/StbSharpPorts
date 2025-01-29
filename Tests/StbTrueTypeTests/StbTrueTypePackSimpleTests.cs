@@ -10,7 +10,8 @@ public class StbTrueTypePackSimpleTests : StbTrueTypeTests
             "Karla-Regular.ttf",
             "ProggyClean.ttf",
             "ProggyTiny.ttf",
-            "Roboto-Medium.ttf")] string fontFileName,
+            "Roboto-Medium.ttf",
+            "FDArrayTest257.otf")] string fontFileName,
         [CombinatorialValues(8.0f, 16.0f, 32.0f)] float fontSize)
     {
         var ttf_buffer = GetFontFile(fontFileName);
@@ -36,7 +37,7 @@ public class StbTrueTypePackSimpleTests : StbTrueTypeTests
             ? -result //if result is negative, returns the negative of the number of characters that fit
             : rangeSize;
 
-        Assert.True(addedCharacters == rangeSize, $"Failed to back all fonts in bitmap: {fontFileName} {fontSize} {rangeFrom}-{rangeTo}");
+        Assert.True(addedCharacters == rangeSize, $"Failed to bake all fonts in bitmap: {fontFileName} {fontSize} {rangeFrom}-{rangeTo} baked: {addedCharacters}/{rangeSize}");
 
         string expectedFileName = BuildExpectedPackedSimpleImageFileName(fontFileName, fontSize, rangeFrom, rangeTo);
         string generatedFileName = BuildGeneratedPackedSimpleImageFileName(fontFileName, fontSize, rangeFrom, rangeTo);

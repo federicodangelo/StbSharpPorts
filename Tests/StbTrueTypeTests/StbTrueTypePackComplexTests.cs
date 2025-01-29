@@ -10,7 +10,8 @@ public class StbTrueTypePackComplexTests : StbTrueTypeTests
             "Karla-Regular.ttf",
             "ProggyClean.ttf",
             "ProggyTiny.ttf",
-            "Roboto-Medium.ttf")] string fontFileName,
+            "Roboto-Medium.ttf",
+            "FDArrayTest257.otf")] string fontFileName,
         [CombinatorialValues(8.0f, 16.0f, 32.0f)] float fontSize)
     {
         var ttf_buffer = GetFontFile(fontFileName);

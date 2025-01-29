@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Fonts\*.ttf">
+    <Content Include="Fonts\*.*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>  
     <Content Include="Expected\*.*">
