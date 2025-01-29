@@ -196,7 +196,7 @@ public class StbRectPack
 
         nodes[num_nodes - 1].next_index = -1;
 
-        context = new stbrp_context();
+        context = new stbrp_context(nodes);
 
         context.init_mode = STBRP__INIT.skyline;
         context.heuristic = STBRP_HEURISTIC.Skyline_default;
@@ -322,6 +322,12 @@ public class StbRectPack
 
         public stbrp_context()
         {
+            this.nodes = [];
+        }
+
+        public stbrp_context(stbrp_node[] nodes)
+        {
+            this.nodes = nodes;
         }
     };
 
@@ -342,8 +348,6 @@ public class StbRectPack
     {
         skyline = 1
     };
-
-
 
     // find minimum y position if it starts at x1
     static int stbrp__skyline_find_min_y(ref stbrp_context c, int first_index, int x0, int width, out int pwaste)

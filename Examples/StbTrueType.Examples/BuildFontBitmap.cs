@@ -24,14 +24,19 @@ static public class BuildFontBitmapExample
 
     public class BuildFontBitmapOutput
     {
-        public byte[] bitmap;
+        public byte[] bitmap = [];
         public int bitmapWidth;
         public int bitmapHeight;
 
         // Indexed from FontOptions.rangeFrom
-        public StbTrueType.stbtt_bakedchar[] cdata;
+        public StbTrueType.stbtt_bakedchar[] cdata = [];
 
         public int addedCharacters;
+
+        public BuildFontBitmapOutput()
+        {
+
+        }
     }
 
     public enum PackFormat
