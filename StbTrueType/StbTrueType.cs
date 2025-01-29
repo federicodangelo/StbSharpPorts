@@ -1,5 +1,5 @@
 //#define DEBUG_USING_SVG
-#define STB_RECT_PACK_VERSION
+//#define STB_RECT_PACK_VERSION
 
 //   Starting with version 1.06, the rasterizer was replaced with a new,
 //   faster and generally-more-precise rasterizer. The new rasterizer more
@@ -13,12 +13,14 @@
 #define STBTT_RASTERIZER_VERSION_2
 //#define STBTT_RASTERIZER_VERSION_1
 
-// TODO: Use stb_rect !!
-//#define STB_RECT_PACK_VERSION
-
-//#if !STB_RECT_PACK_VERSION
+#if !STB_RECT_PACK_VERSION
 using stbrp_coord = int;
-//#endif
+#else 
+using stbrp_coord = int;
+using stbrp_node = StbSharp.StbRectPack.stbrp_node;
+using stbrp_context = StbSharp.StbRectPack.stbrp_context;
+using stbrp_rect = StbSharp.StbRectPack.stbrp_rect;
+#endif
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -486,7 +488,11 @@ public class StbTrueType
       spc.v_oversample = 1;
       spc.skip_missing = false;
 
+#if STB_RECT_PACK_VERSION
+      StbRectPack.stbrp_init_target(out spc.pack_info, pw - padding, ph - padding, nodes, num_nodes);
+#else
       stbrp_init_target(out spc.pack_info, pw - padding, ph - padding, nodes, num_nodes);
+#endif
 
       if (!pixels.IsNull)
          pixels.Fill(0, pw * ph); // background of 0 around pixels
@@ -690,7 +696,11 @@ public class StbTrueType
    }
    static public void stbtt_PackFontRangesPackRects(ref stbtt_pack_context spc, stbrp_rect[] rects, int num_rects)
    {
+      #if STB_RECT_PACK_VERSION
+      StbRectPack.stbrp_pack_rects(ref spc.pack_info, rects, num_rects);
+      #else
       stbrp_pack_rects(ref spc.pack_info, rects, num_rects);
+      #endif
    }
 
 
@@ -718,7 +728,7 @@ public class StbTrueType
          for (j = 0; j < ranges[i].num_chars; ++j)
          {
             ref stbrp_rect r = ref rects[k];
-            if (r.was_packed && r.w != 0 && r.h != 0)
+            if (r.was_packed != 0 && r.w != 0 && r.h != 0)
             {
                ref stbtt_packedchar bc = ref ranges[i].chardata_for_range[j];
                int advance, lsb, x0, y0, x1, y1;
@@ -773,7 +783,7 @@ public class StbTrueType
             {
                return_value = 0;
             }
-            else if (r.was_packed && r.w == 0 && r.h == 0 && missing_glyph >= 0)
+            else if (r.was_packed != 0 && r.w == 0 && r.h == 0 && missing_glyph >= 0)
             {
                ranges[i].chardata_for_range[j] = ranges[i].chardata_for_range[missing_glyph];
             }
@@ -3454,9 +3464,9 @@ public class StbTrueType
       public bool invert;
    };
 
-   
 
-   struct stbtt__active_edge_collection 
+
+   struct stbtt__active_edge_collection
    {
       public stbtt__active_edge[] active_edges;
 
@@ -3587,7 +3597,7 @@ public class StbTrueType
       float dxdy = (e.x1 - e.x0) / (e.y1 - e.y0);
       //STBTT_assert(e.y0 <= start_point);
       //if (!z) return z;
-      stbtt__active_edge active_edge = new ();
+      stbtt__active_edge active_edge = new();
       active_edge.fdx = dxdy;
       active_edge.fdy = dxdy != 0.0f ? (1.0f / dxdy) : 0.0f;
       active_edge.fx = e.x0 + dxdy * (start_point - e.y0);
@@ -4100,7 +4110,7 @@ public class StbTrueType
          for (var idx = hh.active_indices_count - 1; idx >= 0; idx--)
          {
             ref var z = ref hh.active_edges[hh.active_indices[idx]];
-            
+
             if (z.ey <= scan_y_top)
             {
                stbtt__remove_from_active_collection(ref hh, idx);
@@ -4129,7 +4139,7 @@ public class StbTrueType
                      }
                   }
                   STBTT_assert(active_edge.ey >= scan_y_top); // if we get really unlucky a tiny bit of an edge can be out of bounds
-                                                             // insert at front
+                                                              // insert at front
                }
             }
             edgeIndex++;
@@ -4153,7 +4163,7 @@ public class StbTrueType
                result.pixels[j * result.stride + i].GetRef() = (byte)m;
             }
          }
-         
+
          // advance all the edges
          for (var idx = 0; idx < hh.active_indices_count; idx++)
          {
@@ -4583,7 +4593,7 @@ public class StbTrueType
    // rectangle packing replacement routines if you don't have stb_rect_pack.h
    //
 
-   // #if !STB_RECT_PACK_VERSION
+#if !STB_RECT_PACK_VERSION
 
    ////////////////////////////////////////////////////////////////////////////////////
    //                                                                                //
@@ -4611,7 +4621,7 @@ public class StbTrueType
    {
       public stbrp_coord x, y;
       public int id, w, h;
-      public bool was_packed;
+      public int was_packed;
    };
 
    static void stbrp_init_target(out stbrp_context con, int pw, int ph, stbrp_node[] nodes, int num_nodes)
@@ -4639,15 +4649,15 @@ public class StbTrueType
             break;
          rects[i].x = con.x;
          rects[i].y = con.y;
-         rects[i].was_packed = true;
+         rects[i].was_packed = 1;
          con.x += rects[i].w;
          if (con.y + rects[i].h > con.bottom_y)
             con.bottom_y = con.y + rects[i].h;
       }
       for (; i < num_rects; ++i)
-         rects[i].was_packed = false;
+         rects[i].was_packed = 0;
    }
-   //#endif
+#endif
 
    //////////////////////////////////////////////////////////////////////////////
    //

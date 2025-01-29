@@ -230,7 +230,7 @@ public class StbRectPack
         }
         else
         {
-            return ref context.nodes[index - context.num_nodes];
+            return ref context.nodes[index];
         }
     }
 
@@ -348,7 +348,7 @@ public class StbRectPack
     // find minimum y position if it starts at x1
     static int stbrp__skyline_find_min_y(ref stbrp_context c, int first_index, int x0, int width, out int pwaste)
     {
-        ref stbrp_node node = ref GetNode(ref c, first_index);
+        int node = first_index;
 
         int x1 = x0 + width;
         int min_y, visited_width, waste_area;
@@ -362,39 +362,39 @@ public class StbRectPack
    while (node.next.x <= x0)
       ++node;
 #else
-        STBRP_ASSERT(GetNode(ref c, node.next_index).x > x0); // we ended up handling this in the caller for efficiency
+        STBRP_ASSERT(GetNextNode(ref c, node).x > x0); // we ended up handling this in the caller for efficiency
 #endif
 
-        STBRP_ASSERT(node.x <= x0);
+        STBRP_ASSERT(GetNode(ref c, node).x <= x0);
 
         min_y = 0;
         waste_area = 0;
         visited_width = 0;
-        while (node.x < x1)
+        while (GetNode(ref c, node).x < x1)
         {
-            if (node.y > min_y)
+            if (GetNode(ref c, node).y > min_y)
             {
                 // raise min_y higher.
                 // we've accounted for all waste up to min_y,
                 // but we'll now add more waste for everything we've visted
-                waste_area += visited_width * (node.y - min_y);
-                min_y = node.y;
+                waste_area += visited_width * (GetNode(ref c, node).y - min_y);
+                min_y = GetNode(ref c, node).y;
                 // the first time through, visited_width might be reduced
-                if (node.x < x0)
-                    visited_width += GetNode(ref c, node.next_index).x - x0;
+                if (GetNode(ref c, node).x < x0)
+                    visited_width += GetNextNode(ref c, node).x - x0;
                 else
-                    visited_width += GetNode(ref c, node.next_index).x - node.x;
+                    visited_width += GetNextNode(ref c, node).x - GetNode(ref c, node).x;
             }
             else
             {
                 // add waste area
-                int under_width = GetNode(ref c, node.next_index).x - node.x;
+                int under_width = GetNextNode(ref c, node).x - GetNode(ref c, node).x;
                 if (under_width + visited_width > width)
                     under_width = width - visited_width;
-                waste_area += under_width * (min_y - node.y);
+                waste_area += under_width * (min_y - GetNode(ref c, node).y);
                 visited_width += under_width;
             }
-            node = ref GetNode(ref c, node.next_index);
+            node = GetNode(ref c, node).next_index;
         }
 
         pwaste = waste_area;
