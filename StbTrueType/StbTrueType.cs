@@ -1382,16 +1382,6 @@ public class StbTrueType
       stbtt_vertex[] vertices;
       int num_verts = stbtt_GetGlyphShape(ref info, glyph, out vertices);
 
-      if (vertices == null)
-      {
-         width = 0;
-         height = 0;
-         xoff = 0;
-         yoff = 0;
-         //STBTT_free(vertices, info.userdata);
-         return null;
-      }
-
       if (scale_x == 0) scale_x = scale_y;
       if (scale_y == 0)
       {
@@ -1442,9 +1432,6 @@ public class StbTrueType
       int ix0, iy0;
       stbtt_vertex[]? vertices;
       int num_verts = stbtt_GetGlyphShape(ref info, glyph, out vertices);
-
-      if (vertices == null)
-         return;
 
       stbtt__bitmap gbm;
 
@@ -4204,9 +4191,7 @@ public class StbTrueType
 #error "Unrecognized value of STBTT_RASTERIZER_VERSION"
 #endif
 
-   static bool STBTT__COMPARE(ref stbtt__edge a, ref stbtt__edge b) => ((a).y0 < (b).y0);
-
-   static int STBTT__COMPARE_2(ref stbtt__edge a, ref stbtt__edge b)
+   static int STBTT__COMPARE(ref stbtt__edge a, ref stbtt__edge b)
    {
 
       if ((a).y0 < (b).y0) return -1;
@@ -4218,104 +4203,9 @@ public class StbTrueType
       return 0;
    }
 
-   static void stbtt__sort_edges_ins_sort(Ptr<stbtt__edge> p, int n)
-   {
-      int i, j;
-      for (i = 1; i < n; ++i)
-      {
-         stbtt__edge t = p[i];
-         ref stbtt__edge a = ref t;
-         j = i;
-         while (j > 0)
-         {
-            ref stbtt__edge b = ref p[j - 1].GetRef();
-            bool c = STBTT__COMPARE(ref a, ref b);
-            if (!c) break;
-            p[j].GetRef() = p[j - 1].GetRef();
-            --j;
-         }
-         if (i != j)
-            p[j].GetRef() = t;
-      }
-   }
-
-   static void stbtt__sort_edges_quicksort(Ptr<stbtt__edge> p, int n)
-   {
-      /* threshold for transitioning to insertion sort */
-      while (n > 12)
-      {
-         stbtt__edge t;
-         bool c01, c12, c;
-         int m, i, j;
-
-         /* compute median of three */
-         m = n >> 1;
-         c01 = STBTT__COMPARE(ref p.GetRef(0), ref p.GetRef(m));
-         c12 = STBTT__COMPARE(ref p.GetRef(m), ref p.GetRef(n - 1));
-         /* if 0 >= mid >= end, or 0 < mid < end, then use mid */
-         if (c01 != c12)
-         {
-            /* otherwise, we'll need to swap something else to middle */
-            int z;
-            c = STBTT__COMPARE(ref p.GetRef(0), ref p.GetRef(n - 1));
-            /* 0>mid && mid<n:  0>n => n; 0<n => 0 */
-            /* 0<mid && mid>n:  0>n => 0; 0<n => n */
-            z = (c == c12) ? 0 : n - 1;
-            t = p[z];
-            p[z].GetRef() = p[m].GetRef();
-            p[m].GetRef() = t;
-         }
-         /* now p[m] is the median-of-three */
-         /* swap it to the beginning so it won't move around */
-         t = p[0].GetRef();
-         p[0].GetRef() = p[m].GetRef();
-         p[m].GetRef() = t;
-
-         /* partition loop */
-         i = 1;
-         j = n - 1;
-         for (; ; )
-         {
-            /* handling of equality is crucial here */
-            /* for sentinels & efficiency with duplicates */
-            for (; ; ++i)
-            {
-               if (!STBTT__COMPARE(ref p[i].GetRef(), ref p[0].GetRef())) break;
-            }
-            for (; ; --j)
-            {
-               if (!STBTT__COMPARE(ref p[0].GetRef(), ref p[j].GetRef())) break;
-            }
-            /* make sure we haven't crossed */
-            if (i >= j) break;
-            t = p[i];
-            p[i].GetRef() = p[j].GetRef();
-            p[j].GetRef() = t;
-
-            ++i;
-            --j;
-         }
-         /* recurse on smaller side, iterate on larger */
-         if (j < (n - i))
-         {
-            stbtt__sort_edges_quicksort(p, j);
-            p = p + i;
-            n = n - i;
-         }
-         else
-         {
-            stbtt__sort_edges_quicksort(p + i, n - i);
-            n = j;
-         }
-      }
-   }
-
    static void stbtt__sort_edges(stbtt__edge[] p, int n)
    {
-      p.AsSpan(0, n).Sort((a, b) => STBTT__COMPARE_2(ref a, ref b));
-
-      //stbtt__sort_edges_quicksort(p, n);
-      //stbtt__sort_edges_ins_sort(p, n);
+      p.AsSpan(0, n).Sort((a, b) => STBTT__COMPARE(ref a, ref b));
    }
 
    struct stbtt__point
@@ -4685,10 +4575,6 @@ public class StbTrueType
    //
    // This is SUPER-AWESOME (tm Ryan Gordon) packing using stb_rect_pack.h. If
    // stb_rect_pack.h isn't available, it uses the BakeFontBitmap strategy.
-
-
-
-
 
    const int STBTT__OVER_MASK = (STBTT_MAX_OVERSAMPLE - 1);
 

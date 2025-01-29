@@ -73,15 +73,15 @@ public class StbTrueTypeTests
                 {
                     SaveGeneratedImage(actualFileName, actual);
 
-                    SaveImageDifference(expected, actual, actualFileName);
+                    string diffFileName = SaveImageDifference(expected, actual, actualFileName);
 
-                    Assert.True(expected.GetPixel(x,y) == actual.GetPixel(x, y), $"Pixel difference at [{x},{y}]");
+                    Assert.True(expected.GetPixel(x,y) == actual.GetPixel(x, y), $"Pixel difference at [{x},{y}], see full diff in file \"{Path.GetFullPath(diffFileName)}\"");
                 }
             }
         }
     }
 
-    static private void SaveImageDifference(Bitmap expected, Bitmap actual, string actualFileName)
+    static private string SaveImageDifference(Bitmap expected, Bitmap actual, string actualFileName)
     {
         Bitmap differenceImage = new Bitmap(expected.Width, expected.Height);
 
@@ -105,6 +105,8 @@ public class StbTrueTypeTests
         SaveGeneratedImage(differenceFileName, differenceImage);
 
         differenceImage.Dispose();
+
+        return differenceFileName;
     }
 
     static private void SaveGeneratedImage(string fileName, Image image)
