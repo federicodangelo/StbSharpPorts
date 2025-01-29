@@ -11,7 +11,7 @@ public class StbTrueTypeCharacterTests : StbTrueTypeTests
             "ProggyClean.ttf",
             "ProggyTiny.ttf",
             "Roboto-Medium.ttf")] string fontFileName,
-        [CombinatorialValues(8.0f, 16.0f, 32.0f)] float fontSize,
+        [CombinatorialValues(8.0f, 16.0f, 32.0f, 64.0f, 128.0f)] float fontSize,
         [CombinatorialValues('a', 'b', 'x', 'A', 'B', 'X', '@', 'ñ')] char character)
     {
         var ttf_buffer = GetFontFile(fontFileName);
@@ -29,7 +29,7 @@ public class StbTrueTypeCharacterTests : StbTrueTypeTests
 
         var generatedImage = GenerateImageFromFontBitmap(bitmap, width, height);
 
-        AssertImagesEqual(GetExpectedFontImage(expectedFileName), generatedImage, generatedFileName);
+        AssertImagesEqual(expectedFileName, generatedImage, generatedFileName);
     }
 
     static private string BuildExpectedSingleCharacterImageFileName(string fontFileName, float fontSize, char character)

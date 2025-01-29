@@ -24,7 +24,7 @@ public class StbTrueTypeTests
         return bytes;
     }
 
-    static protected Bitmap GetExpectedFontImage(string fileName)
+    static private Bitmap GetExpectedFontImage(string fileName)
     {
         Assert.True(File.Exists(fileName), "Missing expected test image: " + fileName);
 
@@ -46,6 +46,17 @@ public class StbTrueTypeTests
         }
 
         return image;
+    }
+
+    static protected void AssertImagesEqual(string expectedFileName, Bitmap actual, string actualFileName)
+    {
+        if (!File.Exists(expectedFileName))
+        {
+            // The expected file doesn't exists, write the actual one to disk so it can be used as a template
+            SaveGeneratedImage(actualFileName, actual);
+        }
+
+        AssertImagesEqual(GetExpectedFontImage(expectedFileName), actual, actualFileName);
     }
 
     static protected void AssertImagesEqual(Bitmap expected, Bitmap actual, string actualFileName)

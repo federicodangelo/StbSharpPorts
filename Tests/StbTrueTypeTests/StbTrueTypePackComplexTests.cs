@@ -48,7 +48,7 @@ public class StbTrueTypePackComplexTests : StbTrueTypeTests
 
         var generatedImage = GenerateImageFromFontBitmap(bitmap, width, height);
 
-        AssertImagesEqual(GetExpectedFontImage(expectedFileName), generatedImage, generatedFileName);
+        AssertImagesEqual(expectedFileName, generatedImage, generatedFileName);
     }        
 
     static private string BuildExpectedPackedComplexImageFileName(string fontFileName, float fontSize, int rangeFrom, int rangeTo)
