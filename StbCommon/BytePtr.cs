@@ -25,6 +25,8 @@ public readonly struct BytePtr(byte[] bytes, int offset = 0)
         return 0;
     }
 
+    public Span<byte> AsSpan() => new Span<byte>(bytes, offset, Length);
+
     public readonly BytePtr this[int index] { get => new(bytes, offset + index); }
 
     static public BytePtr operator +(BytePtr left, int offset)
@@ -34,7 +36,7 @@ public readonly struct BytePtr(byte[] bytes, int offset = 0)
 
     static public BytePtr operator +(BytePtr left, uint offset)
     {
-        return new BytePtr(left.bytes, (int) (left.offset + offset));
+        return new BytePtr(left.bytes, (int)(left.offset + offset));
     }
 
     static public BytePtr operator ++(BytePtr left)
@@ -50,6 +52,11 @@ public readonly struct BytePtr(byte[] bytes, int offset = 0)
     static public implicit operator byte(BytePtr left)
     {
         return left.bytes[left.offset];
+    }
+
+    static public implicit operator Span<byte>(BytePtr left)
+    {
+        return left.AsSpan();
     }
 
     public readonly ref byte GetRef(int index) => ref bytes[offset + index];
@@ -72,6 +79,8 @@ public readonly struct Ptr<T>(T[] elements, int offset = 0)
     public readonly int Length => Math.Max((elements != null ? elements.Length : 0) - offset, 0);
 
     public readonly Ptr<T> this[int index] { get => new(elements, offset + index); }
+
+    public Span<T> AsSpan() => new Span<T>(elements, offset, Length);
 
     static public Ptr<T> operator +(Ptr<T> left, int offset)
     {
