@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace StbSharp.StbCommon;
 
 public readonly struct BytePtr(byte[] bytes, int offset = 0)
@@ -10,6 +12,8 @@ public readonly struct BytePtr(byte[] bytes, int offset = 0)
     public readonly int Length => Math.Max(bytes.Length - offset, 0);
 
     public readonly byte[] Raw => bytes;
+
+    public readonly int RawOffset => offset; 
 
     public void Fill(byte value, int len)
     {
@@ -28,6 +32,12 @@ public readonly struct BytePtr(byte[] bytes, int offset = 0)
     public Span<byte> AsSpan() => new Span<byte>(bytes, offset, Length);
 
     public readonly BytePtr this[int index] { get => new(bytes, offset + index); }
+
+    // Defining this operator broke tests :-(    
+    /*static public BytePtr operator -(BytePtr left, int offset)
+    {
+        return new BytePtr(left.bytes, left.offset - offset);
+    }*/
 
     static public BytePtr operator +(BytePtr left, int offset)
     {
@@ -64,6 +74,30 @@ public readonly struct BytePtr(byte[] bytes, int offset = 0)
     public readonly ref byte GetRef() => ref bytes[offset];
 
     static public readonly BytePtr Null = new([], 0);
+
+    public static bool operator <(BytePtr left, BytePtr right)
+    {
+        Debug.Assert(left.bytes == right.bytes);
+        return left.offset < right.offset; ;
+    }
+
+    public static bool operator >(BytePtr left, BytePtr right)
+    {
+        Debug.Assert(left.bytes == right.bytes);
+        return left.offset > right.offset; ;
+    }
+
+    public static bool operator <=(BytePtr left, BytePtr right)
+    {
+        Debug.Assert(left.bytes == right.bytes);
+        return left.offset <= right.offset; ;
+    }
+
+    public static bool operator >=(BytePtr left, BytePtr right)
+    {
+        Debug.Assert(left.bytes == right.bytes);
+        return left.offset >= right.offset; ;
+    }
 }
 
 public readonly struct Ptr<T>(T[] elements, int offset = 0)
