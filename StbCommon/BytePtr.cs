@@ -48,8 +48,6 @@ public readonly struct BytePtr(Memory<byte> bytes)
  
     static public BytePtr operator -(BytePtr left, int offset)
     {
-        Debug.Assert(false);
-
         if (!MemoryMarshal.TryGetArray<byte>(left.bytes, out var segmentLeft))
         {
             Debug.Assert(false);
@@ -65,7 +63,7 @@ public readonly struct BytePtr(Memory<byte> bytes)
             MemoryMarshal.TryGetArray<byte>(right.bytes, out var segmentRight))
         {
             Debug.Assert(segmentLeft.Array == segmentRight.Array);
-            return new BytePtr(segmentRight.Array.AsMemory().Slice(right.Offset - left.Offset));
+            return new BytePtr(segmentLeft.Array.AsMemory().Slice(segmentLeft.Offset - segmentRight.Offset));
         }
 
         return BytePtr.Null;

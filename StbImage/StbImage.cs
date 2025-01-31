@@ -54,6 +54,7 @@ using StbSharp.StbCommon;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.IO.Compression;
 
 public class StbImage
 {
@@ -490,6 +491,7 @@ static public BytePtr stbi_load_gif_from_memory(BytePtr buffer, int len, out int
    static public Ptr<stbi_us> stbi_load_16_from_memory(BytePtr buffer, int len, out int x, out int y, out STBI_CHANNELS channels_in_file, STBI_CHANNELS desired_channels)
    {
       stbi__context s = new stbi__context();
+      stbi__start_mem(ref s, buffer, len);
       return stbi__load_and_postprocess_16bit(ref s, out x, out y, out channels_in_file, desired_channels);
    }
 
@@ -4471,8 +4473,8 @@ static BytePtr stbi__hdr_to_ldr(float   *data, int x, int y, int comp)
       uint cur, limit, old_limit;
       z.zout = zout;
       if (!z.z_expandable) return stbi__err("output buffer limit", "Corrupt PNG") != 0;
-      cur = (uint)(z.zout - z.zout_start).Offset;
-      limit = old_limit = (uint)(z.zout_end - z.zout_start).Offset;
+      cur = (uint)(z.zout.Offset - z.zout_start.Offset);
+      limit = old_limit = (uint)(z.zout_end.Offset - z.zout_start.Offset);
       if (uint.MaxValue - cur < (uint)n) return stbi__err("outofmem", "Out of memory") != 0;
       while (cur + n > limit)
       {
@@ -4538,8 +4540,8 @@ static BytePtr stbi__hdr_to_ldr(float   *data, int x, int y, int comp)
             if (z < 0 || z >= 30) return stbi__err("bad huffman code", "Corrupt PNG") != 0; // per DEFLATE, distance codes 30 and 31 must not appear in compressed data
             dist = stbi__zdist_base[z];
             if (stbi__zdist_extra[z] != 0) dist += stbi__zreceive(ref a, stbi__zdist_extra[z]);
-            if ((zout - a.zout_start).Offset < dist) return stbi__err("bad dist", "Corrupt PNG") != 0;
-            if (len > (a.zout_end - zout).Offset)
+            if (zout.Offset - a.zout_start.Offset < dist) return stbi__err("bad dist", "Corrupt PNG") != 0;
+            if (len > a.zout_end.Offset - zout.Offset)
             {
                if (!stbi__zexpand(ref a, zout, len)) return false;
                zout = a.zout;
@@ -4618,8 +4620,8 @@ static BytePtr stbi__hdr_to_ldr(float   *data, int x, int y, int comp)
          }
       }
       if (n != ntot) return stbi__err("bad codelengths", "Corrupt PNG") != 0;
-      if (!stbi__zbuild_huffman(ref a.z_length, lencodes, hlit)) return false;
-      if (!stbi__zbuild_huffman(ref a.z_distance, lencodes.Slice(0, hlit), hdist)) return false;
+      if (!stbi__zbuild_huffman(ref a.z_length, lencodes.Slice(0, hlit), hlit)) return false;
+      if (!stbi__zbuild_huffman(ref a.z_distance, lencodes.Slice(hlit), hdist)) return false;
       return true;
    }
 
@@ -4738,12 +4740,27 @@ static BytePtr stbi__hdr_to_ldr(float   *data, int x, int y, int comp)
 
    static bool stbi__do_zlib(ref stbi__zbuf a, BytePtr obuf, int olen, bool exp, bool parse_header)
    {
-      a.zout_start = obuf;
-      a.zout = obuf;
-      a.zout_end = obuf + olen;
-      a.z_expandable = exp;
+      var output = new MemoryStream();
 
-      return stbi__parse_zlib(ref a, parse_header);
+      var compressedBytes = a.zbuffer.Span.Slice(0, (a.zbuffer_end - a.zbuffer).Offset).ToArray();
+      
+      // TODO: Try to use the existing implementation so we don't depend on ZLibStream.. :-()
+      new ZLibStream(new MemoryStream(compressedBytes),CompressionMode.Decompress).CopyTo(output);
+
+      var outputBytes = output.ToArray();
+
+      a.zout_start = outputBytes;
+      a.zout = a.zout_start + outputBytes.Length;
+
+      return true;
+      /*
+            a.zout_start = obuf;
+            a.zout = obuf;
+            a.zout_end = obuf + olen;
+            a.z_expandable = exp;
+
+            return stbi__parse_zlib(ref a, parse_header);
+      */
    }
 
    static public BytePtr stbi_zlib_decode_malloc_guesssize(BytePtr buffer, int len, int initial_size, out int outlen)
@@ -5363,7 +5380,7 @@ static BytePtr stbi__hdr_to_ldr(float   *data, int x, int y, int comp)
             if (s.img_x == 0 || s.img_y == 0) return stbi__err("0-pixel image", "Corrupt PNG") != 0;
             if (pal_img_n == 0)
             {
-               s.img_n = (STBI_CHANNELS)((color & 2) != 0 ? 3 : 1) + ((color & 4) != 0 ? 1 : 0);
+               s.img_n = (STBI_CHANNELS)(((color & 2) != 0 ? 3 : 1) + ((color & 4) != 0 ? 1 : 0));
                if ((1 << 30) / s.img_x / (int)s.img_n < s.img_y) return stbi__err("too large", "Image too large to decode") != 0;
             }
             else
@@ -5505,7 +5522,7 @@ static BytePtr stbi__hdr_to_ldr(float   *data, int x, int y, int comp)
             {
 #if !STBI_NO_FAILURE_STRINGS
                // not threadsafe
-               string invalid_chunk = $"{(char)(c.type >> 24)}{(char)(c.type >> 16)}{(char)(c.type >> 8)}{(char)(c.type >> 0)} PNG chunk not known";
+               string invalid_chunk = $"{(char)(c.type >> 24)}{(char)((c.type >> 16) & 0xFF)}{(char)((c.type >> 8) & 0xFF)}{(char)((c.type >> 0) & 0xFF)} PNG chunk not known";
 #endif
                return stbi__err(invalid_chunk, "PNG not supported: unknown PNG chunk type") != 0;
             }
@@ -5513,7 +5530,9 @@ static BytePtr stbi__hdr_to_ldr(float   *data, int x, int y, int comp)
          }
 
          // end of PNG chunk, read and skip CRC
-         stbi__get32be(ref s);
+         uint crc32 = stbi__get32be(ref s);
+
+         Debug.WriteLine($"Decoded chunk {(char)(c.type >> 24)}{(char)((c.type >> 16) & 0xFF)}{(char)((c.type >> 8) & 0xFF)}{(char)((c.type >> 0) & 0xFF)} with a length of {c.length} and CRC32 {Convert.ToString(crc32, 16)}");
       }
    }
 

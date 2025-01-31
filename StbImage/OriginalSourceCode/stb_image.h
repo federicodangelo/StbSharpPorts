@@ -4430,7 +4430,7 @@ static int stbi__parse_uncompressed_block(stbi__zbuf *a)
    if (a->zout + len > a->zout_end)
       if (!stbi__zexpand(a, a->zout, len)) return 0;
    memcpy(a->zout, a->zbuffer, len);
-   a->zbuffer += len;
+   a->zbuffer += len;f
    a->zout += len;
    return 1;
 }
