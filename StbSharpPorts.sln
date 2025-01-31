@@ -17,6 +17,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbTrueTypeTests", "Tests\S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbImage", "StbImage\StbImage.csproj", "{0F7A5C9D-7F99-428F-ACE7-4D947A5DAA76}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{8C71419C-CB88-4709-B1F4-9FB4652AAF17}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbImageTests", "Tests\StbImageTests\StbImageTests.csproj", "{EB367B2D-1626-45A9-85DD-9621B53C5DFD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,8 +54,13 @@ Global
 		{0F7A5C9D-7F99-428F-ACE7-4D947A5DAA76}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F7A5C9D-7F99-428F-ACE7-4D947A5DAA76}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0F7A5C9D-7F99-428F-ACE7-4D947A5DAA76}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB367B2D-1626-45A9-85DD-9621B53C5DFD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB367B2D-1626-45A9-85DD-9621B53C5DFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB367B2D-1626-45A9-85DD-9621B53C5DFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB367B2D-1626-45A9-85DD-9621B53C5DFD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{59531959-4CF4-4169-80A0-3CD1D5CA89E4} = {35C5903E-44A0-40C2-9758-5688F01E9F30}
+		{EB367B2D-1626-45A9-85DD-9621B53C5DFD} = {8C71419C-CB88-4709-B1F4-9FB4652AAF17}
 	EndGlobalSection
 EndGlobal
