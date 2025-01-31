@@ -4745,7 +4745,10 @@ static BytePtr stbi__hdr_to_ldr(float   *data, int x, int y, int comp)
       var compressedBytes = a.zbuffer.Span.Slice(0, (a.zbuffer_end - a.zbuffer).Offset).ToArray();
       
       // TODO: Try to use the existing implementation so we don't depend on ZLibStream.. :-()
-      new ZLibStream(new MemoryStream(compressedBytes),CompressionMode.Decompress).CopyTo(output);
+      if (parse_header)
+         new ZLibStream(new MemoryStream(compressedBytes),CompressionMode.Decompress).CopyTo(output);
+      else
+         new DeflateStream(new MemoryStream(compressedBytes),CompressionMode.Decompress).CopyTo(output);
 
       var outputBytes = output.ToArray();
 
