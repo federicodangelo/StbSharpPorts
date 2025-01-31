@@ -15,6 +15,20 @@ public readonly struct BytePtr(Memory<byte> bytes)
 
     public readonly byte[]? Array => MemoryMarshal.TryGetArray<byte>(bytes, out var segment) ? segment.Array : null;
 
+   public Span<byte> Span => bytes.Span;
+
+    public int Offset => MemoryMarshal.TryGetArray<byte>(bytes, out var segment) ? segment.Offset : 0;
+
+    public readonly ref byte Ref { get => ref bytes.Span[0]; }
+
+    public readonly byte Value { get => bytes.Span[0]; } 
+
+    public readonly BytePtr this[int index] { get => new(bytes.Slice(index)); }
+
+    public BytePtr(int size) : this(new byte[size])
+    {
+    }
+
     public void Fill(byte value, int len)
     {
         bytes.Span.Slice(len).Fill(value);
@@ -31,16 +45,7 @@ public readonly struct BytePtr(Memory<byte> bytes)
         return 0;
     }
 
-    public Span<byte> Span => bytes.Span;
-
-    public int Offset => MemoryMarshal.TryGetArray<byte>(bytes, out var segment) ? segment.Offset : 0;
-
-    public readonly ref byte Ref { get => ref bytes.Span[0]; }
-
-    public readonly byte Value { get => bytes.Span[0]; } 
-
-    public readonly BytePtr this[int index] { get => new(bytes.Slice(index)); }
-
+ 
     static public BytePtr operator -(BytePtr left, int offset)
     {
         Debug.Assert(false);
