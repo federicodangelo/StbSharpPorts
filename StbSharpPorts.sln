@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbImageTests", "Tests\StbI
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbImage.Examples", "Examples\StbImage.Examples\StbImage.Examples.csproj", "{9948F5D8-E804-431C-812A-69591DB4FB42}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbImageWrite", "StbImageWrite\StbImageWrite.csproj", "{4B7D8338-323D-49D6-903A-C8A3D633F2A6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -64,6 +66,10 @@ Global
 		{9948F5D8-E804-431C-812A-69591DB4FB42}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9948F5D8-E804-431C-812A-69591DB4FB42}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9948F5D8-E804-431C-812A-69591DB4FB42}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4B7D8338-323D-49D6-903A-C8A3D633F2A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4B7D8338-323D-49D6-903A-C8A3D633F2A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4B7D8338-323D-49D6-903A-C8A3D633F2A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4B7D8338-323D-49D6-903A-C8A3D633F2A6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{59531959-4CF4-4169-80A0-3CD1D5CA89E4} = {35C5903E-44A0-40C2-9758-5688F01E9F30}
