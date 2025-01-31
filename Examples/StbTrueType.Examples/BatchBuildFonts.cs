@@ -5,18 +5,26 @@ using StbSharp.StbCommon;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace StbSharp.Examples;
 
+struct BakedCharData
+{
+    public int codePoint;
+    public string character;
+    public StbTrueType.stbtt_bakedchar bounds;
+}
+
+[JsonSourceGenerationOptions(WriteIndented = true, IncludeFields = true)]
+[JsonSerializable(typeof(BakedCharData[]))] // Add all types you intend to serialize
+internal partial class MyJsonContext : JsonSerializerContext
+{
+
+}
+
 public class BatchBuildFontsExample
 {
-    struct BakedCharData
-    {
-        public int codePoint;
-        public string character;
-        public StbTrueType.stbtt_bakedchar bounds;
-    }
-
     static public void BuildBitmapFonts()
     {
         string[] SampleFonts = [
@@ -76,16 +84,15 @@ public class BatchBuildFontsExample
                 }
 
 
-                File.WriteAllText(outputJsonFileName, JsonSerializer.Serialize(output.cdata.Select((c, idx) => new BakedCharData
-                {
-                    bounds = c,
-                    codePoint = fontOptions.rangeFrom + idx,
-                    character = new string([(char)(fontOptions.rangeFrom + idx)]),
-                }), new JsonSerializerOptions
-                {
-                    IncludeFields = true,
-                    WriteIndented = true,
-                }));
+                File.WriteAllText(outputJsonFileName, JsonSerializer.Serialize(
+                    output.cdata.Select((c, idx) => new BakedCharData
+                    {
+                        bounds = c,
+                        codePoint = fontOptions.rangeFrom + idx,
+                        character = new string([(char)(fontOptions.rangeFrom + idx)]),
+                    }).ToArray(),
+                    MyJsonContext.Default.BakedCharDataArray
+                ));
 
 
                 Console.WriteLine("Generated font " + sampleFont + " with size " + sampleFontSize);

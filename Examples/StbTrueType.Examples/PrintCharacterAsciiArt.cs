@@ -21,7 +21,7 @@ static public class PrintCharacterAsciiArt
 
         var bitmap = StbTrueType.stbtt_GetCodepointBitmap(ref font, 0, StbTrueType.stbtt_ScaleForPixelHeight(ref font, fontSize), character, out int w, out int h, out _, out _);
 
-        if (bitmap == null)
+        if (bitmap.IsNull)
         {
             Console.Error.WriteLine($"Failed to generate bitmap font {fileName}");
             return;
@@ -38,7 +38,7 @@ static public class PrintCharacterAsciiArt
             {
                 //line += bitmap[j * w + i].ToString("X2");
 
-                line += " .:ioVM@"[bitmap[j * w + i] >> 5];
+                line += " .:ioVM@"[bitmap[j * w + i].Value >> 5];
             }
 
             Console.WriteLine(line);

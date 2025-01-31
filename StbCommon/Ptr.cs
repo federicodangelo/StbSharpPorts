@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace StbSharp.StbCommon;
@@ -26,6 +27,7 @@ public readonly struct Ptr<T>(Memory<T> elements)
 
     public readonly Ptr<T> this[int index] { get => new(elements.Slice(index)); }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static public Ptr<T> operator -(Ptr<T> left, int offset)
     {
         if (!MemoryMarshal.TryGetArray<T>(left.elements, out var segmentLeft))
@@ -37,31 +39,37 @@ public readonly struct Ptr<T>(Memory<T> elements)
         return new Ptr<T>(segmentLeft.Array.AsMemory().Slice(segmentLeft.Offset - offset));
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static public Ptr<T> operator +(Ptr<T> left, int offset)
     {
         return new Ptr<T>(left.elements.Slice(offset));
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static public Ptr<T> operator +(Ptr<T> left, uint offset)
     {
         return new Ptr<T>(left.elements.Slice((int) offset));
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static public Ptr<T> operator ++(Ptr<T> left)
     {
         return new Ptr<T>(left.elements.Slice(1));
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static public implicit operator Ptr<T>(Memory<T> left)
     {
         return new Ptr<T>(left);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static public implicit operator Ptr<T>(T[] left)
     {
         return new Ptr<T>(left);
     }
     
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static public implicit operator Span<T>(Ptr<T> left)
     {
         return left.Span;
@@ -69,6 +77,7 @@ public readonly struct Ptr<T>(Memory<T> elements)
 
     static public readonly Ptr<T> Null = new(Memory<T>.Empty);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator <(Ptr<T> left, Ptr<T> right)
     {
         if (!MemoryMarshal.TryGetArray<T>(left.elements, out var segmentLeft) || 
@@ -81,6 +90,7 @@ public readonly struct Ptr<T>(Memory<T> elements)
         return segmentLeft.Offset < segmentRight.Offset;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator >(Ptr<T> left, Ptr<T> right)
     {
         if (!MemoryMarshal.TryGetArray<T>(left.elements, out var segmentLeft) || 
@@ -93,6 +103,7 @@ public readonly struct Ptr<T>(Memory<T> elements)
         return segmentLeft.Offset > segmentRight.Offset;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator <=(Ptr<T> left, Ptr<T> right)
     {
         if (!MemoryMarshal.TryGetArray<T>(left.elements, out var segmentLeft) || 
@@ -105,6 +116,7 @@ public readonly struct Ptr<T>(Memory<T> elements)
         return segmentLeft.Offset <= segmentRight.Offset;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator >=(Ptr<T> left, Ptr<T> right)
     {
         if (!MemoryMarshal.TryGetArray<T>(left.elements, out var segmentLeft) || 

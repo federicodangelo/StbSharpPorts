@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace StbSharp.StbCommon;
@@ -7,7 +8,7 @@ public readonly struct BytePtr(Memory<byte> bytes)
 {
     private readonly Memory<byte> bytes = bytes;
 
-    public readonly bool IsNull => bytes.IsEmpty;
+   public readonly bool IsNull => bytes.IsEmpty;
 
     public readonly int Length => bytes.Length;
 
@@ -29,11 +30,13 @@ public readonly struct BytePtr(Memory<byte> bytes)
     {
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Fill(byte value, int len)
     {
         bytes.Span.Slice(len).Fill(value);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int FirstIndexOf(byte value)
     {
         var span = bytes.Span;
@@ -44,8 +47,8 @@ public readonly struct BytePtr(Memory<byte> bytes)
 
         return 0;
     }
-
  
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static public BytePtr operator -(BytePtr left, int offset)
     {
         if (!MemoryMarshal.TryGetArray<byte>(left.bytes, out var segmentLeft))
@@ -57,6 +60,7 @@ public readonly struct BytePtr(Memory<byte> bytes)
         return new BytePtr(segmentLeft.Array.AsMemory().Slice(segmentLeft.Offset - offset));
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static BytePtr operator -(BytePtr left, BytePtr right)
     {
         if (MemoryMarshal.TryGetArray<byte>(left.bytes, out var segmentLeft) &&
@@ -69,31 +73,37 @@ public readonly struct BytePtr(Memory<byte> bytes)
         return BytePtr.Null;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static public BytePtr operator +(BytePtr left, int offset)
     {
         return new BytePtr(left.bytes.Slice(offset));
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static public BytePtr operator +(BytePtr left, uint offset)
     {
         return new BytePtr(left.bytes.Slice((int) offset));
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static public BytePtr operator ++(BytePtr left)
     {
         return new BytePtr(left.bytes.Slice(1));
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static public implicit operator BytePtr(Memory<byte> left)
     {
         return new BytePtr(left);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static public implicit operator BytePtr(byte[] left)
     {
         return new BytePtr(left);
     }
     
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static public implicit operator Span<byte>(BytePtr left)
     {
         return left.Span;
@@ -101,6 +111,7 @@ public readonly struct BytePtr(Memory<byte> bytes)
 
     static public readonly BytePtr Null = new(Memory<byte>.Empty);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator <(BytePtr left, BytePtr right)
     {
         if (!MemoryMarshal.TryGetArray<byte>(left.bytes, out var segmentLeft) || 
@@ -113,6 +124,7 @@ public readonly struct BytePtr(Memory<byte> bytes)
         return segmentLeft.Offset < segmentRight.Offset;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator >(BytePtr left, BytePtr right)
     {
         if (!MemoryMarshal.TryGetArray<byte>(left.bytes, out var segmentLeft) || 
@@ -125,6 +137,7 @@ public readonly struct BytePtr(Memory<byte> bytes)
         return segmentLeft.Offset > segmentRight.Offset;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator <=(BytePtr left, BytePtr right)
     {
         if (!MemoryMarshal.TryGetArray<byte>(left.bytes, out var segmentLeft) || 
@@ -137,6 +150,7 @@ public readonly struct BytePtr(Memory<byte> bytes)
         return segmentLeft.Offset <= segmentRight.Offset;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator >=(BytePtr left, BytePtr right)
     {
         if (!MemoryMarshal.TryGetArray<byte>(left.bytes, out var segmentLeft) || 

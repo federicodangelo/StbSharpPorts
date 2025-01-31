@@ -51,7 +51,7 @@ static public class PrintTextAsciiArt
         {
             string line = "";
             for (int i = 0; i < ScreenWidth - 1; ++i)
-                line += " .:ioVM@"[(screen[j * ScreenWidth + i]) >> 5];
+                line += " .:ioVM@"[(screen[j * ScreenWidth + i].Value) >> 5];
             Console.WriteLine(line);
         }
     }
