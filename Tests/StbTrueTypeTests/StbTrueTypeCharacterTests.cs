@@ -22,7 +22,7 @@ public class StbTrueTypeCharacterTests : StbTrueTypeTests
 
         var bitmap = StbTrueType.stbtt_GetCodepointBitmap(ref font, 0, StbTrueType.stbtt_ScaleForPixelHeight(ref font, fontSize), character, out int width, out int height, out _, out _);
 
-        Assert.True(bitmap != null, $"Failed to generate bitmap font: {fontFileName} {fontSize} {character}");
+        Assert.True(!bitmap.IsNull, $"Failed to generate bitmap font: {fontFileName} {fontSize} {character}");
 
         string expectedFileName = BuildExpectedSingleCharacterImageFileName(fontFileName, fontSize, character);
         string generatedFileName = BuildGeneratedSingleCharacterImageFileName(fontFileName, fontSize, character);

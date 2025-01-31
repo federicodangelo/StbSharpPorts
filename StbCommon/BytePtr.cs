@@ -1,144 +1,132 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace StbSharp.StbCommon;
 
-public readonly struct BytePtr(byte[] bytes, int offset = 0)
+public readonly struct BytePtr(Memory<byte> bytes)
 {
-    private readonly byte[] bytes = bytes;
-    private readonly int offset = offset;
+    private readonly Memory<byte> bytes = bytes;
 
-    public readonly bool IsNull => bytes == null || bytes.Length == 0;
+    public readonly bool IsNull => bytes.IsEmpty;
 
-    public readonly int Length => Math.Max(bytes.Length - offset, 0);
+    public readonly int Length => bytes.Length;
 
-    public readonly byte[] Raw => bytes;
-
-    public readonly int RawOffset => offset; 
+    public readonly Memory<byte> Raw => bytes;
 
     public void Fill(byte value, int len)
     {
-        Array.Fill(bytes, value, offset, len);
+        bytes.Span.Slice(len).Fill(value);
     }
 
     public int FirstIndexOf(byte value)
     {
-        for (int i = offset; i < bytes.Length; i++)
-            if (bytes[i] == value)
-                return i - offset;
+        var span = bytes.Span;
+
+        for (int i = 0; i < span.Length; i++)
+            if (span[i] == value)
+                return i;
 
         return 0;
     }
 
-    public Span<byte> AsSpan() => new Span<byte>(bytes, offset, Length);
+    public Span<byte> Span => bytes.Span;
 
-    public readonly BytePtr this[int index] { get => new(bytes, offset + index); }
+    public readonly ref byte Ref { get => ref bytes.Span[0]; }
 
-    // Defining this operator broke tests :-(    
-    /*static public BytePtr operator -(BytePtr left, int offset)
+    public readonly byte Value { get => bytes.Span[0]; } 
+
+    public readonly BytePtr this[int index] { get => new(bytes.Slice(index)); }
+
+    static public BytePtr operator -(BytePtr left, int offset)
     {
-        return new BytePtr(left.bytes, left.offset - offset);
-    }*/
+        Debug.Assert(false);
+
+        if (!MemoryMarshal.TryGetArray<byte>(left.bytes, out var segmentLeft))
+        {
+            Debug.Assert(false);
+            return Null;
+        }
+
+        return new BytePtr(segmentLeft.Array.AsMemory().Slice(segmentLeft.Offset - offset));
+    }
 
     static public BytePtr operator +(BytePtr left, int offset)
     {
-        return new BytePtr(left.bytes, left.offset + offset);
+        return new BytePtr(left.bytes.Slice(offset));
     }
 
     static public BytePtr operator +(BytePtr left, uint offset)
     {
-        return new BytePtr(left.bytes, (int)(left.offset + offset));
+        return new BytePtr(left.bytes.Slice((int) offset));
     }
 
     static public BytePtr operator ++(BytePtr left)
     {
-        return new BytePtr(left.bytes, left.offset + 1);
+        return new BytePtr(left.bytes.Slice(1));
+    }
+
+    static public implicit operator BytePtr(Memory<byte> left)
+    {
+        return new BytePtr(left);
     }
 
     static public implicit operator BytePtr(byte[] left)
     {
-        return new BytePtr(left, 0);
+        return new BytePtr(left);
     }
-
-    static public implicit operator byte(BytePtr left)
-    {
-        return left.bytes[left.offset];
-    }
-
+    
     static public implicit operator Span<byte>(BytePtr left)
     {
-        return left.AsSpan();
+        return left.Span;
     }
 
-    public readonly ref byte GetRef(int index) => ref bytes[offset + index];
-
-    public readonly ref byte GetRef() => ref bytes[offset];
-
-    static public readonly BytePtr Null = new([], 0);
+    static public readonly BytePtr Null = new(Memory<byte>.Empty);
 
     public static bool operator <(BytePtr left, BytePtr right)
     {
-        Debug.Assert(left.bytes == right.bytes);
-        return left.offset < right.offset; ;
+        if (!MemoryMarshal.TryGetArray<byte>(left.bytes, out var segmentLeft) || 
+            !MemoryMarshal.TryGetArray<byte>(right.bytes, out var segmentRight))
+        {
+            Debug.Assert(false);
+            return false;
+        }
+        Debug.Assert(segmentLeft.Array == segmentRight.Array);
+        return segmentLeft.Offset < segmentRight.Offset;
     }
 
     public static bool operator >(BytePtr left, BytePtr right)
     {
-        Debug.Assert(left.bytes == right.bytes);
-        return left.offset > right.offset; ;
+        if (!MemoryMarshal.TryGetArray<byte>(left.bytes, out var segmentLeft) || 
+            !MemoryMarshal.TryGetArray<byte>(right.bytes, out var segmentRight))
+        {
+            Debug.Assert(false);
+            return false;
+        }
+        Debug.Assert(segmentLeft.Array == segmentRight.Array);
+        return segmentLeft.Offset > segmentRight.Offset;
     }
 
     public static bool operator <=(BytePtr left, BytePtr right)
     {
-        Debug.Assert(left.bytes == right.bytes);
-        return left.offset <= right.offset; ;
+        if (!MemoryMarshal.TryGetArray<byte>(left.bytes, out var segmentLeft) || 
+            !MemoryMarshal.TryGetArray<byte>(right.bytes, out var segmentRight))
+        {
+            Debug.Assert(false);
+            return false;
+        }
+        Debug.Assert(segmentLeft.Array == segmentRight.Array);
+        return segmentLeft.Offset <= segmentRight.Offset;
     }
 
     public static bool operator >=(BytePtr left, BytePtr right)
     {
-        Debug.Assert(left.bytes == right.bytes);
-        return left.offset >= right.offset; ;
+        if (!MemoryMarshal.TryGetArray<byte>(left.bytes, out var segmentLeft) || 
+            !MemoryMarshal.TryGetArray<byte>(right.bytes, out var segmentRight))
+        {
+            Debug.Assert(false);
+            return false;
+        }
+        Debug.Assert(segmentLeft.Array == segmentRight.Array);
+        return segmentLeft.Offset >= segmentRight.Offset;
     }
-}
-
-public readonly struct Ptr<T>(T[] elements, int offset = 0)
-{
-    private readonly T[] elements = elements;
-    private readonly int offset = offset;
-
-    public readonly T[] Raw => elements;
-    public readonly int RawOffset => offset;
-
-    public readonly bool IsNull => elements == null || elements.Length == 0;
-
-    public readonly int Length => Math.Max((elements != null ? elements.Length : 0) - offset, 0);
-
-    public readonly Ptr<T> this[int index] { get => new(elements, offset + index); }
-
-    public Span<T> AsSpan() => new Span<T>(elements, offset, Length);
-
-    static public Ptr<T> operator +(Ptr<T> left, int offset)
-    {
-        return new Ptr<T>(left.elements, left.offset + offset);
-    }
-
-    static public Ptr<T> operator ++(Ptr<T> left)
-    {
-        return new Ptr<T>(left.elements, left.offset + 1);
-    }
-
-    static public implicit operator Ptr<T>(T[] left)
-    {
-        return new Ptr<T>(left, 0);
-    }
-
-    static public implicit operator T(Ptr<T> left)
-    {
-        return left.elements[left.offset];
-    }
-
-    public readonly ref T GetRef(int index) => ref elements[offset + index];
-
-    public readonly ref T GetRef() => ref elements[offset];
-
-    static public readonly Ptr<T> Null = new([], 0);
 }

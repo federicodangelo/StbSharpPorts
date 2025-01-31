@@ -59,7 +59,7 @@ public class StbTrueTypeMetricsTests : StbTrueTypeTests
         string expectedFileName = BuildExpectedFileName(fontFileName, fontSize);
         string generatedFileName = BuildGeneratedFileName(fontFileName, fontSize);
 
-        var generatedImage = GenerateImageFromFontBitmap(bitmap.Raw, textureWidth, textureHeight);
+        var generatedImage = GenerateImageFromFontBitmap(bitmap, textureWidth, textureHeight);
 
         AssertImagesEqual(expectedFileName, generatedImage, generatedFileName);
 

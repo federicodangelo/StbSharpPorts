@@ -866,7 +866,7 @@ static public int      stbi_is_16_bit_from_file(FILE *f);
          s.read_from_callbacks = false;
          s.img_buffer = s.buffer_start;
          s.img_buffer_end = s.buffer_start + 1;
-         s.img_buffer.GetRef() = 0;
+         s.img_buffer.Ref() = 0;
       }
       else
       {
@@ -1277,10 +1277,10 @@ static stbi_uc *stbi__hdr_to_ldr(float   *data, int x, int y, int comp);
             size_t bytes_copy = (bytes_left < sizeofTemp) ? bytes_left : sizeofTemp;
 
             //memcpy(temp, row0, bytes_copy);
-            row0.AsSpan().Slice(0, bytes_copy).CopyTo(temp);
+            row0.Span().Slice(0, bytes_copy).CopyTo(temp);
 
             //memcpy(row0, row1, bytes_copy);
-            row1.AsSpan().Slice(0, bytes_copy).CopyTo(row0);
+            row1.Span().Slice(0, bytes_copy).CopyTo(row0);
 
             //memcpy(row1, temp, bytes_copy);
             temp.Slice(0, bytes_copy).CopyTo(row0);
@@ -1319,7 +1319,7 @@ static void stbi__vertical_flip_slices(void *image, int w, int h, int z, int byt
 
       if (ri.bits_per_channel != 8)
       {
-         result = stbi__convert_16_to_8(MemoryMarshal.Cast<byte, stbi__uint16>(result.AsSpan()), x, y, req_comp == 0 ? comp : req_comp);
+         result = stbi__convert_16_to_8(MemoryMarshal.Cast<byte, stbi__uint16>(result.Span()), x, y, req_comp == 0 ? comp : req_comp);
          ri.bits_per_channel = 8;
       }
 
@@ -1362,7 +1362,7 @@ static void stbi__vertical_flip_slices(void *image, int w, int h, int z, int byt
       }
 
       // TODO: Memory allocation!!
-      return MemoryMarshal.Cast<byte, stbi__uint16>(result.AsSpan()).ToArray();
+      return MemoryMarshal.Cast<byte, stbi__uint16>(result.Span()).ToArray();
    }
 
 #if !(STBI_NO_HDR) && !(STBI_NO_LINEAR)
@@ -1670,7 +1670,7 @@ stbi_inline static int stbi__at_eof(ref stbi__context s)
             int count;
 
             //memcpy(buffer, s.img_buffer, blen);
-            s.img_buffer.AsSpan().Slice(0, blen).CopyTo(buffer.AsSpan());
+            s.img_buffer.Span().Slice(0, blen).CopyTo(buffer.Span());
 
             count = s.io.read(buffer + blen, n - blen);
             res = (count == (n - blen));
@@ -1682,7 +1682,7 @@ stbi_inline static int stbi__at_eof(ref stbi__context s)
       if (s.img_buffer + n <= s.img_buffer_end)
       {
          //memcpy(buffer, s.img_buffer, n);
-         s.img_buffer.AsSpan().Slice(0, n).CopyTo(buffer.AsSpan());
+         s.img_buffer.Span().Slice(0, n).CopyTo(buffer.Span());
 
          s.img_buffer += n;
          return true;
@@ -1789,18 +1789,18 @@ static stbi__uint32 stbi__get32le(stbi__context *s)
 
          int combo = STBI__COMBO(img_n, req_comp);
 
-         if (combo == STBI__COMBO(1, 2)) STBI__CASE(1, 2, ref src, ref dest, () => { dest[0].GetRef() = src[0]; dest[1].GetRef() = 255; });
-         else if (combo == STBI__COMBO(1, 3)) STBI__CASE(1, 3, ref src, ref dest, () => { dest[0].GetRef() = dest[1].GetRef() = dest[2].GetRef() = src[0]; });
-         else if (combo == STBI__COMBO(1, 4)) STBI__CASE(1, 4, ref src, ref dest, () => { dest[0].GetRef() = dest[1].GetRef() = dest[2].GetRef() = src[0]; dest[3].GetRef() = 255; });
-         else if (combo == STBI__COMBO(2, 1)) STBI__CASE(2, 1, ref src, ref dest, () => { dest[0].GetRef() = src[0]; });
-         else if (combo == STBI__COMBO(2, 3)) STBI__CASE(2, 3, ref src, ref dest, () => { dest[0].GetRef() = dest[1].GetRef() = dest[2].GetRef() = src[0]; });
-         else if (combo == STBI__COMBO(2, 4)) STBI__CASE(2, 4, ref src, ref dest, () => { dest[0].GetRef() = dest[1].GetRef() = dest[2].GetRef() = src[0]; dest[3].GetRef() = src[1]; });
-         else if (combo == STBI__COMBO(3, 4)) STBI__CASE(3, 4, ref src, ref dest, () => { dest[0].GetRef() = src[0]; dest[1].GetRef() = src[1]; dest[2].GetRef() = src[2]; dest[3].GetRef() = 255; });
-         else if (combo == STBI__COMBO(3, 1)) STBI__CASE(3, 1, ref src, ref dest, () => { dest[0].GetRef() = stbi__compute_y(src[0], src[1], src[2]); });
-         else if (combo == STBI__COMBO(3, 2)) STBI__CASE(3, 2, ref src, ref dest, () => { dest[0].GetRef() = stbi__compute_y(src[0], src[1], src[2]); dest[1].GetRef() = 255; });
-         else if (combo == STBI__COMBO(4, 1)) STBI__CASE(4, 1, ref src, ref dest, () => { dest[0].GetRef() = stbi__compute_y(src[0], src[1], src[2]); });
-         else if (combo == STBI__COMBO(4, 2)) STBI__CASE(4, 2, ref src, ref dest, () => { dest[0].GetRef() = stbi__compute_y(src[0], src[1], src[2]); dest[1].GetRef() = src[3]; });
-         else if (combo == STBI__COMBO(4, 3)) STBI__CASE(4, 3, ref src, ref dest, () => { dest[0].GetRef() = src[0]; dest[1].GetRef() = src[1]; dest[2].GetRef() = src[2]; });
+         if (combo == STBI__COMBO(1, 2)) STBI__CASE(1, 2, ref src, ref dest, () => { dest[0].Ref() = src[0]; dest[1].Ref() = 255; });
+         else if (combo == STBI__COMBO(1, 3)) STBI__CASE(1, 3, ref src, ref dest, () => { dest[0].Ref() = dest[1].Ref() = dest[2].Ref() = src[0]; });
+         else if (combo == STBI__COMBO(1, 4)) STBI__CASE(1, 4, ref src, ref dest, () => { dest[0].Ref() = dest[1].Ref() = dest[2].Ref() = src[0]; dest[3].Ref() = 255; });
+         else if (combo == STBI__COMBO(2, 1)) STBI__CASE(2, 1, ref src, ref dest, () => { dest[0].Ref() = src[0]; });
+         else if (combo == STBI__COMBO(2, 3)) STBI__CASE(2, 3, ref src, ref dest, () => { dest[0].Ref() = dest[1].Ref() = dest[2].Ref() = src[0]; });
+         else if (combo == STBI__COMBO(2, 4)) STBI__CASE(2, 4, ref src, ref dest, () => { dest[0].Ref() = dest[1].Ref() = dest[2].Ref() = src[0]; dest[3].Ref() = src[1]; });
+         else if (combo == STBI__COMBO(3, 4)) STBI__CASE(3, 4, ref src, ref dest, () => { dest[0].Ref() = src[0]; dest[1].Ref() = src[1]; dest[2].Ref() = src[2]; dest[3].Ref() = 255; });
+         else if (combo == STBI__COMBO(3, 1)) STBI__CASE(3, 1, ref src, ref dest, () => { dest[0].Ref() = stbi__compute_y(src[0], src[1], src[2]); });
+         else if (combo == STBI__COMBO(3, 2)) STBI__CASE(3, 2, ref src, ref dest, () => { dest[0].Ref() = stbi__compute_y(src[0], src[1], src[2]); dest[1].Ref() = 255; });
+         else if (combo == STBI__COMBO(4, 1)) STBI__CASE(4, 1, ref src, ref dest, () => { dest[0].Ref() = stbi__compute_y(src[0], src[1], src[2]); });
+         else if (combo == STBI__COMBO(4, 2)) STBI__CASE(4, 2, ref src, ref dest, () => { dest[0].Ref() = stbi__compute_y(src[0], src[1], src[2]); dest[1].Ref() = src[3]; });
+         else if (combo == STBI__COMBO(4, 3)) STBI__CASE(4, 3, ref src, ref dest, () => { dest[0].Ref() = src[0]; dest[1].Ref() = src[1]; dest[2].Ref() = src[2]; });
          else { STBI_ASSERT(false); STBI_FREE(data); STBI_FREE(good); return stbi__errpuc("unsupported", "Unsupported format conversion"); }
       }
 
@@ -4370,7 +4370,7 @@ static stbi_uc *stbi__hdr_to_ldr(float   *data, int x, int y, int comp)
                if (!stbi__zexpand(ref a, zout, 1)) return 0;
                zout = a.zout;
             }
-            (zout++).GetRef() = (byte)z;
+            (zout++).Ref() = (byte)z;
          }
          else
          {
@@ -4407,11 +4407,11 @@ static stbi_uc *stbi__hdr_to_ldr(float   *data, int x, int y, int comp)
             if (dist == 1)
             { // run of one byte; common in images.
                stbi_uc v = p;
-               if (len != 0) { do (zout++).GetRef() = v; while (--len != 0); }
+               if (len != 0) { do (zout++).Ref() = v; while (--len != 0); }
             }
             else
             {
-               if (len != 0) { do (zout++).GetRef() = p++; while (--len != 0); }
+               if (len != 0) { do (zout++).Ref() = p++; while (--len != 0); }
             }
          }
       }

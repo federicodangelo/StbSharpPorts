@@ -1317,14 +1317,14 @@ public class StbTrueType
    // which is stored left-to-right, top-to-bottom.
    //
    // xoff/yoff are the offset it pixel space from the glyph origin to the top-left of the bitmap
-   static public byte[]? stbtt_GetCodepointBitmap(ref stbtt_fontinfo info, float scale_x, float scale_y, int codepoint, out int width, out int height, out int xoff, out int yoff)
+   static public BytePtr stbtt_GetCodepointBitmap(ref stbtt_fontinfo info, float scale_x, float scale_y, int codepoint, out int width, out int height, out int xoff, out int yoff)
    {
       return stbtt_GetCodepointBitmapSubpixel(ref info, scale_x, scale_y, 0.0f, 0.0f, codepoint, out width, out height, out xoff, out yoff);
    }
 
    // the same as stbtt_GetCodepoitnBitmap, but you can specify a subpixel
    // shift for the character
-   static public byte[]? stbtt_GetCodepointBitmapSubpixel(ref stbtt_fontinfo info, float scale_x, float scale_y, float shift_x, float shift_y, int codepoint, out int width, out int height, out int xoff, out int yoff)
+   static public BytePtr stbtt_GetCodepointBitmapSubpixel(ref stbtt_fontinfo info, float scale_x, float scale_y, float shift_x, float shift_y, int codepoint, out int width, out int height, out int xoff, out int yoff)
    {
       return stbtt_GetGlyphBitmapSubpixel(ref info, scale_x, scale_y, shift_x, shift_y, stbtt_FindGlyphIndex(ref info, codepoint), out width, out height, out xoff, out yoff);
    }
@@ -1371,11 +1371,11 @@ public class StbTrueType
 
    // the following functions are equivalent to the above functions, but operate
    // on glyph indices instead of Unicode codepoints (for efficiency)
-   static public byte[]? stbtt_GetGlyphBitmap(ref stbtt_fontinfo info, float scale_x, float scale_y, int glyph, out int width, out int height, out int xoff, out int yoff)
+   static public BytePtr stbtt_GetGlyphBitmap(ref stbtt_fontinfo info, float scale_x, float scale_y, int glyph, out int width, out int height, out int xoff, out int yoff)
    {
       return stbtt_GetGlyphBitmapSubpixel(ref info, scale_x, scale_y, 0.0f, 0.0f, glyph, out width, out height, out xoff, out yoff);
    }
-   static public byte[]? stbtt_GetGlyphBitmapSubpixel(ref stbtt_fontinfo info, float scale_x, float scale_y, float shift_x, float shift_y, int glyph, out int width, out int height, out int xoff, out int yoff)
+   static public BytePtr stbtt_GetGlyphBitmapSubpixel(ref stbtt_fontinfo info, float scale_x, float scale_y, float shift_x, float shift_y, int glyph, out int width, out int height, out int xoff, out int yoff)
    {
       int ix0, iy0, ix1, iy1;
       stbtt__bitmap gbm;
@@ -1392,7 +1392,7 @@ public class StbTrueType
             xoff = 0;
             yoff = 0;
             //STBTT_free(vertices, info.userdata);
-            return null;
+            return BytePtr.Null;
          }
          scale_y = scale_x;
       }
@@ -1419,7 +1419,7 @@ public class StbTrueType
          //}
       }
       //STBTT_free(vertices, info.userdata);
-      return gbm.pixels.Raw;
+      return gbm.pixels;
    }
 
    static public void stbtt_MakeGlyphBitmap(ref stbtt_fontinfo info, BytePtr output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, int glyph)
@@ -1994,14 +1994,15 @@ public class StbTrueType
    {
       if (b.cursor >= b.size)
          return 0;
-      return b.data[b.cursor++];
+      return b.data[b.cursor++].Value;
    }
 
    static stbtt_uint8 stbtt__buf_peek8(ref stbtt__buf b)
    {
       if (b.cursor >= b.size)
          return 0;
-      return b.data[b.cursor];
+
+      return b.data[b.cursor].Value;
    }
 
    static void stbtt__buf_seek(ref stbtt__buf b, int o)
@@ -2155,16 +2156,16 @@ public class StbTrueType
    // on platforms that don't allow misaligned reads, if we want to allow
    // truetype fonts that aren't padded to alignment, define ALLOW_UNALIGNED_TRUETYPE
 
-   static stbtt_uint8 ttBYTE(BytePtr p) => p[0];
-   static stbtt_int8 ttCHAR(BytePtr p) => (stbtt_int8)(byte)p[0];
+   static stbtt_uint8 ttBYTE(BytePtr p) => p[0].Value;
+   static stbtt_int8 ttCHAR(BytePtr p) => (stbtt_int8)p[0].Value;
    static stbtt_int32 ttFixed(BytePtr p) => ttLONG(p);
 
-   static stbtt_uint16 ttUSHORT(BytePtr p) { return (stbtt_uint16)(p[0] * 256 + p[1]); }
-   static stbtt_int16 ttSHORT(BytePtr p) { return (stbtt_int16)(p[0] * 256 + p[1]); }
-   static stbtt_uint32 ttULONG(BytePtr p) { return (stbtt_uint32)((p[0] << 24) + (p[1] << 16) + (p[2] << 8) + p[3]); }
-   static stbtt_int32 ttLONG(BytePtr p) { return (p[0] << 24) + (p[1] << 16) + (p[2] << 8) + p[3]; }
+   static stbtt_uint16 ttUSHORT(BytePtr p) { return (stbtt_uint16)(p[0].Value * 256 + p[1].Value); }
+   static stbtt_int16 ttSHORT(BytePtr p) { return (stbtt_int16)(p[0].Value * 256 + p[1].Value); }
+   static stbtt_uint32 ttULONG(BytePtr p) { return (stbtt_uint32)((p[0].Value << 24) + (p[1].Value << 16) + (p[2].Value << 8) + p[3].Value); }
+   static stbtt_int32 ttLONG(BytePtr p) { return (p[0].Value << 24) + (p[1].Value << 16) + (p[2].Value << 8) + p[3].Value; }
 
-   static bool stbtt_tag4(BytePtr p, byte c0, byte c1, byte c2, byte c3) => ((p)[0] == (c0) && (p)[1] == (c1) && (p)[2] == (c2) && (p)[3] == (c3));
+   static bool stbtt_tag4(BytePtr p, byte c0, byte c1, byte c2, byte c3) => ((p)[0].Value == (c0) && (p)[1].Value == (c1) && (p)[2].Value == (c2) && (p)[3].Value == (c3));
    static bool stbtt_tag(BytePtr p, string str) => stbtt_tag4(p, (byte)str[0], (byte)str[1], (byte)str[2], (byte)str[3]);
 
    static bool stbtt__isfont(BytePtr font)
@@ -2503,9 +2504,9 @@ public class StbTrueType
          {
             if (flagcount == 0)
             {
-               flags = points++;
+               flags = (points++).Value;
                if ((flags & 8) != 0)
-                  flagcount = points++;
+                  flagcount = (points++).Value;
             }
             else
                --flagcount;
@@ -2519,14 +2520,14 @@ public class StbTrueType
             flags = (byte)vertices[off + i].type;
             if ((flags & 2) != 0)
             {
-               stbtt_int16 dx = points++;
+               stbtt_int16 dx = (points++).Value;
                x += (flags & 16) != 0 ? dx : -dx; // ???
             }
             else
             {
                if ((flags & 16) == 0)
                {
-                  x = x + (stbtt_int16)(points[0] * 256 + points[1]);
+                  x = x + (stbtt_int16)(points[0].Value * 256 + points[1].Value);
                   points += 2;
                }
             }
@@ -2540,14 +2541,14 @@ public class StbTrueType
             flags = (byte)vertices[off + i].type;
             if ((flags & 4) != 0)
             {
-               stbtt_int16 dy = points++;
+               stbtt_int16 dy = (points++).Value;
                y += (flags & 32) != 0 ? dy : -dy; // ???
             }
             else
             {
                if ((flags & 32) == 0)
                {
-                  y = y + (stbtt_int16)(points[0] * 256 + points[1]);
+                  y = y + (stbtt_int16)(points[0].Value * 256 + points[1].Value);
                   points += 2;
                }
             }
@@ -4209,7 +4210,7 @@ public class StbTrueType
                k = (float)STBTT_fabs(k) * 255 + 0.5f;
                m = (int)k;
                if (m > 255) m = 255;
-               result.pixels[j * result.stride + i].GetRef() = (byte)m;
+               result.pixels[j * result.stride + i].Ref = (byte)m;
             }
          }
 
@@ -4281,26 +4282,26 @@ public class StbTrueType
       m = 0;
       for (i = 0; i < windings; ++i)
       {
-         Ptr<stbtt__point> p = new Ptr<stbtt__point>(pts, m);
+         Ptr<stbtt__point> p = new Ptr<stbtt__point>(pts.AsMemory().Slice(m));
          m += wcount[i];
          j = wcount[i] - 1;
          for (k = 0; k < wcount[i]; j = k++)
          {
             int a = k, b = j;
             // skip the edge if horizontal
-            if (p[j].GetRef().y == p[k].GetRef().y)
+            if (p[j].Ref.y == p[k].Ref.y)
                continue;
             // add edge from j to k to the list
             e[n].invert = false;
-            if (invert ? p[j].GetRef().y > p[k].GetRef().y : p[j].GetRef().y < p[k].GetRef().y)
+            if (invert ? p[j].Ref.y > p[k].Ref.y : p[j].Ref.y < p[k].Ref.y)
             {
                e[n].invert = true;
                a = j; b = k;
             }
-            e[n].x0 = p[a].GetRef().x * scale_x + shift_x;
-            e[n].y0 = (p[a].GetRef().y * y_scale_inv + shift_y) * vsubsample;
-            e[n].x1 = p[b].GetRef().x * scale_x + shift_x;
-            e[n].y1 = (p[b].GetRef().y * y_scale_inv + shift_y) * vsubsample;
+            e[n].x0 = p[a].Ref.x * scale_x + shift_x;
+            e[n].y0 = (p[a].Ref.y * y_scale_inv + shift_y) * vsubsample;
+            e[n].x1 = p[b].Ref.x * scale_x + shift_x;
+            e[n].y1 = (p[b].Ref.y * y_scale_inv + shift_y) * vsubsample;
             ++n;
          }
       }
@@ -4641,50 +4642,50 @@ public class StbTrueType
             case 2:
                for (i = 0; i <= safe_w; ++i)
                {
-                  total += (uint)(pixels[i] - buffer[i & STBTT__OVER_MASK]);
-                  buffer[(i + kernel_width) & STBTT__OVER_MASK] = pixels[i];
-                  pixels[i].GetRef() = (byte)(total / 2);
+                  total += (uint)(pixels[i].Value - buffer[i & STBTT__OVER_MASK]);
+                  buffer[(i + kernel_width) & STBTT__OVER_MASK] = pixels[i].Value;
+                  pixels[i].Ref = (byte)(total / 2);
                }
                break;
             case 3:
                for (i = 0; i <= safe_w; ++i)
                {
-                  total += (uint)(pixels[i] - buffer[i & STBTT__OVER_MASK]);
-                  buffer[(i + kernel_width) & STBTT__OVER_MASK] = pixels[i];
-                  pixels[i].GetRef() = (byte)(total / 3);
+                  total += (uint)(pixels[i].Value - buffer[i & STBTT__OVER_MASK]);
+                  buffer[(i + kernel_width) & STBTT__OVER_MASK] = pixels[i].Value;
+                  pixels[i].Ref = (byte)(total / 3);
                }
                break;
             case 4:
                for (i = 0; i <= safe_w; ++i)
                {
-                  total += (uint)(pixels[i] - buffer[i & STBTT__OVER_MASK]);
-                  buffer[(i + kernel_width) & STBTT__OVER_MASK] = pixels[i];
-                  pixels[i].GetRef() = (byte)(total / 4);
+                  total += (uint)(pixels[i].Value - buffer[i & STBTT__OVER_MASK]);
+                  buffer[(i + kernel_width) & STBTT__OVER_MASK] = pixels[i].Value;
+                  pixels[i].Ref = (byte)(total / 4);
                }
                break;
             case 5:
                for (i = 0; i <= safe_w; ++i)
                {
-                  total += (uint)(pixels[i] - buffer[i & STBTT__OVER_MASK]);
-                  buffer[(i + kernel_width) & STBTT__OVER_MASK] = pixels[i];
-                  pixels[i].GetRef() = (byte)(total / 5);
+                  total += (uint)(pixels[i].Value - buffer[i & STBTT__OVER_MASK]);
+                  buffer[(i + kernel_width) & STBTT__OVER_MASK] = pixels[i].Value;
+                  pixels[i].Ref = (byte)(total / 5);
                }
                break;
             default:
                for (i = 0; i <= safe_w; ++i)
                {
-                  total += (uint)(pixels[i] - buffer[i & STBTT__OVER_MASK]);
-                  buffer[(i + kernel_width) & STBTT__OVER_MASK] = pixels[i];
-                  pixels[i].GetRef() = (byte)(total / kernel_width);
+                  total += (uint)(pixels[i].Value - buffer[i & STBTT__OVER_MASK]);
+                  buffer[(i + kernel_width) & STBTT__OVER_MASK] = pixels[i].Value;
+                  pixels[i].Ref = (byte)(total / kernel_width);
                }
                break;
          }
 
          for (; i < w; ++i)
          {
-            STBTT_assert(pixels[i] == 0);
+            STBTT_assert(pixels[i].Value == 0);
             total -= buffer[i & STBTT__OVER_MASK];
-            pixels[i].GetRef() = (byte)(total / kernel_width);
+            pixels[i].Ref = (byte)(total / kernel_width);
          }
 
          pixels += stride_in_bytes;
@@ -4711,50 +4712,50 @@ public class StbTrueType
             case 2:
                for (i = 0; i <= safe_h; ++i)
                {
-                  total += (uint)(pixels[i * stride_in_bytes] - buffer[i & STBTT__OVER_MASK]);
-                  buffer[(i + kernel_width) & STBTT__OVER_MASK] = pixels[i * stride_in_bytes];
-                  pixels[i * stride_in_bytes].GetRef() = (byte)(total / 2);
+                  total += (uint)(pixels[i * stride_in_bytes].Value - buffer[i & STBTT__OVER_MASK]);
+                  buffer[(i + kernel_width) & STBTT__OVER_MASK] = pixels[i * stride_in_bytes].Value;
+                  pixels[i * stride_in_bytes].Ref = (byte)(total / 2);
                }
                break;
             case 3:
                for (i = 0; i <= safe_h; ++i)
                {
-                  total += (uint)(pixels[i * stride_in_bytes] - buffer[i & STBTT__OVER_MASK]);
-                  buffer[(i + kernel_width) & STBTT__OVER_MASK] = pixels[i * stride_in_bytes];
-                  pixels[i * stride_in_bytes].GetRef() = (byte)(total / 3);
+                  total += (uint)(pixels[i * stride_in_bytes].Value - buffer[i & STBTT__OVER_MASK]);
+                  buffer[(i + kernel_width) & STBTT__OVER_MASK] = pixels[i * stride_in_bytes].Value;
+                  pixels[i * stride_in_bytes].Ref = (byte)(total / 3);
                }
                break;
             case 4:
                for (i = 0; i <= safe_h; ++i)
                {
-                  total += (uint)(pixels[i * stride_in_bytes] - buffer[i & STBTT__OVER_MASK]);
-                  buffer[(i + kernel_width) & STBTT__OVER_MASK] = pixels[i * stride_in_bytes];
-                  pixels[i * stride_in_bytes].GetRef() = (byte)(total / 4);
+                  total += (uint)(pixels[i * stride_in_bytes].Value - buffer[i & STBTT__OVER_MASK]);
+                  buffer[(i + kernel_width) & STBTT__OVER_MASK] = pixels[i * stride_in_bytes].Value;
+                  pixels[i * stride_in_bytes].Ref = (byte)(total / 4);
                }
                break;
             case 5:
                for (i = 0; i <= safe_h; ++i)
                {
-                  total += (uint)(pixels[i * stride_in_bytes] - buffer[i & STBTT__OVER_MASK]);
-                  buffer[(i + kernel_width) & STBTT__OVER_MASK] = pixels[i * stride_in_bytes];
-                  pixels[i * stride_in_bytes].GetRef() = (byte)(total / 5);
+                  total += (uint)(pixels[i * stride_in_bytes].Value - buffer[i & STBTT__OVER_MASK]);
+                  buffer[(i + kernel_width) & STBTT__OVER_MASK] = pixels[i * stride_in_bytes].Value;
+                  pixels[i * stride_in_bytes].Ref = (byte)(total / 5);
                }
                break;
             default:
                for (i = 0; i <= safe_h; ++i)
                {
-                  total += (uint)(pixels[i * stride_in_bytes] - buffer[i & STBTT__OVER_MASK]);
-                  buffer[(i + kernel_width) & STBTT__OVER_MASK] = pixels[i * stride_in_bytes];
-                  pixels[i * stride_in_bytes].GetRef() = (byte)(total / kernel_width);
+                  total += (uint)(pixels[i * stride_in_bytes].Value - buffer[i & STBTT__OVER_MASK]);
+                  buffer[(i + kernel_width) & STBTT__OVER_MASK] = pixels[i * stride_in_bytes].Value;
+                  pixels[i * stride_in_bytes].Ref = (byte)(total / kernel_width);
                }
                break;
          }
 
          for (; i < h; ++i)
          {
-            STBTT_assert(pixels[i * stride_in_bytes] == 0);
+            STBTT_assert(pixels[i * stride_in_bytes].Value == 0);
             total -= buffer[i & STBTT__OVER_MASK];
-            pixels[i * stride_in_bytes].GetRef() = (byte)(total / kernel_width);
+            pixels[i * stride_in_bytes].Ref = (byte)(total / kernel_width);
          }
 
          pixels += 1;
@@ -5012,28 +5013,28 @@ public class StbTrueType
       // convert utf16 to utf8 and compare the results while converting
       while (len2 != 0)
       {
-         stbtt_uint16 ch = (ushort)(s2[0] * 256 + s2[1]);
+         stbtt_uint16 ch = (ushort)(s2[0].Value * 256 + s2[1].Value);
          if (ch < 0x80)
          {
             if (i >= len1) return -1;
-            if (s1[i++] != ch) return -1;
+            if (s1[i++].Value != ch) return -1;
          }
          else if (ch < 0x800)
          {
             if (i + 1 >= len1) return -1;
-            if (s1[i++] != 0xc0 + (ch >> 6)) return -1;
-            if (s1[i++] != 0x80 + (ch & 0x3f)) return -1;
+            if (s1[i++].Value != 0xc0 + (ch >> 6)) return -1;
+            if (s1[i++].Value != 0x80 + (ch & 0x3f)) return -1;
          }
          else if (ch >= 0xd800 && ch < 0xdc00)
          {
             stbtt_uint32 c;
-            stbtt_uint16 ch2 = (ushort)(s2[2] * 256 + s2[3]);
+            stbtt_uint16 ch2 = (ushort)(s2[2].Value * 256 + s2[3].Value);
             if (i + 3 >= len1) return -1;
             c = (uint)(((ch - 0xd800) << 10) + (ch2 - 0xdc00) + 0x10000);
-            if (s1[i++] != 0xf0 + (c >> 18)) return -1;
-            if (s1[i++] != 0x80 + ((c >> 12) & 0x3f)) return -1;
-            if (s1[i++] != 0x80 + ((c >> 6) & 0x3f)) return -1;
-            if (s1[i++] != 0x80 + ((c) & 0x3f)) return -1;
+            if (s1[i++].Value != 0xf0 + (c >> 18)) return -1;
+            if (s1[i++].Value != 0x80 + ((c >> 12) & 0x3f)) return -1;
+            if (s1[i++].Value != 0x80 + ((c >> 6) & 0x3f)) return -1;
+            if (s1[i++].Value != 0x80 + ((c) & 0x3f)) return -1;
             s2 += 2; // plus another 2 below
             len2 -= 2;
          }
@@ -5044,9 +5045,9 @@ public class StbTrueType
          else
          {
             if (i + 2 >= len1) return -1;
-            if (s1[i++] != 0xe0 + (ch >> 12)) return -1;
-            if (s1[i++] != 0x80 + ((ch >> 6) & 0x3f)) return -1;
-            if (s1[i++] != 0x80 + ((ch) & 0x3f)) return -1;
+            if (s1[i++].Value != 0xe0 + (ch >> 12)) return -1;
+            if (s1[i++].Value != 0x80 + ((ch >> 6) & 0x3f)) return -1;
+            if (s1[i++].Value != 0x80 + ((ch) & 0x3f)) return -1;
          }
          s2 += 2;
          len2 -= 2;
@@ -5096,7 +5097,7 @@ public class StbTrueType
                         if (matchlen == nlen)
                            return true;
                      }
-                     else if (matchlen < nlen && name[matchlen] == ' ')
+                     else if (matchlen < nlen && name[matchlen].Value == ' ')
                      {
                         ++matchlen;
                         if (stbtt_CompareUTF8toUTF16_bigendian_internal(name + matchlen, nlen - matchlen, fc + stringOffset + off, slen))

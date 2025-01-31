@@ -31,7 +31,7 @@ public class StbTrueTypeTests
         return new Bitmap(fileName);
     }
 
-    static protected Bitmap GenerateImageFromFontBitmap(byte[] bitmap, int width, int height)
+    static protected Bitmap GenerateImageFromFontBitmap(Span<byte> bitmap, int width, int height)
     {
         var image = new Bitmap(width, height);
 
