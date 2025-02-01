@@ -89,8 +89,18 @@ public class StbImageWritePngTests : StbImageWriteTests
             "z09n2c08.png",
             "HD1.png"
             )
-        ] string imageFileName)
+        ] string imageFileName,
+        [CombinatorialValues(
+            StbImagWrite.STBIW_PNG_FILTER.RUNTIME_DETECTED, 
+            StbImagWrite.STBIW_PNG_FILTER.NONE, 
+            StbImagWrite.STBIW_PNG_FILTER.SUB, 
+            StbImagWrite.STBIW_PNG_FILTER.UP, 
+            StbImagWrite.STBIW_PNG_FILTER.AVERAGE, 
+            StbImagWrite.STBIW_PNG_FILTER.PAETH)]
+        StbImagWrite.STBIW_PNG_FILTER pngFilter
+        )
     {
+        StbImagWrite.stbi_write_force_png_filter = pngFilter;
         TestImage(imageFileName, StbiFormat.Png, 4, 0);
     }
 

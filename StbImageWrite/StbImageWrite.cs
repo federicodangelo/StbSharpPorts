@@ -296,13 +296,23 @@ STBIWDEF int stbiw_convert_wchar_to_utf8(char *buffer, size_t bufferlen, const w
       Debug.Assert(condition, message, string.Empty);
    }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static byte STBIW_UCHAR(int x) => (byte)((x) & 0xff);
 
+public enum STBIW_PNG_FILTER
+{
+   RUNTIME_DETECTED = -1,
+   NONE = 0,
+   SUB = 1,
+   UP = 2,
+   AVERAGE = 3,
+   PAETH = 4,
+}
 
 #if STB_IMAGE_WRITE_STATIC
-   static int stbi_write_png_compression_level = 8;
-   static bool stbi_write_tga_with_rle = true;
-   static int stbi_write_force_png_filter = -1;
+   static public int stbi_write_png_compression_level = 8;
+   static public bool stbi_write_tga_with_rle = true;
+   static public STBIW_PNG_FILTER stbi_write_force_png_filter = STBIW_PNG_FILTER.RUNTIME_DETECTED;
 #else
 int stbi_write_png_compression_level = 8;
 int stbi_write_tga_with_rle = 1;
@@ -315,7 +325,7 @@ int stbi_write_force_png_filter = -1;
    struct stbi__write_context
    {
       public stbi_write_func func = (_, _) => { };
-      public byte[] buffer = new byte[64];
+      public byte[] buffer = new byte[1024];
       public int buf_used;
 
       public stbi__write_context()
@@ -419,7 +429,7 @@ int stbi_write_force_png_filter = -1;
             case '4':
                {
                   var o = v[vi++];
-                  int x = (o is uint u) ? (int) u : Convert.ToInt32(o);
+                  int x = (o is uint u) ? (int)u : Convert.ToInt32(o);
 
                   b4[0] = STBIW_UCHAR(x);
                   b4[1] = STBIW_UCHAR(x >> 8);
@@ -578,7 +588,7 @@ int stbi_write_force_png_filter = -1;
          // (straight BI_RGB with alpha mask doesn't work in most readers)
          return stbiw__outfile(ref s, -1, -1, x, y, comp, 1, data, 1, 0,
             "11 4 22 4" + "4 44 22 444444 4444 4 444 444 444 444",
-            (int) 'B', (int) 'M', 14 + 108 + x * y * 4, 0, 0, 14 + 108, // file header
+            (int)'B', (int)'M', 14 + 108 + x * y * 4, 0, 0, 14 + 108, // file header
             108, x, y, 1, 32, 3, 0, 0, 0, 0, 0, 0xff0000, 0xff00, 0xff, 0xff000000u, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); // bitmap V4 header
       }
    }
@@ -990,7 +1000,7 @@ STBIWDEF int stbi_write_hdr(char const *filename, int x, int y, int comp, const 
       {
          CompressionLevel = quality
       };
-      
+
       var zlibStream = new ZLibStream(output, options);
 
       new MemoryStream(uncompressedBytes).CopyTo(zlibStream);
@@ -1184,9 +1194,13 @@ STBIWDEF int stbi_write_hdr(char const *filename, int x, int y, int comp, const 
       o += 4;
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static void stbiw__wp32(ref BytePtr data, uint v) => stbiw__wpng4(ref data, (byte)((v) >> 24), (byte)((v) >> 16), (byte)((v) >> 8), (byte)(v));
+
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static void stbiw__wptag(ref BytePtr data, string s) => stbiw__wpng4(ref data, (byte)s[0], (byte)s[1], (byte)s[2], (byte)s[3]);
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static void stbiw__wpcrc(ref BytePtr data, int len)
    {
       uint crc = stbiw__crc32(data - len - 4, len + 4);
@@ -1244,7 +1258,7 @@ STBIWDEF int stbi_write_hdr(char const *filename, int x, int y, int comp, const 
 
    static BytePtr stbi_write_png_to_mem(BytePtr pixels, int stride_bytes, int x, int y, int n, out int out_len)
    {
-      int force_filter = stbi_write_force_png_filter;
+      int force_filter = (int) stbi_write_force_png_filter;
       Span<int> ctype = stackalloc int[] { -1, 0, 4, 2, 6 };
       Span<byte> sig = stackalloc byte[] { 137, 80, 78, 71, 13, 10, 26, 10 };
       BytePtr _out, o, filt, zlib;
@@ -1283,7 +1297,7 @@ STBIWDEF int stbi_write_hdr(char const *filename, int x, int y, int comp, const 
                est = 0;
                for (i = 0; i < x * n; ++i)
                {
-                  est += Math.Abs((int) line_buffer[i].Value);
+                  est += Math.Abs((int)line_buffer[i].Value);
                }
                if (est < best_filter_val)
                {

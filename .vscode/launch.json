@@ -8,7 +8,7 @@
             "name": "C#: StbTrueType.Examples Debug",
             "type": "dotnet",
             "request": "launch",
-            "projectPath": "${workspaceFolder}/Examples/StbTrueType.Examples/StbTrueType.Examples.csproj"
+            "projectPath": "${workspaceFolder}/Examples/StbImageWrite.Examples/StbImageWrite.Examples.csproj"
         }
 
     ]

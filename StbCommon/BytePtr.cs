@@ -20,12 +20,21 @@ public readonly struct BytePtr(Memory<byte> bytes)
 
     public int Offset => MemoryMarshal.TryGetArray<byte>(bytes, out var segment) ? segment.Offset : 0;
 
-    public readonly ref byte Ref { get => ref bytes.Span[0]; }
+    public readonly ref byte Ref
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => ref bytes.Span[0];
+    }
 
-    public readonly byte Value { get => bytes.Span[0]; }
+    public readonly byte Value
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => bytes.Span[0];
+    }
 
     public readonly BytePtr this[int index]
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
             if (index >= 0)

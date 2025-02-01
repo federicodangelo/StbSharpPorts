@@ -91,6 +91,8 @@ static public class Program
         switch (format)
         {
             case StbiFormat.Png:
+                // Setting a filter modes beforehand makes the encoding faster
+                StbImagWrite.stbi_write_force_png_filter = StbImagWrite.STBIW_PNG_FILTER.NONE;
                 StbImagWrite.stbi_write_png_to_func(write_func, image.Width, image.Height, components, pixels, 0);
                 break;
             case StbiFormat.Bmp:
