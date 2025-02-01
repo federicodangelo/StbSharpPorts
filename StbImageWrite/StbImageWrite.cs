@@ -1207,6 +1207,7 @@ STBIWDEF int stbi_write_hdr(char const *filename, int x, int y, int comp, const 
       stbiw__wp32(ref data, crc);
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static byte stbiw__paeth(int a, int b, int c)
    {
       int p = a + b - c, pa = Math.Abs(p - a), pb = Math.Abs(p - b), pc = Math.Abs(p - c);
@@ -1218,7 +1219,7 @@ STBIWDEF int stbi_write_hdr(char const *filename, int x, int y, int comp, const 
    // @OPTIMIZE: provide an option that always forces left-predict or paeth predict
    static int[] mapping = [0, 1, 2, 3, 4];
    static int[] firstmap = [0, 1, 0, 5, 6];
-   static void stbiw__encode_png_line(BytePtr pixels, int stride_bytes, int width, int height, int y, int n, int filter_type, Ptr<sbyte> line_buffer)
+   static void stbiw__encode_png_line(BytePtr pixels, int stride_bytes, int width, int height, int y, int n, int filter_type, Span<sbyte> line_buffer)
    {
       int[] mymap = (y != 0) ? mapping : firstmap;
       int i;
@@ -1228,7 +1229,7 @@ STBIWDEF int stbi_write_hdr(char const *filename, int x, int y, int comp, const 
 
       if (type == 0)
       {
-         memcpy(line_buffer.Span, z, width * n);
+         memcpy(line_buffer, z, width * n);
          return;
       }
 
@@ -1237,22 +1238,22 @@ STBIWDEF int stbi_write_hdr(char const *filename, int x, int y, int comp, const 
       {
          switch (type)
          {
-            case 1: line_buffer[i].Ref = (sbyte)z[i].Value; break;
-            case 2: line_buffer[i].Ref = (sbyte)(z[i].Value - z[i - signed_stride].Value); break;
-            case 3: line_buffer[i].Ref = (sbyte)(z[i].Value - (z[i - signed_stride].Value >> 1)); break;
-            case 4: line_buffer[i].Ref = (sbyte)(z[i].Value - stbiw__paeth(0, z[i - signed_stride].Value, 0)); break;
-            case 5: line_buffer[i].Ref = (sbyte)z[i].Value; break;
-            case 6: line_buffer[i].Ref = (sbyte)z[i].Value; break;
+            case 1: line_buffer[i] = (sbyte)z[i].Value; break;
+            case 2: line_buffer[i] = (sbyte)(z[i].Value - z[i - signed_stride].Value); break;
+            case 3: line_buffer[i] = (sbyte)(z[i].Value - (z[i - signed_stride].Value >> 1)); break;
+            case 4: line_buffer[i] = (sbyte)(z[i].Value - stbiw__paeth(0, z[i - signed_stride].Value, 0)); break;
+            case 5: line_buffer[i] = (sbyte)z[i].Value; break;
+            case 6: line_buffer[i] = (sbyte)z[i].Value; break;
          }
       }
       switch (type)
       {
-         case 1: for (i = n; i < width * n; ++i) line_buffer[i].Ref = (sbyte)(z[i].Value - z[i - n].Value); break;
-         case 2: for (i = n; i < width * n; ++i) line_buffer[i].Ref = (sbyte)(z[i].Value - z[i - signed_stride].Value); break;
-         case 3: for (i = n; i < width * n; ++i) line_buffer[i].Ref = (sbyte)(z[i].Value - ((z[i - n].Value + z[i - signed_stride].Value) >> 1)); break;
-         case 4: for (i = n; i < width * n; ++i) line_buffer[i].Ref = (sbyte)(z[i].Value - stbiw__paeth(z[i - n].Value, z[i - signed_stride].Value, z[i - signed_stride - n].Value)); break;
-         case 5: for (i = n; i < width * n; ++i) line_buffer[i].Ref = (sbyte)(z[i].Value - (z[i - n].Value >> 1)); break;
-         case 6: for (i = n; i < width * n; ++i) line_buffer[i].Ref = (sbyte)(z[i].Value - stbiw__paeth(z[i - n].Value, 0, 0)); break;
+         case 1: for (i = n; i < width * n; ++i) line_buffer[i] = (sbyte)(z[i].Value - z[i - n].Value); break;
+         case 2: for (i = n; i < width * n; ++i) line_buffer[i] = (sbyte)(z[i].Value - z[i - signed_stride].Value); break;
+         case 3: for (i = n; i < width * n; ++i) line_buffer[i] = (sbyte)(z[i].Value - ((z[i - n].Value + z[i - signed_stride].Value) >> 1)); break;
+         case 4: for (i = n; i < width * n; ++i) line_buffer[i] = (sbyte)(z[i].Value - stbiw__paeth(z[i - n].Value, z[i - signed_stride].Value, z[i - signed_stride - n].Value)); break;
+         case 5: for (i = n; i < width * n; ++i) line_buffer[i] = (sbyte)(z[i].Value - (z[i - n].Value >> 1)); break;
+         case 6: for (i = n; i < width * n; ++i) line_buffer[i] = (sbyte)(z[i].Value - stbiw__paeth(z[i - n].Value, 0, 0)); break;
       }
    }
 

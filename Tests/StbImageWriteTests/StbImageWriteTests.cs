@@ -25,36 +25,58 @@ public class StbImageWriteTests
         byte[] pixels = new byte[image.Width * image.Height * components];
 
         int idx = 0;
-        for (int y = 0; y < image.Height; y++)
+        switch (components)
         {
-            for (int x = 0; x < image.Width; x++)
-            {
-                var pixel = image.GetPixel(x, y);
-
-                switch (components)
+            case 1: // gray
+                for (int y = 0; y < image.Height; y++)
                 {
-                    case 1: // gray
+                    for (int x = 0; x < image.Width; x++)
+                    {
+                        var pixel = image.GetPixel(x, y);
                         pixels[idx + 0] = (byte)((pixel.R + pixel.G + pixel.B) / 3);
-                        break;
-                    case 2:  // gray - alpha
+                        idx += 1;
+                    }
+                }
+                break;
+            case 2:  // gray - alpha
+                for (int y = 0; y < image.Height; y++)
+                {
+                    for (int x = 0; x < image.Width; x++)
+                    {
+                        var pixel = image.GetPixel(x, y);
                         pixels[idx + 0] = (byte)((pixel.R + pixel.G + pixel.B) / 3);
                         pixels[idx + 1] = (byte)pixel.A;
-                        break;
-                    case 3:  // rgb
+                        idx += 2;
+                    }
+                }
+                break;
+            case 3:  // rgb
+                for (int y = 0; y < image.Height; y++)
+                {
+                    for (int x = 0; x < image.Width; x++)
+                    {
+                        var pixel = image.GetPixel(x, y);
                         pixels[idx + 0] = (byte)pixel.R;
                         pixels[idx + 1] = (byte)pixel.G;
                         pixels[idx + 2] = (byte)pixel.B;
-                        break;
-                    case 4:  // rgb - alpha
+                        idx += 3;
+                    }
+                }
+                break;
+            case 4:  // rgb - alpha
+                for (int y = 0; y < image.Height; y++)
+                {
+                    for (int x = 0; x < image.Width; x++)
+                    {
+                        var pixel = image.GetPixel(x, y);
                         pixels[idx + 0] = (byte)pixel.R;
                         pixels[idx + 1] = (byte)pixel.G;
                         pixels[idx + 2] = (byte)pixel.B;
                         pixels[idx + 3] = (byte)pixel.A;
-                        break;
+                        idx += 4;
+                    }
                 }
-
-                idx += components;
-            }
+                break;
         }
 
         var output = new MemoryStream();
