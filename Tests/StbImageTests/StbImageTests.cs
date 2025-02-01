@@ -3,6 +3,7 @@
 using System.Drawing;
 using System.Globalization;
 using StbSharp.StbCommon;
+using tgalib_core;
 
 namespace StbSharp.Tests;
 
@@ -97,10 +98,44 @@ public class StbImageTests
     {
         Assert.True(File.Exists(fileName), "Missing expected test image: " + fileName);
 
+        if (Path.GetExtension(fileName).ToLowerInvariant() == ".tga")
+        {
+            //If  there is a .png file with the same name in the same directory, use that file 
+
+            string potentialPngFile = Path.Combine(Path.GetDirectoryName(fileName) ?? "", Path.GetFileNameWithoutExtension(fileName) + ".png");
+
+            if (File.Exists(potentialPngFile))
+            {
+                return new Bitmap(potentialPngFile);
+            }
+
+            //Fallback to the TGA library
+            return LoadTga(fileName);
+        }
+
         return new Bitmap(fileName);
     }
 
-    static protected void AssertImagesEqual(string expectedFileName, Bitmap actual, string actualFileName)
+    private static Bitmap LoadTga(string fileName)
+    {
+        var tga = new TgaImage(fileName);
+
+        Bitmap output = new Bitmap(tga.Width, tga.Height);
+
+        for (int y = 0; y < tga.Height; y++)
+        {
+            for (int x = 0; x < tga.Width; x++)
+            {
+                tga.GetPixelRgba(x, y, out var r, out var g, out var b, out var a);
+
+                output.SetPixel(x, y, Color.FromArgb(a,r,g,b));
+            }
+        }
+
+        return output;
+    }
+
+    static protected void AssertImagesEqual(string expectedFileName, Bitmap actual, string actualFileName, int tolerance = 0)
     {
         if (!File.Exists(expectedFileName))
         {
@@ -108,10 +143,10 @@ public class StbImageTests
             SaveGeneratedImage(actualFileName, actual);
         }
 
-        AssertImagesEqual(GetExpectedImage(expectedFileName), actual, actualFileName);
+        AssertImagesEqual(GetExpectedImage(expectedFileName), actual, actualFileName, tolerance);
     }
 
-    static protected void AssertImagesEqual(Bitmap expected, Bitmap actual, string actualFileName)
+    static protected void AssertImagesEqual(Bitmap expected, Bitmap actual, string actualFileName, int tolerance = 0)
     {
         Assert.NotEqual(expected, actual);
         Assert.Equal(expected.Width, actual.Width);
@@ -128,6 +163,20 @@ public class StbImageTests
                     (actualPixel.A != 0 || expectedPixel.A != 0) // ignore color difference is the alpha channel of both pixels is 0
                     )
                 {
+                    if (tolerance != 0)
+                    {
+                        int diffR = actualPixel.R - expectedPixel.R;
+                        int diffG = actualPixel.G - expectedPixel.G;
+                        int diffB = actualPixel.B - expectedPixel.B;
+
+                        if (Math.Abs(diffR) < tolerance &&
+                            Math.Abs(diffG) < tolerance &&
+                            Math.Abs(diffB) < tolerance)
+                        {
+                            continue;
+                        }
+                    }
+
                     SaveGeneratedImage(actualFileName, actual);
 
                     string diffFileName = SaveImageDifference(expected, actual, actualFileName);

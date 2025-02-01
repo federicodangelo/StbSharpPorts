@@ -1634,6 +1634,7 @@ static int      stbi__jpeg_info(ref stbi__context s, int *x, int *y, int *comp);
       if ((int)tga_comp >= 3 && !tga_rgb16)
       {
          BytePtr tga_pixel = tga_data;
+
          for (i = 0; i < tga_width * tga_height; ++i)
          {
             byte temp = tga_pixel[0].Value;

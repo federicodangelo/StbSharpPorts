@@ -1,0 +1,10 @@
+
+"tga\\conformance\\cbw8.tga",
+"tga\\conformance\\ccm8.tga",
+"tga\\conformance\\ctc24.tga",
+"tga\\conformance\\ubw8.tga",
+"tga\\conformance\\ucm8.tga",
+"tga\\conformance\\utc16.tga",
+"tga\\conformance\\utc24.tga",
+"tga\\conformance\\utc32.tga",
+

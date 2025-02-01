@@ -38,8 +38,8 @@ public class StbImageBmpTests : StbImageTests
             "bmp\\valid\\32bpp-101110-320x240.bmp",
             "bmp\\valid\\32bpp-1x1.bmp",
             "bmp\\valid\\32bpp-320x240.bmp",
-            //"bmp\\valid\\32bpp-888-optimalpalette-320x240.bmp",
-            //"bmp\\valid\\32bpp-optimalpalette-320x240.bmp",
+            //"bmp\\valid\\32bpp-888-optimalpalette-320x240.bmp", // loaded image is displaced 
+            //"bmp\\valid\\32bpp-optimalpalette-320x240.bmp", // loaded image is displaced 
             "bmp\\valid\\32bpp-topdown-320x240.bmp",
             "bmp\\valid\\4bpp-1x1.bmp",
             "bmp\\valid\\4bpp-320x240.bmp",
