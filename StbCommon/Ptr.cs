@@ -27,6 +27,10 @@ public readonly struct Ptr<T>(Memory<T> elements)
 
     public readonly Ptr<T> this[int index] { get => new(elements.Slice(index)); }
 
+    public Ptr(int size) : this(new T[size])
+    {
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static public Ptr<T> operator -(Ptr<T> left, int offset)
     {
