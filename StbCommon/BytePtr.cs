@@ -35,7 +35,8 @@ public readonly struct BytePtr(Memory<byte> bytes)
             else
             {
                 // Slice doesn't support negative numbers, so we get the original array and offset from the start again
-                Debug.Assert(MemoryMarshal.TryGetArray<byte>(bytes, out var segment));
+                if (!MemoryMarshal.TryGetArray<byte>(bytes, out var segment))
+                    Debug.Assert(false);
                 return new BytePtr(segment.Array.AsMemory().Slice(segment.Offset + index));
             }
         }
