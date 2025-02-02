@@ -16,3 +16,5 @@ Ported:
 - StbTrueType: Fully ported
 
 I tried to add some tests for everything, but there is a VERY HIGH chance that I introduced some really creative bugs in the porting process, so use evertything at your own risk.. :-)
+
+I'm using the same LINCESE file that is being used by https://github.com/nothings/stb/ , all the amazing people in there did the original work, I just ported it!!
