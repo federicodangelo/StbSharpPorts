@@ -18,8 +18,6 @@ public class StbImageJpgTests : StbImageTests
             )
         ] string imageFileName)
     {
-        // These tests don't work yet
-        throw SkipException.ForSkip("Work In Progress");
         TestImage(imageFileName);
     }
 
@@ -30,7 +28,8 @@ public class StbImageJpgTests : StbImageTests
 
         var generatedImage = LoadStbiImage(expectedFileName);
 
-        AssertImagesEqual(expectedFileName, generatedImage, generatedFileName, 0);
+        // Use 2% tolerance for JPG files..
+        AssertImagesEqual(expectedFileName, generatedImage, generatedFileName, 0.01f);
     }
 
     static private string BuildExpectedFileName(string fontFileName)

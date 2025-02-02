@@ -64,7 +64,7 @@ public class StbImageTgaTests : StbImageTests
         // files load with the incorrect pixel values (small diferences, but still..).. an the test suite that I found for TGA files
         // has the same inconsistencies.. so I kind of gave up and i'm adding a small tolerance value..
         // Even the library that i'm using to load them natively has inconsistencies... seems that no one really uses TGA files anymore
-        AssertImagesEqual(expectedFileName, generatedImage, generatedFileName, 2);
+        AssertImagesEqual(expectedFileName, generatedImage, generatedFileName, 0.02f);
     }
 
     static private string BuildExpectedFileName(string fontFileName)

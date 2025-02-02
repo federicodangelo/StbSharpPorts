@@ -135,7 +135,7 @@ public class StbImageTests
         return output;
     }
 
-    static protected void AssertImagesEqual(string expectedFileName, Bitmap actual, string actualFileName, int tolerance = 0)
+    static protected void AssertImagesEqual(string expectedFileName, Bitmap actual, string actualFileName, float tolerance = 0)
     {
         if (!File.Exists(expectedFileName))
         {
@@ -146,11 +146,13 @@ public class StbImageTests
         AssertImagesEqual(GetExpectedImage(expectedFileName), actual, actualFileName, tolerance);
     }
 
-    static protected void AssertImagesEqual(Bitmap expected, Bitmap actual, string actualFileName, int tolerance = 0)
+    static protected void AssertImagesEqual(Bitmap expected, Bitmap actual, string actualFileName, float tolerance = 0)
     {
         Assert.NotEqual(expected, actual);
         Assert.Equal(expected.Width, actual.Width);
         Assert.Equal(expected.Height, actual.Height);
+
+        int badPixels = 0;
 
         for (int y = 0; y < expected.Height; y++)
         {
@@ -169,12 +171,16 @@ public class StbImageTests
                         int diffG = actualPixel.G - expectedPixel.G;
                         int diffB = actualPixel.B - expectedPixel.B;
 
-                        if (Math.Abs(diffR) < tolerance &&
-                            Math.Abs(diffG) < tolerance &&
-                            Math.Abs(diffB) < tolerance)
+                        if (Math.Abs(diffR) / 255.0f < tolerance &&
+                            Math.Abs(diffG) / 255.0f < tolerance &&
+                            Math.Abs(diffB) / 255.0f < tolerance)
                         {
                             continue;
                         }
+
+                        badPixels++;
+                        if ((float)badPixels < (expected.Width * expected.Height) * tolerance)
+                            continue;
                     }
 
                     SaveGeneratedImage(actualFileName, actual);

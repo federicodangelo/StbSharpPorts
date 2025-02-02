@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Images\*.png">
+    <Content Include="Images\*.*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

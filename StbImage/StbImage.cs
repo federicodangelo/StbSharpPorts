@@ -798,7 +798,11 @@ static public int      stbi_is_16_bit_from_file(FILE *f);
    // static private uint stbi_lrot(uint x,uint y)  => (((x) << (y)) | ((x) >> (-(y) & 31)));
    // C# 11 added logical right shift for uints !
    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-   static private uint stbi_lrot(uint x, int y) => x >>> y;
+   static private uint stbi_lrot(uint x, int y)
+   {
+      return (((x) << (y)) | ((x) >> (-(y) & 31)));
+      //return x >>> y;
+   } 
    // #endif
 
    // #if (STBI_MALLOC) && (STBI_FREE) && ((STBI_REALLOC) || (STBI_REALLOC_SIZED))
@@ -3453,8 +3457,12 @@ static BytePtr stbi__hdr_to_ldr(float   *data, int x, int y, int comp)
          }
       }
 
-      for (i = 0, v = val, o = _out; i < 8; ++i, v += 8, o += out_stride)
+      int offset = 0;
+
+      for (i = 0, v = val, offset = 0; i < 8; ++i, v += 8, offset += out_stride)
       {
+         o = _out + offset;
+
          // no fast case since the first 1D IDCT spread components _out
          // STBI__IDCT_1D(ref v[0],ref v[1],ref v[2],ref v[3],ref v[4],ref v[5],ref v[6],ref v[7]);
          // static void STBI__IDCT_1D(ref int s0,ref int s1,ref int s2,ref int s3,ref int s4,ref int s5,ref int s6,ref int s7)

@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "C#: StbTrueType.Examples Debug",
+            "name": "C#: Examples Debug",
             "type": "dotnet",
             "request": "launch",
-            "projectPath": "${workspaceFolder}/Examples/StbImageWrite.Examples/StbImageWrite.Examples.csproj"
+            "projectPath": "${workspaceFolder}/Examples/StbImage.Examples/StbImage.Examples.csproj"
         }
 
     ]
