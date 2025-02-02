@@ -91,8 +91,7 @@ public class StbImageWriteTgaTests : StbImageWriteTests
             )
         ] string imageFileName)
     {
-        // TGA files fail to load in the native C# library :-(
-        //TestImage(imageFileName, StbiFormat.Tga, 4, 0);
+        TestImage(imageFileName, StbiFormat.Tga, 4, 0);
     }
 
 }

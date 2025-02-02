@@ -3,6 +3,7 @@
 using System.Drawing;
 using System.Globalization;
 using StbSharp.StbCommon;
+using tgalib_core;
 
 namespace StbSharp.Tests;
 
@@ -116,7 +117,38 @@ public class StbImageWriteTests
     {
         Assert.True(File.Exists(fileName), "Missing expected test image: " + fileName);
 
+        if (Path.GetExtension(fileName).ToLowerInvariant() == ".tga")
+        {
+            //Fallback to the TGA library
+            return LoadTga(fileName);
+        }
+
         return new Bitmap(fileName);
+    }
+
+
+    private static Bitmap LoadTga(string fileName)
+    {
+        return LoadTga(File.ReadAllBytes(fileName), false);
+    }
+
+    private static Bitmap LoadTga(byte[] bytes, bool flipVertically)
+    {
+        var tga = new TgaImage(new BinaryReader(new MemoryStream(bytes)));
+
+        Bitmap output = new Bitmap(tga.Width, tga.Height);
+
+        for (int y = 0; y < tga.Height; y++)
+        {
+            for (int x = 0; x < tga.Width; x++)
+            {
+                tga.GetPixelRgba(x, y, out var r, out var g, out var b, out var a);
+
+                output.SetPixel(x, flipVertically ? tga.Height - y - 1 : y, Color.FromArgb(a,r,g,b));
+            }
+        }
+
+        return output;
     }
 
     static protected void AssertImagesEqual(Bitmap expected, Bitmap actual, string actualFileName, float tolerance)
@@ -201,7 +233,7 @@ public class StbImageWriteTests
             Directory.CreateDirectory(GeneratedPath);
         }
 
-        image.Save(fileName);
+        image.Save(Path.Combine(Path.GetDirectoryName(fileName) ?? "", Path.GetFileNameWithoutExtension(fileName) + ".png"));
     }
 
 
@@ -229,7 +261,15 @@ public class StbImageWriteTests
 
         try
         {
-            generatedImage = new Bitmap(new MemoryStream(savedImage.Span.ToArray()));
+            if (format == StbiFormat.Tga)
+            {
+                // The generated TGA files are loaded flipped vertically by the TgaImage.. so we flip them on load.. :facepalm:
+                generatedImage = LoadTga(savedImage.Span.ToArray(), true);
+            }
+            else
+            {
+                generatedImage = new Bitmap(new MemoryStream(savedImage.Span.ToArray()));
+            }
         }
         catch (Exception)
         {
