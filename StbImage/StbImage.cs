@@ -5,6 +5,8 @@
 #define STBI_ONLY_BMP
 #define STBI_ONLY_JPEG
 
+//#define USE_DOTNET_ZLIB // Use C# Decompression libraries
+
 #define STBI_NO_STDIO
 #define STBI_NO_LINEAR
 #define STBI_NO_SIMD
@@ -802,7 +804,7 @@ static public int      stbi_is_16_bit_from_file(FILE *f);
    {
       return (((x) << (y)) | ((x) >> (-(y) & 31)));
       //return x >>> y;
-   } 
+   }
    // #endif
 
    // #if (STBI_MALLOC) && (STBI_FREE) && ((STBI_REALLOC) || (STBI_REALLOC_SIZED))
@@ -5054,12 +5056,14 @@ static BytePtr stbi__hdr_to_ldr(float   *data, int x, int y, int comp)
             }
             if (!stbi__parse_huffman_block(ref a)) return false;
          }
-      } while (final != 0);
+      } while (final == 0);
       return true;
    }
 
    static bool stbi__do_zlib(ref stbi__zbuf a, BytePtr obuf, int olen, bool exp, bool parse_header)
    {
+#if USE_DOTNET_ZLIB
+
       var output = new MemoryStream();
 
       var compressedBytes = a.zbuffer.Span.Slice(0, (a.zbuffer_end - a.zbuffer).Offset).ToArray();
@@ -5076,14 +5080,14 @@ static BytePtr stbi__hdr_to_ldr(float   *data, int x, int y, int comp)
       a.zout = a.zout_start + outputBytes.Length;
 
       return true;
-      /*
-            a.zout_start = obuf;
-            a.zout = obuf;
-            a.zout_end = obuf + olen;
-            a.z_expandable = exp;
+#else
+      a.zout_start = obuf;
+      a.zout = obuf;
+      a.zout_end = obuf + olen;
+      a.z_expandable = exp;
 
-            return stbi__parse_zlib(ref a, parse_header);
-      */
+      return stbi__parse_zlib(ref a, parse_header);
+#endif
    }
 
    static public BytePtr stbi_zlib_decode_malloc_guesssize(BytePtr buffer, int len, int initial_size, out int outlen)
