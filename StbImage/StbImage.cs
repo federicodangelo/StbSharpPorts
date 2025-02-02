@@ -5,7 +5,7 @@
 #define STBI_ONLY_BMP
 #define STBI_ONLY_JPEG
 
-//#define USE_DOTNET_ZLIB // Use C# Decompression libraries
+// #define USE_DOTNET_ZLIB // Use C# decompression libraries, which are 33% faster (measured in a AOT compiled program optimized for speed)
 
 #define STBI_NO_STDIO
 #define STBI_NO_LINEAR

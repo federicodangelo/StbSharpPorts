@@ -2,6 +2,7 @@
 // See https://aka.ms/new-console-template for more information
 
 
+using System.Diagnostics;
 using System.Drawing;
 using StbSharp;
 using StbSharp.StbCommon;
@@ -111,6 +112,8 @@ static public class Program
             }
         };
 
+        Stopwatch sw = Stopwatch.StartNew();
+
         switch (format)
         {
             case StbiFormat.Png:
@@ -128,6 +131,9 @@ static public class Program
                 StbImagWrite.stbi_write_jpg_to_func(write_func, image.Width, image.Height, components, pixels, 95);
                 break;
         }
+
+        sw.Stop();
+        Console.WriteLine($"Time to save file: {sw.ElapsedMilliseconds}ms");
 
         return output.ToArray();
     }

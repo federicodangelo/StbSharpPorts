@@ -3,7 +3,7 @@
 #define STB_IMAGE_WRITE_STATIC
 #define STBI_WRITE_NO_STDIO
 
-// #define USE_DOTNET_ZLIB // Use C# Decompression libraries
+ // #define USE_DOTNET_ZLIB // Use C# compression libraries, which are 33% faster (measured in a AOT compiled program optimized for speed) and produce better compressed files
 
 #if USE_DOTNET_ZLIB
 #define STBIW_ZLIB_COMPRESS
