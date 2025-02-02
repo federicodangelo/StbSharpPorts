@@ -1,0 +1,47 @@
+using StbSharp.StbCommon;
+using Xunit.Sdk;
+
+namespace StbSharp.Tests;
+
+public class StbImageJpgTests : StbImageTests
+{
+    [Theory, CombinatorialData]
+    public void TestValid(
+        [CombinatorialValues(
+            "jpg\\valid\\jpeg400jfif.jpg",
+            "jpg\\valid\\jpeg420exif.jpg",
+            "jpg\\valid\\jpeg422jfif.jpg",
+            "jpg\\valid\\sample_1280x853.jpg",
+            "jpg\\valid\\sample_1920x1280.jpg",
+            "jpg\\valid\\sample_5184x3456.jpg",
+            "jpg\\valid\\sample_640x426.jpg"
+            )
+        ] string imageFileName)
+    {
+        // These tests don't work yet
+        throw SkipException.ForSkip("Work In Progress");
+        TestImage(imageFileName);
+    }
+
+    static private void TestImage(string imageFileName)
+    {
+        string expectedFileName = BuildExpectedFileName(imageFileName);
+        string generatedFileName = BuildGeneratedFileName(imageFileName);
+
+        var generatedImage = LoadStbiImage(expectedFileName);
+
+        AssertImagesEqual(expectedFileName, generatedImage, generatedFileName, 0);
+    }
+
+    static private string BuildExpectedFileName(string fontFileName)
+    {
+        return Path.Combine(ExpectedPath, fontFileName);
+    }
+
+    static private string BuildGeneratedFileName(string fontFileName)
+    {
+        string expected = BuildExpectedFileName(fontFileName);
+
+        return Path.Combine(GeneratedPath, $"{Path.GetFileNameWithoutExtension(expected)}.png");
+    }
+}
