@@ -2,7 +2,14 @@
 
 #define STB_IMAGE_WRITE_STATIC
 #define STBI_WRITE_NO_STDIO
+
+#define USE_DOTNET_ZLIB // Use C# Decompression libraries
+
+#if USE_DOTNET_ZLIB
 #define STBIW_ZLIB_COMPRESS
+#endif
+
+
 
 using size_t = int;
 using stbiw_uint32 = uint;
@@ -296,18 +303,18 @@ STBIWDEF int stbiw_convert_wchar_to_utf8(char *buffer, size_t bufferlen, const w
       Debug.Assert(condition, message, string.Empty);
    }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static byte STBIW_UCHAR(int x) => (byte)((x) & 0xff);
 
-public enum STBIW_PNG_FILTER
-{
-   RUNTIME_DETECTED = -1,
-   NONE = 0,
-   SUB = 1,
-   UP = 2,
-   AVERAGE = 3,
-   PAETH = 4,
-}
+   public enum STBIW_PNG_FILTER
+   {
+      RUNTIME_DETECTED = -1,
+      NONE = 0,
+      SUB = 1,
+      UP = 2,
+      AVERAGE = 3,
+      PAETH = 4,
+   }
 
 #if STB_IMAGE_WRITE_STATIC
    static public int stbi_write_png_compression_level = 8;
@@ -989,8 +996,11 @@ STBIWDEF int stbi_write_hdr(char const *filename, int x, int y, int comp, const 
    static BytePtr stbi_zlib_compress(BytePtr data, int data_len, out int out_len, int quality)
    {
 #if STBIW_ZLIB_COMPRESS
-      // TODO: Use current ZLIB implementation so we don't depend on ZLibStream..
       // user provided a zlib compress implementation, use that
+
+#if USE_DOTNET_ZLIB
+
+      // TODO: Use current ZLIB implementation so we don't depend on ZLibStream..
 
       var output = new MemoryStream();
 
@@ -1010,6 +1020,7 @@ STBIWDEF int stbi_write_hdr(char const *filename, int x, int y, int comp, const 
       var compressedBytes = output.ToArray();
       out_len = compressedBytes.Length;
       return compressedBytes;
+#endif
 
       //return STBIW_ZLIB_COMPRESS(data, data_len, out_len, quality);
 #else // use builtin
@@ -1259,7 +1270,7 @@ STBIWDEF int stbi_write_hdr(char const *filename, int x, int y, int comp, const 
 
    static BytePtr stbi_write_png_to_mem(BytePtr pixels, int stride_bytes, int x, int y, int n, out int out_len)
    {
-      int force_filter = (int) stbi_write_force_png_filter;
+      int force_filter = (int)stbi_write_force_png_filter;
       Span<int> ctype = stackalloc int[] { -1, 0, 4, 2, 6 };
       Span<byte> sig = stackalloc byte[] { 137, 80, 78, 71, 13, 10, 26, 10 };
       BytePtr _out, o, filt, zlib;
