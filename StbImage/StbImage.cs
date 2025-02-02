@@ -60,7 +60,10 @@ using StbSharp.StbCommon;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
+#if USE_DOTNET_ZLIB
 using System.IO.Compression;
+#endif
 
 public class StbImage
 {
@@ -5068,7 +5071,6 @@ static BytePtr stbi__hdr_to_ldr(float   *data, int x, int y, int comp)
 
       var compressedBytes = a.zbuffer.Span.Slice(0, (a.zbuffer_end - a.zbuffer).Offset).ToArray();
 
-      // TODO: Try to use the existing implementation so we don't depend on ZLibStream.. :-()
       if (parse_header)
          new ZLibStream(new MemoryStream(compressedBytes), CompressionMode.Decompress).CopyTo(output);
       else
