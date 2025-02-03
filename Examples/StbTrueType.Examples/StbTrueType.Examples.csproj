@@ -7,6 +7,14 @@
     <Nullable>enable</Nullable>
     <OptimizationPreference>Speed</OptimizationPreference>
     <PublishAot>true</PublishAot>
+    <TrimMode>full</TrimMode>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    
+    <!-- Use Invariant Globalization only -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+
+    <!-- Remove stack trace info from AOT builds-->
+    <StackTraceSupport>false</StackTraceSupport>
   </PropertyGroup>
 
   <ItemGroup>

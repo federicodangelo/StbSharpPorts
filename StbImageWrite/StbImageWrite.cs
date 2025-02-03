@@ -407,6 +407,7 @@ int stbi_write_force_png_filter = -1;
 
    //typedef int stb_image_write_test[sizeof(stbiw_uint32)==4 ? 1 : -1];
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static void stbiw__writefv(ref stbi__write_context s, string fmt, params object[] v)
    {
       Span<byte> b1 = stackalloc byte[1];
@@ -455,11 +456,13 @@ int stbi_write_force_png_filter = -1;
       }
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static void stbiw__writef(ref stbi__write_context s, string fmt, params object[] v)
    {
       stbiw__writefv(ref s, fmt, v);
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static void stbiw__write_flush(ref stbi__write_context s)
    {
       if (s.buf_used != 0)
@@ -469,12 +472,14 @@ int stbi_write_force_png_filter = -1;
       }
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static void stbiw__putc(ref stbi__write_context s, byte c)
    {
       Span<byte> b1 = stackalloc byte[] { c };
       s.func(b1, 1);
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static void stbiw__write1(ref stbi__write_context s, byte a)
    {
       if ((size_t)s.buf_used + 1 > s.buffer.Length)
@@ -483,6 +488,7 @@ int stbi_write_force_png_filter = -1;
       s.buffer[s.buf_used++] = a;
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static void stbiw__write3(ref stbi__write_context s, byte a, byte b, byte c)
    {
       int n;
@@ -495,6 +501,7 @@ int stbi_write_force_png_filter = -1;
       s.buffer[n + 2] = c;
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static void stbiw__write_pixel(ref stbi__write_context s, int rgb_dir, int comp, int write_alpha, int expand_mono, BytePtr d)
    {
       Span<byte> bg = stackalloc byte[] { 255, 0, 255 };
@@ -533,6 +540,7 @@ int stbi_write_force_png_filter = -1;
          stbiw__write1(ref s, d[comp - 1].Value);
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static void stbiw__write_pixels(ref stbi__write_context s, int rgb_dir, int vdir, int x, int y, int comp, BytePtr data, int write_alpha, int scanline_pad, int expand_mono)
    {
       Span<byte> zero = stackalloc byte[] { 0, 0, 0, 0, };
@@ -566,6 +574,7 @@ int stbi_write_force_png_filter = -1;
       }
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static bool stbiw__outfile(ref stbi__write_context s, int rgb_dir, int vdir, int x, int y, int comp, int expand_mono, BytePtr data, int alpha, int pad, string fmt, params object[] v)
    {
       if (y < 0 || x < 0)

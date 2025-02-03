@@ -311,14 +311,22 @@ public class StbTrueType
 
    //#ifndef STB_TRUETYPE_IMPLEMENTATION
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static int STBTT_ifloor(float x) => ((int)MathF.Floor(x));
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static int STBTT_iceil(float x) => ((int)MathF.Ceiling(x));
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static float STBTT_sqrt(float x) => MathF.Sqrt(x);
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static float STBTT_pow(float x, float y) => MathF.Pow(x, y);
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static float STBTT_fmod(float x, float y) => x % y;
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static float STBTT_cos(float x) => MathF.Cos(x);
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static float STBTT_acos(float x) => MathF.Acos(x);
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static float STBTT_fabs(float x) => MathF.Abs(x);
 
    /*
@@ -521,7 +529,7 @@ public class StbTrueType
    // and pass that result as 'font_size':
    //       ...,                  20 , ... // font max minus min y is 20 pixels tall
    //       ..., STBTT_POINT_SIZE(20), ... // 'M' is 20 pixels tall
-   static public int stbtt_PackFontRange(ref stbtt_pack_context spc, BytePtr fontdata, int font_index, float font_size,
+   static public bool stbtt_PackFontRange(ref stbtt_pack_context spc, BytePtr fontdata, int font_index, float font_size,
                   int first_unicode_codepoint_in_range, int num_chars_in_range, stbtt_packedchar[] chardata_for_range)
    {
       stbtt_pack_range range = new();
@@ -547,10 +555,11 @@ public class StbTrueType
    // ranges. This will usually create a better-packed bitmap than multiple
    // calls to stbtt_PackFontRange. Note that you can call this multiple
    // times within a single PackBegin/PackEnd.
-   static public int stbtt_PackFontRanges(ref stbtt_pack_context spc, BytePtr fontdata, int font_index, stbtt_pack_range[] ranges, int num_ranges)
+   static public bool stbtt_PackFontRanges(ref stbtt_pack_context spc, BytePtr fontdata, int font_index, stbtt_pack_range[] ranges, int num_ranges)
    {
       stbtt_fontinfo info = new();
-      int i, j, n, return_value = 1;
+      int i, j, n;
+      bool return_value = true;
       //stbrp_context *context = (stbrp_context *) spc.pack_info;
       stbrp_rect[] rects;
 
@@ -707,9 +716,10 @@ public class StbTrueType
 
 
    // rects array must be big enough to accommodate all characters in the given ranges
-   static public int stbtt_PackFontRangesRenderIntoRects(ref stbtt_pack_context spc, ref stbtt_fontinfo info, stbtt_pack_range[] ranges, int num_ranges, stbrp_rect[] rects)
+   static public bool stbtt_PackFontRangesRenderIntoRects(ref stbtt_pack_context spc, ref stbtt_fontinfo info, stbtt_pack_range[] ranges, int num_ranges, stbrp_rect[] rects)
    {
-      int i, j, k, missing_glyph = -1, return_value = 1;
+      int i, j, k, missing_glyph = -1;
+      bool return_value = true;
 
       // save current values
       int old_h_over = (int)spc.h_oversample;
@@ -784,7 +794,7 @@ public class StbTrueType
             }
             else if (spc.skip_missing)
             {
-               return_value = 0;
+               return_value = false;
             }
             else if (r.was_packed != 0 && r.w == 0 && r.h == 0 && missing_glyph >= 0)
             {
@@ -792,7 +802,7 @@ public class StbTrueType
             }
             else
             {
-               return_value = 0; // if any fail, report failure
+               return_value = false; // if any fail, report failure
             }
 
             ++k;
@@ -1080,7 +1090,7 @@ public class StbTrueType
    }
 
    // Gets the bounding box of the visible part of the glyph, in unscaled coordinates
-   static public int stbtt_GetCodepointBox(ref stbtt_fontinfo info, int codepoint, out int x0, out int y0, out int x1, out int y1)
+   static public bool stbtt_GetCodepointBox(ref stbtt_fontinfo info, int codepoint, out int x0, out int y0, out int x1, out int y1)
    {
       return stbtt_GetGlyphBox(ref info, stbtt_FindGlyphIndex(ref info, codepoint), out x0, out y0, out x1, out y1);
    }
@@ -1113,7 +1123,7 @@ public class StbTrueType
       return xAdvance;
    }
 
-   static public int stbtt_GetGlyphBox(ref stbtt_fontinfo info, int glyph_index, out int x0, out int y0, out int x1, out int y1)
+   static public bool stbtt_GetGlyphBox(ref stbtt_fontinfo info, int glyph_index, out int x0, out int y0, out int x1, out int y1)
    {
       if (info.cff.size != 0)
       {
@@ -1125,7 +1135,7 @@ public class StbTrueType
          if (g < 0)
          {
             x0 = y0 = x1 = y1 = 0;
-            return 0;
+            return false;
          }
 
          x0 = ttSHORT(info.data + g + 2);
@@ -1133,7 +1143,7 @@ public class StbTrueType
          x1 = ttSHORT(info.data + g + 6);
          y1 = ttSHORT(info.data + g + 8);
       }
-      return 1;
+      return true;
    }
 
    public struct stbtt_kerningentry
@@ -1477,7 +1487,7 @@ public class StbTrueType
    static public void stbtt_GetGlyphBitmapBoxSubpixel(ref stbtt_fontinfo font, int glyph, float scale_x, float scale_y, float shift_x, float shift_y, out int ix0, out int iy0, out int ix1, out int iy1)
    {
       int x0 = 0, y0 = 0, x1, y1; // =0 suppresses compiler warning
-      if (stbtt_GetGlyphBox(ref font, glyph, out x0, out y0, out x1, out y1) == 0)
+      if (!stbtt_GetGlyphBox(ref font, glyph, out x0, out y0, out x1, out y1))
       {
          // e.g. space character
          ix0 = 0;
@@ -1625,11 +1635,11 @@ public class StbTrueType
          // distance from singular values (in the same units as the pixel grid)
          const float eps = 1.0f / 1024, eps2 = eps * eps;
          int x, y, i, j;
-         float[] precompute;
+
          stbtt_vertex[]? verts;
          int num_verts = stbtt_GetGlyphShape(ref info, glyph, out verts);
          data = new byte[w * h];
-         precompute = new float[num_verts];
+         Span<float> precompute = stackalloc float[num_verts];
 
          for (i = 0, j = num_verts - 1; i < num_verts; j = i++)
          {
@@ -1990,6 +2000,7 @@ public class StbTrueType
    // stbtt__buf helpers to parse data from file
    //
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static stbtt_uint8 stbtt__buf_get8(ref stbtt__buf b)
    {
       if (b.cursor >= b.size)
@@ -1997,6 +2008,7 @@ public class StbTrueType
       return b.data[b.cursor++].Value;
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static stbtt_uint8 stbtt__buf_peek8(ref stbtt__buf b)
    {
       if (b.cursor >= b.size)
@@ -2005,17 +2017,20 @@ public class StbTrueType
       return b.data[b.cursor].Value;
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static void stbtt__buf_seek(ref stbtt__buf b, int o)
    {
       STBTT_assert(!(o > b.size || o < 0));
       b.cursor = (o > b.size || o < 0) ? b.size : o;
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static void stbtt__buf_skip(ref stbtt__buf b, int o)
    {
       stbtt__buf_seek(ref b, b.cursor + o);
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static stbtt_uint32 stbtt__buf_get(ref stbtt__buf b, int n)
    {
       stbtt_uint32 v = 0;
@@ -2026,6 +2041,7 @@ public class StbTrueType
       return v;
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static stbtt__buf stbtt__new_buf(BytePtr p, size_t size)
    {
       stbtt__buf r;
@@ -2036,9 +2052,12 @@ public class StbTrueType
       return r;
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static stbtt_uint16 stbtt__buf_get16(ref stbtt__buf b) => (stbtt_uint16)stbtt__buf_get(ref b, 2);
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static stbtt_int32 stbtt__buf_get32(ref stbtt__buf b) => (stbtt_int32)stbtt__buf_get(ref b, 4);
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static stbtt__buf stbtt__buf_range(ref stbtt__buf b, int o, int s)
    {
       stbtt__buf r = stbtt__new_buf(BytePtr.Null, 0);
@@ -2048,6 +2067,7 @@ public class StbTrueType
       return r;
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static stbtt__buf stbtt__cff_get_index(ref stbtt__buf b)
    {
       int count, start, offsize;
@@ -2063,6 +2083,7 @@ public class StbTrueType
       return stbtt__buf_range(ref b, start, b.cursor - start);
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static stbtt_uint32 stbtt__cff_int(ref stbtt__buf b)
    {
       int b0 = stbtt__buf_get8(ref b);
@@ -2075,6 +2096,7 @@ public class StbTrueType
       return 0;
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static void stbtt__cff_skip_operand(ref stbtt__buf b)
    {
       int v, b0 = stbtt__buf_peek8(ref b);
@@ -2095,6 +2117,7 @@ public class StbTrueType
       }
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static stbtt__buf stbtt__dict_get(ref stbtt__buf b, int key)
    {
       stbtt__buf_seek(ref b, 0);
@@ -2111,6 +2134,7 @@ public class StbTrueType
       return stbtt__buf_range(ref b, 0, 0);
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static void stbtt__dict_get_ints(ref stbtt__buf b, int key, int outcount, Span<stbtt_uint32> _out)
    {
       int i;
@@ -2119,6 +2143,7 @@ public class StbTrueType
          _out[i] = stbtt__cff_int(ref operands);
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static void stbtt__dict_get_ints(ref stbtt__buf b, int key, int outcount, ref stbtt_uint32 _out)
    {
       STBTT_assert(outcount != 0);
@@ -2128,12 +2153,14 @@ public class StbTrueType
          _out = stbtt__cff_int(ref operands);
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static int stbtt__cff_index_count(ref stbtt__buf b)
    {
       stbtt__buf_seek(ref b, 0);
       return stbtt__buf_get16(ref b);
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static stbtt__buf stbtt__cff_index_get(stbtt__buf b, int i)
    {
       int count, offsize, start, end;
@@ -2156,16 +2183,25 @@ public class StbTrueType
    // on platforms that don't allow misaligned reads, if we want to allow
    // truetype fonts that aren't padded to alignment, define ALLOW_UNALIGNED_TRUETYPE
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static stbtt_uint8 ttBYTE(BytePtr p) => p[0].Value;
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static stbtt_int8 ttCHAR(BytePtr p) => (stbtt_int8)p[0].Value;
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static stbtt_int32 ttFixed(BytePtr p) => ttLONG(p);
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static stbtt_uint16 ttUSHORT(BytePtr p) { return (stbtt_uint16)(p[0].Value * 256 + p[1].Value); }
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static stbtt_int16 ttSHORT(BytePtr p) { return (stbtt_int16)(p[0].Value * 256 + p[1].Value); }
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static stbtt_uint32 ttULONG(BytePtr p) { return (stbtt_uint32)((p[0].Value << 24) + (p[1].Value << 16) + (p[2].Value << 8) + p[3].Value); }
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static stbtt_int32 ttLONG(BytePtr p) { return (p[0].Value << 24) + (p[1].Value << 16) + (p[2].Value << 8) + p[3].Value; }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static bool stbtt_tag4(BytePtr p, byte c0, byte c1, byte c2, byte c3) => ((p)[0].Value == (c0) && (p)[1].Value == (c1) && (p)[2].Value == (c2) && (p)[3].Value == (c3));
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static bool stbtt_tag(BytePtr p, string str) => stbtt_tag4(p, (byte)str[0], (byte)str[1], (byte)str[2], (byte)str[3]);
 
    static bool stbtt__isfont(BytePtr font)
@@ -2429,7 +2465,7 @@ public class StbTrueType
 
    static int stbtt__GetGlyphInfoT2(ref stbtt_fontinfo info, int glyph_index, out int x0, out int y0, out int x1, out int y1)
    {
-      stbtt__csctx c = STBTT__CSCTX_INIT(1);
+      stbtt__csctx c = STBTT__CSCTX_INIT(true);
       bool r = stbtt__run_charstring(ref info, glyph_index, ref c);
       x0 = r ? c.min_x : 0;
       y0 = r ? c.min_y : 0;
@@ -2728,7 +2764,7 @@ public class StbTrueType
 
    private struct stbtt__csctx
    {
-      public int bounds;
+      public bool bounds;
       public bool started;
       public float first_x, first_y;
       public float x, y;
@@ -2738,7 +2774,7 @@ public class StbTrueType
       public int num_vertices;
    }
 
-   private static stbtt__csctx STBTT__CSCTX_INIT(int bounds)
+   private static stbtt__csctx STBTT__CSCTX_INIT(bool bounds)
    {
       stbtt__csctx ctx = new stbtt__csctx();
       ctx.bounds = bounds;
@@ -2756,7 +2792,7 @@ public class StbTrueType
 
    static void stbtt__csctx_v(ref stbtt__csctx c, STBTT type, stbtt_int32 x, stbtt_int32 y, stbtt_int32 cx, stbtt_int32 cy, stbtt_int32 cx1, stbtt_int32 cy1)
    {
-      if (c.bounds != 0)
+      if (c.bounds)
       {
          stbtt__track_vertex(ref c, x, y);
          if (type == STBTT.vcubic)
@@ -3203,8 +3239,8 @@ public class StbTrueType
    static int stbtt__GetGlyphShapeT2(ref stbtt_fontinfo info, int glyph_index, out stbtt_vertex[] pvertices)
    {
       // runs the charstring twice, once to count and once to output (to avoid realloc)
-      stbtt__csctx count_ctx = STBTT__CSCTX_INIT(1);
-      stbtt__csctx output_ctx = STBTT__CSCTX_INIT(0);
+      stbtt__csctx count_ctx = STBTT__CSCTX_INIT(true);
+      stbtt__csctx output_ctx = STBTT__CSCTX_INIT(false);
       if (stbtt__run_charstring(ref info, glyph_index, ref count_ctx))
       {
          pvertices = new stbtt_vertex[count_ctx.num_vertices];
@@ -3218,11 +3254,6 @@ public class StbTrueType
       pvertices = [];
       return 0;
    }
-
-
-
-
-
 
    static int stbtt__GetGlyphKernInfoAdvance(ref stbtt_fontinfo info, int glyph1, int glyph2)
    {
@@ -3861,6 +3892,7 @@ public class StbTrueType
       }
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static float stbtt__sized_trapezoid_area(float height, float top_width, float bottom_width)
    {
       STBTT_assert(top_width >= 0);
@@ -3868,11 +3900,13 @@ public class StbTrueType
       return (top_width + bottom_width) / 2.0f * height;
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static float stbtt__position_trapezoid_area(float height, float tx0, float tx1, float bx0, float bx1)
    {
       return stbtt__sized_trapezoid_area(height, tx1 - tx0, bx1 - bx0);
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static float stbtt__sized_triangle_area(float height, float width)
    {
       return height * width / 2;
@@ -4129,6 +4163,8 @@ public class StbTrueType
       }
    }
 
+   const int MAX_STACK_SCANLINE_WIDTH = 64;
+
    // directly AA rasterize edges w/o supersampling
    static void stbtt__rasterize_sorted_edges(ref stbtt__bitmap result, stbtt__edge[] e, int n, int vsubsample, int off_x, int off_y)
    {
@@ -4136,7 +4172,7 @@ public class StbTrueType
       stbtt__init_active_collection(out hh, e.Length);
 
       int y, j = 0, i;
-      Span<float> scanline = result.w > 64 ? new float[result.w * 2 + 1] : stackalloc float[129];
+      Span<float> scanline = result.w > MAX_STACK_SCANLINE_WIDTH ? new float[result.w * 2 + 1] : stackalloc float[MAX_STACK_SCANLINE_WIDTH * 2 + 1];
       Span<float> scanline2 = scanline.Slice(result.w);
 
       //STBTT__NOTUSED(vsubsample);

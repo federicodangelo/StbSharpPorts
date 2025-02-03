@@ -2,6 +2,7 @@
 
 using StbSharp;
 using StbSharp.StbCommon;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Text.Json;
@@ -43,6 +44,8 @@ public class BatchBuildFontsExample
         if (Directory.Exists(OutputDirectory))
             Directory.Delete(OutputDirectory, true);
 
+        var sw = new Stopwatch();
+
         foreach (var sampleFont in SampleFonts)
         {
             foreach (var sampleFontSize in SampleFontSizes)
@@ -55,7 +58,9 @@ public class BatchBuildFontsExample
 
                 var bitmapOptions = new BuildFontBitmapExample.BitmapOptions();
 
+                sw.Start();
                 var output = BuildFontBitmapExample.BuildFontBitmap(fontOptions, bitmapOptions, BuildFontBitmapExample.PackFormat.Better);
+                sw.Stop();
 
                 if (output == null)
                 {
@@ -99,5 +104,9 @@ public class BatchBuildFontsExample
             }
 
         }
+
+        sw.Stop();
+
+        Console.WriteLine($"Time to generate all fonts: {sw.ElapsedMilliseconds}ms");
     }
 }

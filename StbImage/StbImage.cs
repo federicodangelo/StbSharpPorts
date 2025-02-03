@@ -2489,6 +2489,7 @@ static public void   stbi_ldr_to_hdr_scale(float scale) { stbi__l2h_scale = scal
 #if (STBI_NO_JPEG) && (STBI_NO_PNG) && (STBI_NO_PSD) && (STBI_NO_PIC)
 // nothing
 #else
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static int stbi__get16be(ref stbi__context s)
    {
       int z = stbi__get8(ref s);
@@ -2499,6 +2500,7 @@ static public void   stbi_ldr_to_hdr_scale(float scale) { stbi__l2h_scale = scal
 #if (STBI_NO_PNG) && (STBI_NO_PSD) && (STBI_NO_PIC)
 // nothing
 #else
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static stbi__uint32 stbi__get32be(ref stbi__context s)
    {
       stbi__uint32 z = (uint)stbi__get16be(ref s);
@@ -2509,6 +2511,7 @@ static public void   stbi_ldr_to_hdr_scale(float scale) { stbi__l2h_scale = scal
 #if (STBI_NO_BMP) && (STBI_NO_TGA) && (STBI_NO_GIF)
    // nothing
 #else
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static int stbi__get16le(ref stbi__context s)
    {
       int z = stbi__get8(ref s);
@@ -2517,6 +2520,7 @@ static public void   stbi_ldr_to_hdr_scale(float scale) { stbi__l2h_scale = scal
 #endif
 
 #if !STBI_NO_BMP
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static stbi__uint32 stbi__get32le(ref stbi__context s)
    {
       stbi__uint32 z = (stbi__uint32)stbi__get16le(ref s);
@@ -4700,6 +4704,7 @@ static BytePtr stbi__hdr_to_ldr(float   *data, int x, int y, int comp)
       return stbi__zeof(ref z) ? (byte)0 : (z.zbuffer++).Value;
    }
 
+   [MethodImpl(MethodImplOptions.AggressiveInlining)]
    static void stbi__fill_bits(ref stbi__zbuf z)
    {
       do
