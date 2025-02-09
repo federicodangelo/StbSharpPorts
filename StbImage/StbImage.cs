@@ -5866,7 +5866,7 @@ static BytePtr stbi__hdr_to_ldr(float   *data, int x, int y, int comp)
          // end of PNG chunk, read and skip CRC
          uint crc32 = stbi__get32be(ref s);
 
-         Debug.WriteLine($"Decoded chunk {(char)(c.type >> 24)}{(char)((c.type >> 16) & 0xFF)}{(char)((c.type >> 8) & 0xFF)}{(char)((c.type >> 0) & 0xFF)} with a length of {c.length} and CRC32 {Convert.ToString(crc32, 16)}");
+         // Debug.WriteLine($"Decoded chunk {(char)(c.type >> 24)}{(char)((c.type >> 16) & 0xFF)}{(char)((c.type >> 8) & 0xFF)}{(char)((c.type >> 0) & 0xFF)} with a length of {c.length} and CRC32 {Convert.ToString(crc32, 16)}");
       }
    }
 
