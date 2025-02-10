@@ -17,6 +17,7 @@ Ported:
 
 Original Libraries:
 - StbHash: Hashing functions
+- StbGui: Immediate mode gui library (think https://github.com/ocornut/imgui, but with fewer features and more bugs)
 
 I tried to add some tests for everything, but there is a VERY HIGH chance that I introduced some really creative bugs in the porting process, so use evertything at your own risk.. :-)
 

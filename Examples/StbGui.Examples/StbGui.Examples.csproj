@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OptimizationPreference>Speed</OptimizationPreference>
+    <PublishAot>true</PublishAot>
+    <TrimMode>full</TrimMode>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    
+    <!-- Use Invariant Globalization only -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+
+    <!-- Remove stack trace info from AOT builds-->
+    <StackTraceSupport>false</StackTraceSupport>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\StbGui\StbGui.csproj" />
+  </ItemGroup>  
+
+</Project>
