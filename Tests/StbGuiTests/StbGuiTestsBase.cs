@@ -2,11 +2,18 @@ using StbSharp;
 
 namespace StbSharp.Tests;
 
-public class StbGuiTestsBase
+[Collection("Sequential")]
+public class StbGuiTestsBase : IDisposable
 {
+    public void Dispose()
+    {
+        AssertHierarchyConsistency();
+        DestroyGui();
+    }
+
     static protected void InitGUI()
     {
-        StbGui.stbg_init(new() { duplicated_widget_identifier_behaviour = StbGui.STBG_DUP_ID_BEHAVIOUR.EXCEPTION });
+        StbGui.stbg_init(new() { assert_behaviour = StbGui.STBG_ASSERT_BEHAVIOUR.EXCEPTION });
     }
 
     static protected void DestroyGui()

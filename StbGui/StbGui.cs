@@ -8,6 +8,7 @@ using widget_hash = int;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 // Reference:
 // - https://www.rfleury.com/p/posts-table-of-contents
@@ -88,6 +89,7 @@ public class StbGui
     {
         NONE,
         ROOT,
+        WINDOW,
         BUTTON,
     }
 
@@ -165,7 +167,7 @@ public class StbGui
         public stbg_init_options init_options;
     }
 
-    public enum STBG_DUP_ID_BEHAVIOUR
+    public enum STBG_ASSERT_BEHAVIOUR
     {
         /// <summary>
         /// Asserts in DEBUG builds, does nothing in RELEASE builds
@@ -185,6 +187,11 @@ public class StbGui
         NONE,
     }
 
+    public class StbgAssertException : Exception
+    {
+        public StbgAssertException(string? message) : base(message) { }
+    }
+
     public struct stbg_init_options
     {
         /// <summary>
@@ -192,11 +199,15 @@ public class StbGui
         /// </summary>
         public int max_widgets;
 
+        /// <summary>
+        /// Hash table size, defaults to max_widgets
+        /// </summary>
+        public int hash_table_size;
 
         /// <summary>
-        /// Behaviour when a duplicated widget identifier is found, defaults to ASSERT
+        /// Behaviour of assert calls, defaults to ASSERT
         /// </summary>
-        public STBG_DUP_ID_BEHAVIOUR duplicated_widget_identifier_behaviour;
+        public STBG_ASSERT_BEHAVIOUR assert_behaviour;
     }
 
     static private stbg_context context;
@@ -225,8 +236,11 @@ public class StbGui
         if (options.max_widgets == 0)
             options.max_widgets = DEFAULT_MAX_WIDGETS;
 
+        if (options.hash_table_size == 0)
+            options.hash_table_size = options.max_widgets;
+
         var widgets = new stbg_widget[options.max_widgets];
-        var hashTable = new stbg_hash_entry[widgets.Length];
+        var hashTable = new stbg_hash_entry[options.hash_table_size];
 
         // init ids and flags
         for (int i = 0; i < widgets.Length; i++)
@@ -264,14 +278,14 @@ public class StbGui
     /// </summary>
     public static void stbg_begin_frame()
     {
-        Debug.Assert(!context.inside_frame);
+        stbg__assert(!context.inside_frame);
         context.inside_frame = true;
         context.current_widget_id = STBG_WIDGET_ID_NULL;
         context.current_frame++;
         context.prev_frame_stats = context.frame_stats;
         context.frame_stats = new stbg_context_frame_stats();
 
-        ref var root = ref add_widget(STBG_WIDGET_TYPE.ROOT, "root");
+        ref var root = ref stbg__add_widget(STBG_WIDGET_TYPE.ROOT, "root");
 
         context.current_widget_id = root.id;
         context.root_widget_id = root.id;
@@ -282,8 +296,8 @@ public class StbGui
     /// </summary>
     public static void stbg_end_frame()
     {
-        Debug.Assert(context.inside_frame, "Not inside a frame");
-        Debug.Assert(context.current_widget_id == context.root_widget_id, "Unbalanced begin() / end() calls");
+        stbg__assert(context.inside_frame, "Not inside a frame");
+        stbg__assert(context.current_widget_id == context.root_widget_id, "Unbalanced begin() / end() calls");
 
         context.inside_frame = false;
         context.current_widget_id = STBG_WIDGET_ID_NULL;
@@ -320,14 +334,80 @@ public class StbGui
         return ref context.widgets[id];
     }
 
+    /// <summary>
+    /// Adds a button.
+    /// Returns true if the button was pressed.
+    /// </summary>
+    /// <param name="label"></param>
+    /// <returns>Returns true if the button was pressed</returns>
     public static bool stbg_button(string label)
     {
-        add_widget(STBG_WIDGET_TYPE.BUTTON, label);
+        stbg__add_widget(STBG_WIDGET_TYPE.BUTTON, label);
 
         return false;
     }
 
-    private static ref stbg_widget add_widget(STBG_WIDGET_TYPE type, string identifier)
+    /// <summary>
+    /// Begins a new window with the given name.
+    /// Returns true if the window is visible, false otherwise.
+    /// If it returns true, you MUST skip the window content and the stbg_end_window() call.
+    /// <code>
+    /// if (StbGui.stbg_begin_window("Window 1"))
+    /// {
+    ///   // window visible, add content
+    ///   StbGui.stbg_button("Button 1");
+    ///   ...
+    ///   StbGui.stbg_end_window(); // don't forget to end the window
+    /// }
+    /// </code>
+    /// </summary>
+    /// <param name="label"></param>
+    /// <returns>Returns if the window is visible or not</returns>
+    public static bool stbg_begin_window(string label)
+    {
+        ref var window = ref stbg__add_widget(STBG_WIDGET_TYPE.WINDOW, label);
+
+        bool visible = true;
+
+        if (visible)
+            context.current_widget_id = window.id;
+
+        return visible;
+    }
+
+    /// <summary>
+    /// Ends the current window.
+    /// </summary>
+    public static void stbg_end_window()
+    {
+        ref var window = ref stbg_get_widget_by_id(context.current_widget_id);
+
+        stbg__assert(window.type == STBG_WIDGET_TYPE.WINDOW);
+
+        context.current_widget_id = window.hierarchy.parent_id;
+    }
+
+    private static void stbg__assert(bool condition, [CallerArgumentExpression(nameof(condition))] string? message = null)
+    {
+        switch (context.init_options.assert_behaviour)
+        {
+            case STBG_ASSERT_BEHAVIOUR.ASSERT:
+                Debug.Assert(condition, message);
+                break;
+            case STBG_ASSERT_BEHAVIOUR.EXCEPTION:
+                if (!condition)
+                    throw new StbgAssertException(message);
+                break;
+            case STBG_ASSERT_BEHAVIOUR.CONSOLE:
+                if (!condition)
+                    Console.Error.WriteLine($"Failed assert: {message}");
+                break;
+            case STBG_ASSERT_BEHAVIOUR.NONE:
+                break;
+        }
+    }
+
+    private static ref stbg_widget stbg__add_widget(STBG_WIDGET_TYPE type, string identifier)
     {
         ref var widget = ref stbg__add_widget(stbg__calculate_hash(type, identifier));
 
@@ -338,8 +418,8 @@ public class StbGui
 
     private static ref stbg_widget stbg__add_widget(widget_hash hash)
     {
-        Debug.Assert(context.inside_frame);
-        Debug.Assert(context.first_free_widget_id != STBG_WIDGET_ID_NULL);
+        stbg__assert(context.inside_frame);
+        stbg__assert(context.first_free_widget_id != STBG_WIDGET_ID_NULL);
 
         ref var widget =
             ref (stbg__find_widget_by_hash(hash, out var existingWidgetId) ?
@@ -385,21 +465,7 @@ public class StbGui
         if (widget.last_used_in_frame == context.current_frame)
         {
             context.frame_stats.duplicated_widgets_ids++;
-            // Duplicated widget identifier found.. trigger exptected behaviour
-            switch (context.init_options.duplicated_widget_identifier_behaviour)
-            {
-                case STBG_DUP_ID_BEHAVIOUR.ASSERT:
-                    Debug.Assert(widget.last_used_in_frame != context.current_frame, "Duplicated widget identifier!!");
-                    break;
-                case STBG_DUP_ID_BEHAVIOUR.EXCEPTION:
-                    throw new Exception("Duplicated widget identifier!!");
-                case STBG_DUP_ID_BEHAVIOUR.CONSOLE:
-                    Console.Error.WriteLine("Duplicated widget identifier!!");
-                    break;
-                case STBG_DUP_ID_BEHAVIOUR.NONE:
-                    break;
-            }
-
+            stbg__assert(widget.last_used_in_frame != context.current_frame, "Duplicated widget identifier!!");
         }
         widget.last_used_in_frame = context.current_frame;
 
@@ -436,9 +502,9 @@ public class StbGui
 
     private static void stbg__remove_widget(ref stbg_widget widget)
     {
-        Debug.Assert(!context.inside_frame);
-        Debug.Assert((widget.flags & STBG_WIDGET_FLAGS.USED) != 0);
-        Debug.Assert(widget.last_used_in_frame != context.current_frame);
+        stbg__assert(!context.inside_frame);
+        stbg__assert((widget.flags & STBG_WIDGET_FLAGS.USED) != 0);
+        stbg__assert(widget.last_used_in_frame != context.current_frame);
 
         // Reset hierarchy
         widget.hierarchy = new stbg_widget_hierarchy();
@@ -452,7 +518,7 @@ public class StbGui
             // We are the first element in the bucket, make it point to the next element in our hash list
             ref var bucket = ref stbg__get_hash_entry_by_hash(widget.hash);
 
-            Debug.Assert(bucket.first_widget_in_bucket == widget.id);
+            stbg__assert(bucket.first_widget_in_bucket == widget.id);
 
             bucket.first_widget_in_bucket = widget.hash_chain.next_same_bucket;
         }
@@ -498,7 +564,7 @@ public class StbGui
 
     private static ref stbg_hash_entry stbg__get_hash_entry_by_hash(widget_hash hash)
     {
-        int index = Math.Abs(hash % context.widgets.Length);
+        int index = Math.Abs(hash % context.hash_table.Length);
         return ref context.hash_table[index];
     }
 
