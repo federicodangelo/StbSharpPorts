@@ -14,6 +14,7 @@ public class StbGuiTestsBase : IDisposable
     static protected void InitGUI()
     {
         StbGui.stbg_init(new() { assert_behaviour = StbGui.STBG_ASSERT_BEHAVIOUR.EXCEPTION });
+        StbGui.stbg_set_screen_size(512, 512);
     }
 
     static protected void DestroyGui()
