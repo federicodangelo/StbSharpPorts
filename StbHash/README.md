@@ -1,0 +1,4 @@
+THIS IS NOT A PORT OF ANY EXISTING STB HEADER!!
+
+Hashing functions
+

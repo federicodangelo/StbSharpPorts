@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -28,6 +28,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbImageWriteTests", "Tests\StbImageWriteTests\StbImageWriteTests.csproj", "{515EDB2D-F30A-4107-9A73-BC151F550872}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbImageWrite.Examples", "Examples\StbImageWrite.Examples\StbImageWrite.Examples.csproj", "{CF0365ED-089A-4C34-BB4C-EF4E01124F33}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbHash", "StbHash\StbHash.csproj", "{EF2AE5D4-07DF-46BC-9680-F7400D53AD71}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbHashTests", "Tests\StbHashTests\StbHashTests.csproj", "{874958DA-98A5-4114-B53C-2A35E34C6DDD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -82,6 +86,18 @@ Global
 		{CF0365ED-089A-4C34-BB4C-EF4E01124F33}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CF0365ED-089A-4C34-BB4C-EF4E01124F33}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CF0365ED-089A-4C34-BB4C-EF4E01124F33}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F3676FF-ABCF-430E-8A2B-73B440F91963}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F3676FF-ABCF-430E-8A2B-73B440F91963}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F3676FF-ABCF-430E-8A2B-73B440F91963}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F3676FF-ABCF-430E-8A2B-73B440F91963}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF2AE5D4-07DF-46BC-9680-F7400D53AD71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF2AE5D4-07DF-46BC-9680-F7400D53AD71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF2AE5D4-07DF-46BC-9680-F7400D53AD71}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF2AE5D4-07DF-46BC-9680-F7400D53AD71}.Release|Any CPU.Build.0 = Release|Any CPU
+		{874958DA-98A5-4114-B53C-2A35E34C6DDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{874958DA-98A5-4114-B53C-2A35E34C6DDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{874958DA-98A5-4114-B53C-2A35E34C6DDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{874958DA-98A5-4114-B53C-2A35E34C6DDD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{59531959-4CF4-4169-80A0-3CD1D5CA89E4} = {35C5903E-44A0-40C2-9758-5688F01E9F30}
@@ -89,5 +105,6 @@ Global
 		{9948F5D8-E804-431C-812A-69591DB4FB42} = {35C5903E-44A0-40C2-9758-5688F01E9F30}
 		{515EDB2D-F30A-4107-9A73-BC151F550872} = {8C71419C-CB88-4709-B1F4-9FB4652AAF17}
 		{CF0365ED-089A-4C34-BB4C-EF4E01124F33} = {35C5903E-44A0-40C2-9758-5688F01E9F30}
+		{874958DA-98A5-4114-B53C-2A35E34C6DDD} = {8C71419C-CB88-4709-B1F4-9FB4652AAF17}
 	EndGlobalSection
 EndGlobal
