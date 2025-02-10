@@ -29,6 +29,7 @@ public class StbGui
         TEXT_CONTENT,
         PERCENT_OF_PARENT,
         CHILDREN_SUM,
+        CHILDREN_MAX,
     };
 
     public enum STBG_AXIS
@@ -308,6 +309,270 @@ public class StbGui
             int amount_to_destroy = (context.prev_frame_stats.new_widgets + context.prev_frame_stats.reused_widgets) - context.frame_stats.reused_widgets;
             stbg__destroy_unused_widgets(amount_to_destroy);
         }
+
+        stbg__layout_widgets();
+    }
+
+
+
+    private static void stbg__layout_widgets()
+    {
+        // Ideas from:
+        // - Originally using https://www.rfleury.com/p/ui-part-2-build-it-every-frame-immediate but it was waaay to complex
+        // - Switched to https://docs.flutter.dev/ui/layout/constraints (let's see how it goes..)
+
+        // Calculate standalone widgets (PIXELS / TEXT_CONTENT)
+        stbg__for_each_widget_in_hierarchy_pre_order(stbg__layout_standalone_widgets);
+        void stbg__layout_standalone_widgets(ref stbg_widget widget)
+        {
+            for (var axis = STBG_AXIS.X; axis <= STBG_AXIS.Y; axis++)
+            {
+                ref var size_mode = ref axis == STBG_AXIS.X ? ref widget.size.x : ref widget.size.y;
+                ref var relative = ref axis == STBG_AXIS.X ? ref widget.computed_bounds.relative_x : ref widget.computed_bounds.relative_y;
+                ref var size = ref axis == STBG_AXIS.X ? ref widget.computed_bounds.size_x : ref widget.computed_bounds.size_y;
+
+                switch (size_mode.kind)
+                {
+                    case STBG_SIZE_KIND.PIXELS:
+                        size = size_mode.value;
+                        break;
+
+                    case STBG_SIZE_KIND.TEXT_CONTENT:
+                        // TODO: Measure text?
+                        // size = size_mode.value;
+                        break;
+                }
+            }
+        }
+
+        // Calculate “upwards-dependent” sizes. These are sizes that strictly depend on an ancestor’s size, other than ancestors that have 
+        // “downwards-dependent” sizes on the given axis. (PERCENT_OF_PARENT)
+        stbg__for_each_widget_in_hierarchy_pre_order(stbg__layout_upwards_dependent_widgets);
+        void stbg__layout_upwards_dependent_widgets(ref stbg_widget widget)
+        {
+            for (var axis = STBG_AXIS.X; axis <= STBG_AXIS.Y; axis++)
+            {
+                ref var size_mode = ref axis == STBG_AXIS.X ? ref widget.size.x : ref widget.size.y;
+                ref var relative = ref axis == STBG_AXIS.X ? ref widget.computed_bounds.relative_x : ref widget.computed_bounds.relative_y;
+                ref var size = ref axis == STBG_AXIS.X ? ref widget.computed_bounds.size_x : ref widget.computed_bounds.size_y;
+
+                switch (size_mode.kind)
+                {
+                    case STBG_SIZE_KIND.PERCENT_OF_PARENT:
+                        {
+                            if (widget.hierarchy.parent_id != STBG_WIDGET_ID_NULL)
+                            {
+                                ref var parent = ref stbg_get_widget_by_id(widget.hierarchy.parent_id);
+                                float parent_size = axis == STBG_AXIS.X ? parent.computed_bounds.size_x : parent.computed_bounds.size_y;
+                                size = parent_size * size_mode.value;
+                            }
+                            break;
+                        }
+                }
+            }
+        }
+
+        // Calculate “downwards-dependent” sizes. These are sizes that depend on sizes of descendants. (CHILDREN_SUM / CHILDREN_MAX)
+        stbg__for_each_widget_in_hierarchy_post_order(stbg__layout_downwards_dependent_widgets);
+        void stbg__layout_downwards_dependent_widgets(ref stbg_widget widget)
+        {
+            for (var axis = STBG_AXIS.X; axis <= STBG_AXIS.Y; axis++)
+            {
+                ref var size_mode = ref axis == STBG_AXIS.X ? ref widget.size.x : ref widget.size.y;
+                ref var relative = ref axis == STBG_AXIS.X ? ref widget.computed_bounds.relative_x : ref widget.computed_bounds.relative_y;
+                ref var size = ref axis == STBG_AXIS.X ? ref widget.computed_bounds.size_x : ref widget.computed_bounds.size_y;
+
+                switch (size_mode.kind)
+                {
+                    case STBG_SIZE_KIND.CHILDREN_SUM:
+                    case STBG_SIZE_KIND.CHILDREN_MAX:
+                        {
+                            float children_accumulator = 0;
+
+                            var children_id = widget.hierarchy.first_children_id;
+
+                            while (children_id != STBG_WIDGET_ID_NULL)
+                            {
+                                ref var children = ref stbg_get_widget_by_id(children_id);
+
+                                float children_size = axis == STBG_AXIS.X ? children.computed_bounds.size_x : children.computed_bounds.size_y;
+
+                                if (size_mode.kind == STBG_SIZE_KIND.CHILDREN_SUM)
+                                    children_accumulator += children_size;
+                                else
+                                    children_accumulator = Math.Max(children_accumulator, children_size);
+
+                                children_id = stbg_get_widget_by_id(children_id).hierarchy.next_sibling_id;
+                            }
+
+                            size = children_accumulator;
+                            break;
+                        }
+                }
+            }
+        }
+
+        // Solve violations. For each level in the hierarchy, this will verify that the children do not extend past the boundaries of a given 
+        // parent (unless explicitly allowed to do so; for example, in the case of a parent that is scrollable on the given axis), to the best 
+        // of the algorithm’s ability. If there is a violation, it will take a proportion of each child widget’s size (on the given axis) 
+        // proportional to both the size of the violation, and (1-strictness), where strictness is that specified in the semantic size on the 
+        // child widget for the given axis.
+        stbg__for_each_widget_in_hierarchy_pre_order(stbg__layout_solve_violations);
+        void stbg__layout_solve_violations(ref stbg_widget widget)
+        {
+            for (var axis = STBG_AXIS.X; axis <= STBG_AXIS.Y; axis = (STBG_AXIS)(axis + 1))
+            {
+                ref var size_mode = ref axis == STBG_AXIS.X ? ref widget.size.x : ref widget.size.y;
+                ref var relative = ref axis == STBG_AXIS.X ? ref widget.computed_bounds.relative_x : ref widget.computed_bounds.relative_y;
+                ref var size = ref axis == STBG_AXIS.X ? ref widget.computed_bounds.size_x : ref widget.computed_bounds.size_y;
+
+                float children_sum = 0;
+
+                {
+                    var children_id = widget.hierarchy.first_children_id;
+
+                    while (children_id != STBG_WIDGET_ID_NULL)
+                    {
+                        ref var children = ref stbg_get_widget_by_id(children_id);
+
+                        float childrenSize = axis == STBG_AXIS.X ? children.computed_bounds.size_x : children.computed_bounds.size_y;
+
+                        children_sum += childrenSize;
+
+                        children_id = stbg_get_widget_by_id(children_id).hierarchy.next_sibling_id;
+                    }
+                }
+
+                if (children_sum > size)
+                {
+                    if (size == 0) continue;
+
+                    // Children bigger than parent, try to adjust children sizes
+
+                    // TODO: This needs to be improved! The current algorithm doesn't correctly distribute the available size when there are widgets with strictness != 0
+                    float violation_size = children_sum - size;
+                    float violation_percent = children_sum / size;
+                    float new_children_sum = 0;
+
+                    {
+                        var children_id = widget.hierarchy.first_children_id;
+
+                        while (children_id != STBG_WIDGET_ID_NULL)
+                        {
+                            ref var children = ref stbg_get_widget_by_id(children_id);
+
+                            ref var children_size_mode = ref axis == STBG_AXIS.X ? ref children.size.x : ref children.size.y;
+                            ref float children_size = ref axis == STBG_AXIS.X ? ref children.computed_bounds.size_x : ref children.computed_bounds.size_y;
+
+                            if (children_size_mode.strictness != 1.0f)
+                            {
+                                children_size = children_size - children_size * (1.0f - children_size_mode.strictness) * violation_percent;
+                            }
+
+                            new_children_sum += children_size;
+
+                            children_id = stbg_get_widget_by_id(children_id).hierarchy.next_sibling_id;
+                        }
+                    }
+
+                    if (new_children_sum > size)
+                    {
+                        // If after all the adjusments the children are still bigger than the parent, then expand the parent
+                        size = new_children_sum;
+                    }
+                }
+                break;
+            }
+        }
+
+        // Finally, given the calculated sizes of each widget, compute the relative positions of each widget (by laying out on an axis which can 
+        // be specified on any parent node). This stage can also compute the final screen-coordinates rectangle.
+        stbg__for_each_widget_in_hierarchy_pre_order(stbg__layout_update_relative_positions);
+        void stbg__layout_update_relative_positions(ref stbg_widget widget)
+        {
+            for (var axis = STBG_AXIS.X; axis <= STBG_AXIS.Y; axis++)
+            {
+                ref var size_mode = ref axis == STBG_AXIS.X ? ref widget.size.x : ref widget.size.y;
+                ref var relative = ref axis == STBG_AXIS.X ? ref widget.computed_bounds.relative_x : ref widget.computed_bounds.relative_y;
+                ref var size = ref axis == STBG_AXIS.X ? ref widget.computed_bounds.size_x : ref widget.computed_bounds.size_y;
+
+                float children_sum = 0;
+                {
+                    var children_id = widget.hierarchy.first_children_id;
+
+                    while (children_id != STBG_WIDGET_ID_NULL)
+                    {
+                        ref var children = ref stbg_get_widget_by_id(children_id);
+
+                        float children_size = axis == STBG_AXIS.X ? children.computed_bounds.size_x : children.computed_bounds.size_y;
+                        ref var chilren_relative = ref axis == STBG_AXIS.X ? ref children.computed_bounds.relative_x : ref children.computed_bounds.relative_y;
+
+                        chilren_relative = children_sum;
+
+                        children_sum += children_size;
+
+                        children_id = stbg_get_widget_by_id(children_id).hierarchy.next_sibling_id;
+                    }
+                }
+            }
+
+            if (widget.hierarchy.parent_id != STBG_WIDGET_ID_NULL)
+            {
+                ref var computed_bounds = ref widget.computed_bounds;
+                ref var parent_computer_bounds = ref stbg_get_widget_by_id(widget.hierarchy.parent_id).computed_bounds;
+
+                computed_bounds.global_rect.x0 = computed_bounds.relative_x + parent_computer_bounds.global_rect.x0;
+                computed_bounds.global_rect.x1 = computed_bounds.relative_x + computed_bounds.size_x + parent_computer_bounds.global_rect.x0;
+                computed_bounds.global_rect.y0 = computed_bounds.relative_y + parent_computer_bounds.global_rect.y0;
+                computed_bounds.global_rect.y1 = computed_bounds.relative_y + computed_bounds.size_y + parent_computer_bounds.global_rect.y0;
+            }
+        }
+    }
+
+    private delegate void ActionRef<T>(ref T item);
+
+    private static void stbg__for_each_widget_in_hierarchy_pre_order(ActionRef<stbg_widget> action)
+    {
+        stbg__for_each_widget_in_hierarchy_pre_order(context.root_widget_id, action);
+    }
+
+    private static void stbg__for_each_widget_in_hierarchy_pre_order(int widget_id, ActionRef<stbg_widget> action)
+    {
+        if (widget_id == STBG_WIDGET_ID_NULL) return;
+
+        ref var widget = ref stbg_get_widget_by_id(widget_id);
+
+        action(ref widget);
+
+        var children_id = widget.hierarchy.first_children_id;
+
+        while (children_id != STBG_WIDGET_ID_NULL)
+        {
+            stbg__for_each_widget_in_hierarchy_pre_order(children_id, action);
+            children_id = stbg_get_widget_by_id(children_id).hierarchy.next_sibling_id;
+        }
+    }
+
+    private static void stbg__for_each_widget_in_hierarchy_post_order(ActionRef<stbg_widget> action)
+    {
+        stbg__for_each_widget_in_hierarchy_post_order(context.root_widget_id, action);
+    }
+
+    private static void stbg__for_each_widget_in_hierarchy_post_order(int widget_id, ActionRef<stbg_widget> action)
+    {
+        if (widget_id == STBG_WIDGET_ID_NULL) return;
+
+        ref var widget = ref stbg_get_widget_by_id(widget_id);
+
+        var children_id = widget.hierarchy.first_children_id;
+
+        while (children_id != STBG_WIDGET_ID_NULL)
+        {
+            stbg__for_each_widget_in_hierarchy_post_order(children_id, action);
+            children_id = stbg_get_widget_by_id(children_id).hierarchy.next_sibling_id;
+        }
+
+        action(ref widget);
     }
 
     private static void stbg__destroy_unused_widgets(int amount_to_destroy)
