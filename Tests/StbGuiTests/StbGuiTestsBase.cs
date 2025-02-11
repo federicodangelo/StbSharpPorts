@@ -5,6 +5,9 @@ namespace StbSharp.Tests;
 [Collection("Sequential")]
 public class StbGuiTestsBase : IDisposable
 {
+    protected const float ScreenSizeWidth = 512;
+    protected const float ScreenSizeHeight = 256;
+
     public void Dispose()
     {
         AssertHierarchyConsistency();
@@ -27,7 +30,7 @@ public class StbGuiTestsBase : IDisposable
     static protected void InitGUI(StbGui.stbg_init_options options)
     {
         StbGui.stbg_init(BuildExternalDependencies(), options);
-        StbGui.stbg_set_screen_size(512, 512);
+        StbGui.stbg_set_screen_size(ScreenSizeWidth, ScreenSizeHeight);
 
         int fontId = StbGui.stbg_add_font("default_font");
 

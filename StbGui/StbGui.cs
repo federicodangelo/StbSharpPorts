@@ -24,23 +24,32 @@ public class StbGui
 
     public const font_id STBG_FONT_ID_NULL = 0;
 
-    public struct stbg_size
+    public record struct stbg_size
     {
         public float width;
         public float height;
     }
 
-    public struct stbg_position
+    public record struct stbg_position
     {
         public float x;
         public float y;
     }
 
-    public struct stbg_rect
+    public record struct stbg_rect
     {
         public stbg_position top_left;
         public stbg_position bottom_right;
     }
+
+    public record struct stbg_padding
+    {
+        public float left;
+        public float right;
+        public float top;
+        public float bottom;
+    }
+
 
     public enum STBG_INTRINSIC_SIZE_TYPE
     {
@@ -51,11 +60,11 @@ public class StbGui
         /// <summary>
         /// Widget has an intrinsic size in pixels
         /// </summary>
-        PIXELS,
+        FIXED_PIXELS,
         /// <summary>
         /// Widget has an instrinsic size based on the measurement of the text
         /// </summary>
-        TEXT
+        MEASURE_TEXT
     };
 
     [Flags]
@@ -92,12 +101,50 @@ public class StbGui
         public stbg_widget_layout layout;
     }
 
+    /// <summary>
+    /// Widget styles
+    /// - Paddings always go in (top, bottom, left, right) order (so we can automate padding object construction given a single index)
+    /// </summary>
+    public enum STBG_WIDGET_STYLE
+    {
+        NONE = 0,
+
+        // Window styles
+        WINDOW_BORDER_SIZE,
+        WINDOW_TITLE_HEIGHT,
+        WINDOW_TITLE_PADDING_TOP,
+        WINDOW_TITLE_PADDING_BOTTOM,
+        WINDOW_TITLE_PADDING_LEFT,
+        WINDOW_TITLE_PADDING_RIGHT,
+        WINDOW_CHILDREN_PADDING_TOP,
+        WINDOW_CHILDREN_PADDING_BOTTOM,
+        WINDOW_CHILDREN_PADDING_LEFT,
+        WINDOW_CHILDREN_PADDING_RIGHT,
+        WINDOW_DEFAULT_WIDTH,
+        WINDOW_DEFAULT_HEIGHT,
+
+
+        // Button styles
+        BUTTON_BORDER_SIZE,
+        BUTTON_PADDING_TOP,
+        BUTTON_PADDING_BOTTOM,
+        BUTTON_PADDING_LEFT,
+        BUTTON_PADDING_RIGHT,
+
+
+        // ALWAYS LAST!!
+        COUNT
+    }
+
     public struct stbg_theme
     {
         public font_id default_font_id;
         public stbg_font_style default_font_style;
 
-        public stbg_widget_style[] widgets;
+        /// <summary>
+        /// One value for each entry in STBG_WIDGET_STYLE
+        /// </summary>
+        public float[] styles;
     }
 
     public struct stbg_widget_intrinsic_size
@@ -114,24 +161,36 @@ public class StbGui
 
     public enum STBG_CHILDREN_LAYOUT_DIRECTION
     {
-        NONE,
+        FREE,
         VERTICAL,
         HORIZONTAL,
     }
 
-    public struct stbg_widget_padding
-    {
-        public float left;
-        public float right;
-        public float top;
-        public float bottom;
-    }
-
     public struct stbg_widget_layout
     {
+        /// <summary>
+        /// Widget size constrains, can be overriden if the widget doesn't fit in the expected bounds, or if it auto-expands
+        /// </summary>
         public stbg_widget_constrains constrains;
-        public stbg_widget_padding padding;
+
+        /// <summary>
+        /// Intrinsic size, doesn't include children_padding, can be overriden if the widget doesn't fit in the expected bounds, or if it auto-expands
+        /// </summary>
         public stbg_widget_intrinsic_size intrinsic_size;
+
+        /// <summary>
+        /// Intrinsic top-left position, used when the parent's children layout direction is FREE
+        /// </summary>
+        public stbg_position intrinsic_position;
+
+        /// <summary>
+        /// Children padding
+        /// </summary>
+        public stbg_padding children_padding;
+
+        /// <summary>
+        /// Children layout direction
+        /// </summary>
         public STBG_CHILDREN_LAYOUT_DIRECTION children_layout_direction;
     }
 
@@ -179,6 +238,14 @@ public class StbGui
         public widget_id prev_same_bucket;
     }
 
+    public struct stbg_widget_persistent_data
+    {
+        public float f1;
+        public float f2;
+        public float f3;
+        public float f4;
+    }
+
     public struct stbg_widget
     {
         // This widget id (it's also the index in the main widgets array)
@@ -197,11 +264,13 @@ public class StbGui
 
         public stbg_widget_hierarchy hierarchy;
 
+        public stbg_widget_hash_chain hash_chain;
+
+        public stbg_widget_persistent_data persistent_data;
+
         public stbg_widget_layout layout;
 
         public stbg_widget_computed_bounds computed_bounds;
-
-        public stbg_widget_hash_chain hash_chain;
 
         public stbg_text text;
     }
@@ -235,6 +304,8 @@ public class StbGui
         public int current_frame;
 
         public widget_id current_widget_id;
+
+        public widget_id last_widget_id;
 
         public widget_id root_widget_id;
 
@@ -346,40 +417,88 @@ public class StbGui
         theme.default_font_id = font_id;
         theme.default_font_style = font_style;
 
-        for (STBG_WIDGET_TYPE i = STBG_WIDGET_TYPE.NONE + 1; i < STBG_WIDGET_TYPE.COUNT; i++)
-        {
-            theme.widgets[(int)i].layout.constrains = stbg__build_constrains_unconstrained();
-            theme.widgets[(int)i].font_id = font_id;
-            theme.widgets[(int)i].font_style = font_style;
-        }
+        var buttonBorder = 1.0f;
+        var buttonPaddingTopBottom = MathF.Ceiling(font_style.size / 2);
+        var buttonPaddingLeftRight = MathF.Ceiling(font_style.size / 2);
 
-        stbg_set_widget_style_layout(STBG_WIDGET_TYPE.BUTTON,
-            new stbg_widget_layout()
-            {
-                padding = stbg__build_padding_same(1),
-                intrinsic_size = stbg__build_intrinsic_size_text(),
-            }
-        );
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, buttonBorder);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PADDING_TOP, buttonPaddingTopBottom);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PADDING_BOTTOM, buttonPaddingTopBottom);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PADDING_LEFT, buttonPaddingLeftRight);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PADDING_RIGHT, buttonPaddingLeftRight);
 
-        stbg_set_widget_style_layout(STBG_WIDGET_TYPE.WINDOW,
-            new stbg_widget_layout()
-            {
-                padding = stbg__build_padding_same(1),
-                children_layout_direction = STBG_CHILDREN_LAYOUT_DIRECTION.VERTICAL,
-            }
-        );
+        var windowBorder = 1.0f;
+        var windowTitleHeight = MathF.Ceiling(font_style.size);
+        var windowTitlePadding = MathF.Ceiling(font_style.size / 4);
+        var windowChildrenPadding = MathF.Ceiling(font_style.size / 2);
+        var windowDefaultWidth = MathF.Ceiling(font_style.size * 30);
+        var windowDefaultHeight = MathF.Ceiling(font_style.size * 15);
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, windowBorder);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT, windowTitleHeight);
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP, windowTitlePadding);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_BOTTOM, windowTitlePadding);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_LEFT, windowTitlePadding);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_RIGHT, windowTitlePadding);
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_TOP, windowChildrenPadding);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_BOTTOM, windowChildrenPadding);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_LEFT, windowChildrenPadding);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_RIGHT, windowChildrenPadding);
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, windowDefaultWidth);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, windowDefaultHeight);
     }
 
-    static public stbg_widget_style stbg_get_widget_style(STBG_WIDGET_TYPE widget_type)
+    static public void stbg_set_widget_style(STBG_WIDGET_STYLE style, float value)
     {
-        return context.theme.widgets[(int)widget_type];
+        context.theme.styles[(int)style] = value;
     }
 
-    static public void stbg_set_widget_style_layout(STBG_WIDGET_TYPE widget_type, stbg_widget_layout layout)
+    static public float stbg_get_widget_style(STBG_WIDGET_STYLE style)
     {
-        stbg__assert(!context.inside_frame);
+        return context.theme.styles[(int)style];
+    }
 
-        context.theme.widgets[(int)widget_type].layout = layout;
+    static private float stbg__sum_styles(STBG_WIDGET_STYLE style1)
+    {
+        return
+            context.theme.styles[(int)style1];
+    }
+
+    static private float stbg__sum_styles(STBG_WIDGET_STYLE style1, STBG_WIDGET_STYLE style2)
+    {
+        return
+            context.theme.styles[(int)style1] +
+            context.theme.styles[(int)style2];
+    }
+
+    static private float stbg__sum_styles(STBG_WIDGET_STYLE style1, STBG_WIDGET_STYLE style2, STBG_WIDGET_STYLE style3)
+    {
+        return
+            context.theme.styles[(int)style1] +
+            context.theme.styles[(int)style2] +
+            context.theme.styles[(int)style3];
+    }
+
+    static private float stbg__sum_styles(STBG_WIDGET_STYLE style1, STBG_WIDGET_STYLE style2, STBG_WIDGET_STYLE style3, STBG_WIDGET_STYLE style4)
+    {
+        return
+            context.theme.styles[(int)style1] +
+            context.theme.styles[(int)style2] +
+            context.theme.styles[(int)style3] +
+            context.theme.styles[(int)style4];
+    }
+
+    static private float stbg__sum_styles(STBG_WIDGET_STYLE style1, STBG_WIDGET_STYLE style2, STBG_WIDGET_STYLE style3, STBG_WIDGET_STYLE style4, STBG_WIDGET_STYLE style5)
+    {
+        return
+            context.theme.styles[(int)style1] +
+            context.theme.styles[(int)style2] +
+            context.theme.styles[(int)style3] +
+            context.theme.styles[(int)style4] +
+            context.theme.styles[(int)style5];
     }
 
     private static void stbg_init_context(ref stbg_context context, stbg_external_dependencies external_dependencies, stbg_init_options options)
@@ -423,7 +542,7 @@ public class StbGui
         context.first_free_font_id = 1;
         context.init_options = options;
         context.external_dependencies = external_dependencies;
-        context.theme.widgets = new stbg_widget_style[(int)STBG_WIDGET_TYPE.COUNT];
+        context.theme.styles = new float[(int)STBG_WIDGET_STYLE.COUNT];
     }
 
     /// <summary>
@@ -455,15 +574,16 @@ public class StbGui
         stbg__assert(!context.inside_frame);
         context.inside_frame = true;
         context.current_widget_id = STBG_WIDGET_ID_NULL;
+        context.last_widget_id = STBG_WIDGET_ID_NULL;
         context.current_frame++;
         context.prev_frame_stats = context.frame_stats;
         context.frame_stats = new stbg_context_frame_stats();
 
-        ref var root = ref stbg__add_widget(STBG_WIDGET_TYPE.ROOT, "root");
+        ref var root = ref stbg__add_widget(STBG_WIDGET_TYPE.ROOT, "root", out _);
         root.layout.constrains.min = new stbg_size();
         root.layout.constrains.max = context.screen_size;
-        root.layout.padding = new stbg_widget_padding();
-        root.layout.children_layout_direction = STBG_CHILDREN_LAYOUT_DIRECTION.NONE;
+        root.layout.children_padding = new stbg_padding();
+        root.layout.children_layout_direction = STBG_CHILDREN_LAYOUT_DIRECTION.FREE;
 
         context.current_widget_id = root.id;
         context.root_widget_id = root.id;
@@ -575,7 +695,8 @@ public class StbGui
         // - Parent sets position
         var widget_layout = widget.layout;
         var widget_intrinsic_size = widget_layout.intrinsic_size;
-        var widget_padding = widget.layout.padding;
+        var widget_intrinsic_position = widget_layout.intrinsic_position;
+        var widget_padding = widget.layout.children_padding;
         var widget_constrains = widget_layout.constrains;
 
         // Build current contrains by merging the widget constrains with the parent constrains
@@ -590,9 +711,9 @@ public class StbGui
         constrains.min.height = Math.Min(widget_constrains.min.height, widget_constrains.max.height);
 
         stbg_size intrinsic_size =
-            widget_intrinsic_size.type == STBG_INTRINSIC_SIZE_TYPE.PIXELS ?
+            widget_intrinsic_size.type == STBG_INTRINSIC_SIZE_TYPE.FIXED_PIXELS ?
             widget_intrinsic_size.size :
-            widget_intrinsic_size.type == STBG_INTRINSIC_SIZE_TYPE.TEXT ?
+            widget_intrinsic_size.type == STBG_INTRINSIC_SIZE_TYPE.MEASURE_TEXT ?
             stbg_measure_text(widget.text) :
             new stbg_size();
 
@@ -628,17 +749,17 @@ public class StbGui
 
                 var children_size = stbg__layout_widget(children_constrains, ref children);
 
-                stbg__assert(children_size.width <= children_constrains.max.width);
-                stbg__assert(children_size.width >= children_constrains.min.width);
-                stbg__assert(children_size.height <= children_constrains.max.height);
-                stbg__assert(children_size.height >= children_constrains.min.height);
+                stbg__assert_internal(children_size.width <= children_constrains.max.width);
+                stbg__assert_internal(children_size.width >= children_constrains.min.width);
+                stbg__assert_internal(children_size.height <= children_constrains.max.height);
+                stbg__assert_internal(children_size.height >= children_constrains.min.height);
 
                 children.computed_bounds.size = children_size;
-                children.computed_bounds.relative_position = next_children_top_left;
 
                 switch (widget.layout.children_layout_direction)
                 {
                     case STBG_CHILDREN_LAYOUT_DIRECTION.VERTICAL:
+                        children.computed_bounds.relative_position = next_children_top_left;
                         children_constrains.max.height -= children_size.height;
                         children_constrains.min.height = Math.Min(children_constrains.min.height, children_constrains.max.height);
                         accumulated_children_size.height += children_size.height;
@@ -647,6 +768,7 @@ public class StbGui
                         break;
 
                     case STBG_CHILDREN_LAYOUT_DIRECTION.HORIZONTAL:
+                        children.computed_bounds.relative_position = next_children_top_left;
                         children_constrains.max.width -= children_size.height;
                         children_constrains.min.width = Math.Min(children_constrains.min.width, children_constrains.max.width);
                         accumulated_children_size.width += children_size.width;
@@ -654,8 +776,11 @@ public class StbGui
                         next_children_top_left.x += children_size.width;
                         break;
 
-                    case STBG_CHILDREN_LAYOUT_DIRECTION.NONE:
-                        // Nothing to do
+                    case STBG_CHILDREN_LAYOUT_DIRECTION.FREE:
+                        children.computed_bounds.relative_position.x =
+                            next_children_top_left.x + Math.Min(children.layout.intrinsic_position.x, children_constrains.max.width - children_size.width);
+                        children.computed_bounds.relative_position.y =
+                            next_children_top_left.y + Math.Min(children.layout.intrinsic_position.y, children_constrains.max.height - children_size.height);
                         break;
                 }
 
@@ -713,48 +838,46 @@ public class StbGui
     /// <returns>Returns true if the button was pressed</returns>
     public static bool stbg_button(string label)
     {
-        ref var button = ref stbg__add_widget(STBG_WIDGET_TYPE.BUTTON, label);
+        ref var button = ref stbg__add_widget(STBG_WIDGET_TYPE.BUTTON, label, out _);
         button.text.text = label.AsMemory();
 
-        return false;
+        ref var layout = ref button.layout;
+
+        layout.constrains = stbg__build_constrains_unconstrained();
+        layout.children_padding = new stbg_padding()
+        {
+            top = stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_TOP),
+            bottom = stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_BOTTOM),
+            left = stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_LEFT),
+            right = stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_RIGHT),
+        };
+        layout.intrinsic_size = stbg__build_intrinsic_size_text();
+
+        bool pressed = false; // TODO: Implement!
+
+        return pressed;
     }
 
-    private static stbg_widget_padding stbg__build_padding(float top, float left, float bottom, float right)
+    public static widget_id stbg_get_last_widget_id()
     {
-        return new stbg_widget_padding()
-        {
-            left = left,
-            right = right,
-            top = top,
-            bottom = bottom,
-        };
+        return context.last_widget_id;
     }
 
-    private static stbg_widget_padding stbg__build_padding_same(float padding)
-    {
-        return new stbg_widget_padding()
-        {
-            left = padding,
-            right = padding,
-            top = padding,
-            bottom = padding,
-        };
-    }
 
     private static stbg_widget_intrinsic_size stbg__build_intrinsic_size_text()
     {
         return new stbg_widget_intrinsic_size()
         {
-            type = STBG_INTRINSIC_SIZE_TYPE.TEXT,
+            type = STBG_INTRINSIC_SIZE_TYPE.MEASURE_TEXT,
         };
     }
 
-    private static stbg_widget_constrains stbg__build_constrains(float minWidth, float minHeight, float maxWidth, float maxHeight)
+    private static stbg_widget_intrinsic_size stbg__build_intrinsic_size_pixels(float width, float height)
     {
-        return new stbg_widget_constrains()
+        return new stbg_widget_intrinsic_size()
         {
-            min = new stbg_size() { width = minWidth, height = minHeight },
-            max = new stbg_size() { width = maxWidth, height = maxHeight },
+            type = STBG_INTRINSIC_SIZE_TYPE.FIXED_PIXELS,
+            size = new stbg_size() { width = width, height = height },
         };
     }
 
@@ -785,10 +908,35 @@ public class StbGui
     /// <returns>Returns if the window is visible or not</returns>
     public static bool stbg_begin_window(string label)
     {
-        ref var window = ref stbg__add_widget(STBG_WIDGET_TYPE.WINDOW, label);
+        ref var window = ref stbg__add_widget(STBG_WIDGET_TYPE.WINDOW, label, out var is_new);
+
         window.text.text = label.AsMemory();
 
-        bool visible = true;
+        ref var layout = ref window.layout;
+
+        layout.children_padding = new stbg_padding()
+        {
+            top = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP, STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT, STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_BOTTOM, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_TOP),
+            bottom = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_BOTTOM),
+            left = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_LEFT),
+            right = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_RIGHT),
+        };
+        layout.constrains = stbg__build_constrains_unconstrained();
+        layout.children_layout_direction = STBG_CHILDREN_LAYOUT_DIRECTION.VERTICAL;
+
+        if (is_new)
+        {
+            window.persistent_data.f1 = 0;
+            window.persistent_data.f2 = 0;
+            window.persistent_data.f3 = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH);
+            window.persistent_data.f4 = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT);
+        }
+
+        window.layout.intrinsic_position.x = window.persistent_data.f1;
+        window.layout.intrinsic_position.y = window.persistent_data.f2;
+        layout.intrinsic_size = stbg__build_intrinsic_size_pixels(window.persistent_data.f3, window.persistent_data.f4);
+
+        bool visible = true; //TODO: Implement
 
         if (visible)
             context.current_widget_id = window.id;
@@ -797,19 +945,77 @@ public class StbGui
     }
 
     /// <summary>
+    /// Change existing window position
+    /// </summary>
+    public static void stbg_move_window(widget_id window_id, float x, float y)
+    {
+        stbg__assert(context.inside_frame);
+        ref var window = ref stbg_get_widget_by_id(window_id);
+        stbg__assert(window.type == STBG_WIDGET_TYPE.WINDOW);
+
+        window.persistent_data.f1 = x;
+        window.persistent_data.f2 = y;
+        window.layout.intrinsic_position.x = window.persistent_data.f1;
+        window.layout.intrinsic_position.y = window.persistent_data.f2;
+    }
+
+    /// <summary>
+    /// Resize existing window
+    /// </summary>
+    public static void stbg_resize_window(widget_id window_id, float width, float height)
+    {
+        stbg__assert(context.inside_frame);
+        ref var window = ref stbg_get_widget_by_id(window_id);
+        stbg__assert(window.type == STBG_WIDGET_TYPE.WINDOW);
+
+        window.persistent_data.f3 = Math.Max(width - (window.layout.children_padding.left + window.layout.children_padding.right), 0);
+        window.persistent_data.f4 = Math.Max(height - (window.layout.children_padding.top + window.layout.children_padding.bottom), 0);
+        window.layout.intrinsic_size = stbg__build_intrinsic_size_pixels(window.persistent_data.f3, window.persistent_data.f4);
+    }
+
+    /// <summary>
     /// Ends the current window.
     /// </summary>
     public static void stbg_end_window()
     {
         stbg__assert(context.inside_frame);
-
         ref var window = ref stbg_get_widget_by_id(context.current_widget_id);
-
         stbg__assert(window.type == STBG_WIDGET_TYPE.WINDOW, "Unbalanced begin() / end() calls");
 
         context.current_widget_id = window.hierarchy.parent_id;
     }
 
+    /// <summary>
+    /// Begins a new container with the specified layout direction
+    /// </summary>
+    /// <param name="identifier">Container identifier (must be unique inside the parent widget)</param>
+    /// <param name="layout_direction">Layout direction</param>
+    public static void stbg_begin_container(string identifier, STBG_CHILDREN_LAYOUT_DIRECTION layout_direction)
+    {
+        ref var container = ref stbg__add_widget(STBG_WIDGET_TYPE.CONTAINER, identifier, out _);
+
+        ref var layout = ref container.layout;
+
+        layout.children_padding = new stbg_padding();
+        layout.constrains = stbg__build_constrains_unconstrained();
+        layout.children_layout_direction = layout_direction;
+
+        context.current_widget_id = container.id;
+    }
+
+    /// <summary>
+    /// Ends the current container.
+    /// </summary>
+    public static void stbg_end_container()
+    {
+        stbg__assert(context.inside_frame);
+        ref var container = ref stbg_get_widget_by_id(context.current_widget_id);
+        stbg__assert(container.type == STBG_WIDGET_TYPE.CONTAINER, "Unbalanced begin() / end() calls");
+
+        context.current_widget_id = container.hierarchy.parent_id;
+    }
+
+    // Use to asssert public API access and potential user errors
     private static void stbg__assert(bool condition, [CallerArgumentExpression(nameof(condition))] string? message = null)
     {
         switch (context.init_options.assert_behaviour)
@@ -830,21 +1036,41 @@ public class StbGui
         }
     }
 
-    private static ref stbg_widget stbg__add_widget(STBG_WIDGET_TYPE type, string identifier)
+    // Use to assert internal code, it will be removed in production builds
+    [Conditional("DEBUG")]
+    private static void stbg__assert_internal(bool condition, [CallerArgumentExpression(nameof(condition))] string? message = null)
     {
-        ref var widget = ref stbg__add_widget(stbg__calculate_hash(type, identifier));
+        switch (context.init_options.assert_behaviour)
+        {
+            case STBG_ASSERT_BEHAVIOUR.ASSERT:
+                Debug.Assert(condition, message);
+                break;
+            case STBG_ASSERT_BEHAVIOUR.EXCEPTION:
+                if (!condition)
+                    throw new StbgAssertException(message);
+                break;
+            case STBG_ASSERT_BEHAVIOUR.CONSOLE:
+                if (!condition)
+                    Console.Error.WriteLine($"Failed assert: {message}");
+                break;
+            case STBG_ASSERT_BEHAVIOUR.NONE:
+                break;
+        }
+    }
+
+    private static ref stbg_widget stbg__add_widget(STBG_WIDGET_TYPE type, string identifier, out bool is_new)
+    {
+        ref var widget = ref stbg__add_widget(stbg__calculate_hash(type, identifier), out is_new);
         widget.type = type;
+        context.last_widget_id = widget.id;
 
-        var widget_style = stbg_get_widget_style(type);
-
-        widget.text.style = widget_style.font_style;
-        widget.text.font_id = widget_style.font_id;
-        widget.layout = stbg_get_widget_style(type).layout;
+        widget.text.style = context.theme.default_font_style;
+        widget.text.font_id = context.theme.default_font_id;
 
         return ref widget;
     }
 
-    private static ref stbg_widget stbg__add_widget(widget_hash hash)
+    private static ref stbg_widget stbg__add_widget(widget_hash hash, out bool is_new)
     {
         stbg__assert(context.inside_frame);
         stbg__assert(context.first_free_widget_id != STBG_WIDGET_ID_NULL);
@@ -857,14 +1083,14 @@ public class StbGui
         if ((widget.flags & STBG_WIDGET_FLAGS.USED) == 0)
         {
             // New widget!
+            is_new = true;
             context.frame_stats.new_widgets++;
 
             // Mark as used
             widget.flags |= STBG_WIDGET_FLAGS.USED;
 
-            // Reset dynamic properties
-            widget.layout = new stbg_widget_layout();
-            widget.computed_bounds = new stbg_widget_computed_bounds();
+            // Reset persistent data
+            widget.persistent_data = new stbg_widget_persistent_data();
 
             // Update the next free widget id        
             context.first_free_widget_id = widget.hierarchy.next_sibling_id;
@@ -886,8 +1112,14 @@ public class StbGui
         else
         {
             // Reused widget!
+            is_new = false;
             context.frame_stats.reused_widgets++;
         }
+
+        // Reset dynamic properties
+        widget.layout = new stbg_widget_layout();
+        widget.computed_bounds = new stbg_widget_computed_bounds();
+        widget.text = new stbg_text();
 
         // Update last used
         if (widget.last_used_in_frame == context.current_frame)
@@ -930,9 +1162,9 @@ public class StbGui
 
     private static void stbg__remove_widget(ref stbg_widget widget)
     {
-        stbg__assert(!context.inside_frame);
-        stbg__assert((widget.flags & STBG_WIDGET_FLAGS.USED) != 0);
-        stbg__assert(widget.last_used_in_frame != context.current_frame);
+        stbg__assert_internal(!context.inside_frame);
+        stbg__assert_internal((widget.flags & STBG_WIDGET_FLAGS.USED) != 0);
+        stbg__assert_internal(widget.last_used_in_frame != context.current_frame);
 
         // Reset hierarchy
         widget.hierarchy = new stbg_widget_hierarchy();
@@ -946,7 +1178,7 @@ public class StbGui
             // We are the first element in the bucket, make it point to the next element in our hash list
             ref var bucket = ref stbg__get_hash_entry_by_hash(widget.hash);
 
-            stbg__assert(bucket.first_widget_in_bucket == widget.id);
+            stbg__assert_internal(bucket.first_widget_in_bucket == widget.id);
 
             bucket.first_widget_in_bucket = widget.hash_chain.next_same_bucket;
         }
