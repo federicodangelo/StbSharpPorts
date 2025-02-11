@@ -9,7 +9,7 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        StbGui.stbg_init(new());
+        StbGui.stbg_init(new(), new());
     }
 }
 

@@ -100,7 +100,7 @@ public class StbGuiBasicWidgetTests : StbGuiTestsBase
     public void TestAddThreeDifferentButtons_HashCollisions()
     {
         // Force hash table size to 1 to ensure hash bucket collisions
-        StbGui.stbg_init(new() { hash_table_size = 1});
+        InitGUI(new() { hash_table_size = 1});
 
         StbGui.stbg_begin_frame();
 
@@ -115,7 +115,7 @@ public class StbGuiBasicWidgetTests : StbGuiTestsBase
     public void TestNotReusedButtonsShouldBeDestroyed_HashCollisions()
     {
         // Force hash table size to 1 to ensure hash bucket collisions
-        StbGui.stbg_init(new() { hash_table_size = 1});
+        InitGUI(new() { hash_table_size = 1});
 
         StbGui.stbg_begin_frame();
 

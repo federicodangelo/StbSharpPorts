@@ -22,6 +22,8 @@ public class StbGui
 {
     public const widget_id STBG_WIDGET_ID_NULL = 0;
 
+    public const font_id STBG_FONT_ID_NULL = 0;
+
     public struct stbg_size
     {
         public float width;
@@ -56,24 +58,51 @@ public class StbGui
         TEXT
     };
 
+    [Flags]
+    public enum STBG_FONT_STYLE_FLAGS
+    {
+        NONE = 0,
+        BOLD = 1 << 0,
+        ITALIC = 1 << 1
+    }
+
+    public struct stbg_font_style
+    {
+        public float size;
+        public STBG_FONT_STYLE_FLAGS style;
+    }
+
     public struct stbg_font
     {
         public font_id id;
         public string name;
-        public int size;
     }
 
     public struct stbg_text
     {
-        public Memory<char> text;
+        public ReadOnlyMemory<char> text;
         public font_id font_id;
-        public float scale;
+        public stbg_font_style style;
+    }
+
+    public struct stbg_widget_style
+    {
+        public font_id font_id;
+        public stbg_font_style font_style;
+        public stbg_widget_layout layout;
+    }
+
+    public struct stbg_theme
+    {
+        public font_id default_font_id;
+        public stbg_font_style default_font_style;
+
+        public stbg_widget_style[] widgets;
     }
 
     public struct stbg_widget_intrinsic_size
     {
         public STBG_INTRINSIC_SIZE_TYPE type;
-
         public stbg_size size;
     }
 
@@ -134,6 +163,7 @@ public class StbGui
         WINDOW,
         CONTAINER,
         BUTTON,
+        COUNT, // MUST BE LAST
     }
 
     [Flags]
@@ -197,6 +227,9 @@ public class StbGui
 
         public widget_id first_free_widget_id;
 
+        public stbg_font[] fonts;
+        public font_id first_free_font_id;
+
         public bool inside_frame;
 
         public int current_frame;
@@ -211,7 +244,11 @@ public class StbGui
 
         public stbg_init_options init_options;
 
+        public stbg_external_dependencies external_dependencies;
+
         public stbg_size screen_size;
+
+        public stbg_theme theme;
     }
 
     public enum STBG_ASSERT_BEHAVIOUR
@@ -239,6 +276,22 @@ public class StbGui
         public StbgAssertException(string? message) : base(message) { }
     }
 
+
+    public delegate stbg_size measure_text_delegate(ReadOnlySpan<char> text, stbg_font font, stbg_font_style style);
+
+    public struct stbg_external_dependencies
+    {
+        /// <summary>
+        /// Measure text
+        /// </summary>
+        public measure_text_delegate measure_text;
+    }
+
+
+    public const int DEFAULT_MAX_WIDGETS = 32767;
+
+    public const int DEFAULT_MAX_FONTS = 32;
+
     public struct stbg_init_options
     {
         /// <summary>
@@ -250,6 +303,11 @@ public class StbGui
         /// Hash table size, defaults to max_widgets
         /// </summary>
         public int hash_table_size;
+
+        /// <summary>
+        /// Max number of loaded fonts, defaults to DEFAULT_MAX_FONTS
+        /// </summary>
+        public int max_fonts;
 
         /// <summary>
         /// Behaviour of assert calls, defaults to ASSERT
@@ -269,25 +327,77 @@ public class StbGui
     /// Init GUI library.
     /// It initializes the shared context used by all the other functions.
     /// </summary>
-    static public void stbg_init(stbg_init_options options)
+    static public void stbg_init(stbg_external_dependencies external_dependencies, stbg_init_options options)
     {
         context = new stbg_context();
 
-        stbg_init_context(ref context, options);
+        stbg_init_context(ref context, external_dependencies, options);
     }
 
-    private const int DEFAULT_MAX_WIDGETS = 32767;
-
-    private static void stbg_init_context(ref stbg_context context, stbg_init_options options)
+    /// <summary>
+    /// Inits the default theme, must be called after calling stbg_init()
+    /// </summary>
+    static public void stbg_init_default_theme(font_id font_id, stbg_font_style font_style)
     {
+        stbg__assert(!context.inside_frame);
+
+        ref var theme = ref context.theme;
+
+        theme.default_font_id = font_id;
+        theme.default_font_style = font_style;
+
+        for (STBG_WIDGET_TYPE i = STBG_WIDGET_TYPE.NONE + 1; i < STBG_WIDGET_TYPE.COUNT; i++)
+        {
+            theme.widgets[(int)i].layout.constrains = stbg__build_constrains_unconstrained();
+            theme.widgets[(int)i].font_id = font_id;
+            theme.widgets[(int)i].font_style = font_style;
+        }
+
+        stbg_set_widget_style_layout(STBG_WIDGET_TYPE.BUTTON,
+            new stbg_widget_layout()
+            {
+                padding = stbg__build_padding_same(1),
+                intrinsic_size = stbg__build_intrinsic_size_text(),
+            }
+        );
+
+        stbg_set_widget_style_layout(STBG_WIDGET_TYPE.WINDOW,
+            new stbg_widget_layout()
+            {
+                padding = stbg__build_padding_same(1),
+                children_layout_direction = STBG_CHILDREN_LAYOUT_DIRECTION.VERTICAL,
+            }
+        );
+    }
+
+    static public stbg_widget_style stbg_get_widget_style(STBG_WIDGET_TYPE widget_type)
+    {
+        return context.theme.widgets[(int)widget_type];
+    }
+
+    static public void stbg_set_widget_style_layout(STBG_WIDGET_TYPE widget_type, stbg_widget_layout layout)
+    {
+        stbg__assert(!context.inside_frame);
+
+        context.theme.widgets[(int)widget_type].layout = layout;
+    }
+
+    private static void stbg_init_context(ref stbg_context context, stbg_external_dependencies external_dependencies, stbg_init_options options)
+    {
+        stbg__assert(external_dependencies.measure_text != null, "Missing measure text function");
+
         if (options.max_widgets == 0)
             options.max_widgets = DEFAULT_MAX_WIDGETS;
 
         if (options.hash_table_size == 0)
             options.hash_table_size = options.max_widgets;
 
-        var widgets = new stbg_widget[options.max_widgets];
+        if (options.max_fonts == 0)
+            options.max_fonts = DEFAULT_MAX_FONTS;
+
+        var widgets = new stbg_widget[options.max_widgets + 1]; // first slot is never used (null widget)
         var hashTable = new stbg_hash_entry[options.hash_table_size];
+        var fonts = new stbg_font[options.max_fonts + 1]; // first slot is never used (null font)
 
         // init ids and flags
         for (int i = 0; i < widgets.Length; i++)
@@ -307,9 +417,13 @@ public class StbGui
         }
 
         context.widgets = widgets;
-        context.hash_table = hashTable;
         context.first_free_widget_id = context.widgets[1].id;
+        context.hash_table = hashTable;
+        context.fonts = fonts;
+        context.first_free_font_id = 1;
         context.init_options = options;
+        context.external_dependencies = external_dependencies;
+        context.theme.widgets = new stbg_widget_style[(int)STBG_WIDGET_TYPE.COUNT];
     }
 
     /// <summary>
@@ -320,8 +434,15 @@ public class StbGui
         context = default;
     }
 
+    /// <summary>
+    /// Sets the screen size.
+    /// Must be called at least once after the initialization, and after that every time that the screen size changes
+    /// </summary>
+    /// <param name="width"></param>
+    /// <param name="height"></param>
     public static void stbg_set_screen_size(float width, float height)
     {
+        stbg__assert(!context.inside_frame);
         context.screen_size.width = width;
         context.screen_size.height = height;
     }
@@ -353,7 +474,7 @@ public class StbGui
     /// </summary>
     public static void stbg_end_frame()
     {
-        stbg__assert(context.inside_frame, "Not inside a frame");
+        stbg__assert(context.inside_frame);
         stbg__assert(context.current_widget_id == context.root_widget_id, "Unbalanced begin() / end() calls");
 
         context.inside_frame = false;
@@ -418,14 +539,33 @@ public class StbGui
         }
     }
 
+    public static font_id stbg_add_font(string name)
+    {
+        var newFont = new stbg_font()
+        {
+            id = context.first_free_font_id,
+            name = name,
+        };
+
+        context.first_free_font_id++;
+        context.fonts[newFont.id] = newFont;
+
+        return newFont.id;
+    }
+
+    /// <summary>
+    /// Returns the font with the specified id
+    /// </summary>
+    /// <param name="font_id">Font id</param>
+    /// <returns>Font</returns>
+    public static stbg_font stbg_get_font_by_id(font_id font_id)
+    {
+        return context.fonts[font_id];
+    }
+
     private static stbg_size stbg_measure_text(stbg_text text)
     {
-        // TODO: Implement text measurement
-        return new stbg_size()
-        {
-            height = 1,
-            width = text.text.Length
-        };
+        return context.external_dependencies.measure_text(text.text.Span, stbg_get_font_by_id(text.font_id), text.style);
     }
 
     private static stbg_size stbg__layout_widget(stbg_widget_constrains parent_constrains, ref stbg_widget widget)
@@ -527,12 +667,12 @@ public class StbGui
         {
             width = Math.Max(
                 Math.Min(
-                    Math.Max(intrinsic_size.width, accumulated_children_size.width),
+                    Math.Max(intrinsic_size.width, accumulated_children_size.width) + widget_padding.right + widget_padding.left,
                     constrains.max.width),
                 constrains.min.width),
             height = Math.Max(
                 Math.Min(
-                    Math.Max(intrinsic_size.height, accumulated_children_size.height),
+                    Math.Max(intrinsic_size.height, accumulated_children_size.height) + widget_padding.top + widget_padding.bottom,
                     constrains.max.height),
                 constrains.min.height),
         };
@@ -573,9 +713,58 @@ public class StbGui
     /// <returns>Returns true if the button was pressed</returns>
     public static bool stbg_button(string label)
     {
-        stbg__add_widget(STBG_WIDGET_TYPE.BUTTON, label);
+        ref var button = ref stbg__add_widget(STBG_WIDGET_TYPE.BUTTON, label);
+        button.text.text = label.AsMemory();
 
         return false;
+    }
+
+    private static stbg_widget_padding stbg__build_padding(float top, float left, float bottom, float right)
+    {
+        return new stbg_widget_padding()
+        {
+            left = left,
+            right = right,
+            top = top,
+            bottom = bottom,
+        };
+    }
+
+    private static stbg_widget_padding stbg__build_padding_same(float padding)
+    {
+        return new stbg_widget_padding()
+        {
+            left = padding,
+            right = padding,
+            top = padding,
+            bottom = padding,
+        };
+    }
+
+    private static stbg_widget_intrinsic_size stbg__build_intrinsic_size_text()
+    {
+        return new stbg_widget_intrinsic_size()
+        {
+            type = STBG_INTRINSIC_SIZE_TYPE.TEXT,
+        };
+    }
+
+    private static stbg_widget_constrains stbg__build_constrains(float minWidth, float minHeight, float maxWidth, float maxHeight)
+    {
+        return new stbg_widget_constrains()
+        {
+            min = new stbg_size() { width = minWidth, height = minHeight },
+            max = new stbg_size() { width = maxWidth, height = maxHeight },
+        };
+    }
+
+    private static stbg_widget_constrains stbg__build_constrains_unconstrained()
+    {
+        return new stbg_widget_constrains()
+        {
+            min = new stbg_size() { width = 0, height = 0 },
+            max = new stbg_size() { width = float.MaxValue, height = float.MaxValue },
+        };
     }
 
     /// <summary>
@@ -597,8 +786,7 @@ public class StbGui
     public static bool stbg_begin_window(string label)
     {
         ref var window = ref stbg__add_widget(STBG_WIDGET_TYPE.WINDOW, label);
-        window.layout.children_layout_direction = STBG_CHILDREN_LAYOUT_DIRECTION.VERTICAL;
-        window.layout.constrains = new stbg_widget_constrains() { max = new stbg_size() { width = float.MaxValue, height = float.MaxValue } };
+        window.text.text = label.AsMemory();
 
         bool visible = true;
 
@@ -613,9 +801,11 @@ public class StbGui
     /// </summary>
     public static void stbg_end_window()
     {
+        stbg__assert(context.inside_frame);
+
         ref var window = ref stbg_get_widget_by_id(context.current_widget_id);
 
-        stbg__assert(window.type == STBG_WIDGET_TYPE.WINDOW);
+        stbg__assert(window.type == STBG_WIDGET_TYPE.WINDOW, "Unbalanced begin() / end() calls");
 
         context.current_widget_id = window.hierarchy.parent_id;
     }
@@ -643,8 +833,13 @@ public class StbGui
     private static ref stbg_widget stbg__add_widget(STBG_WIDGET_TYPE type, string identifier)
     {
         ref var widget = ref stbg__add_widget(stbg__calculate_hash(type, identifier));
-
         widget.type = type;
+
+        var widget_style = stbg_get_widget_style(type);
+
+        widget.text.style = widget_style.font_style;
+        widget.text.font_id = widget_style.font_id;
+        widget.layout = stbg_get_widget_style(type).layout;
 
         return ref widget;
     }

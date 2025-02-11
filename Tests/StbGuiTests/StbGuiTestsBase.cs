@@ -11,10 +11,30 @@ public class StbGuiTestsBase : IDisposable
         DestroyGui();
     }
 
+    static private StbGui.stbg_external_dependencies BuildExternalDependencies()
+    {
+        return new StbGui.stbg_external_dependencies()
+        {
+            measure_text = (text, font, style) => new StbGui.stbg_size() { width = text.Length * style.size, height = style.size }
+        };
+    }
+
     static protected void InitGUI()
     {
-        StbGui.stbg_init(new() { assert_behaviour = StbGui.STBG_ASSERT_BEHAVIOUR.EXCEPTION });
+        InitGUI(new() { assert_behaviour = StbGui.STBG_ASSERT_BEHAVIOUR.EXCEPTION });
+    }
+
+    static protected void InitGUI(StbGui.stbg_init_options options)
+    {
+        StbGui.stbg_init(BuildExternalDependencies(), options);
         StbGui.stbg_set_screen_size(512, 512);
+
+        int fontId = StbGui.stbg_add_font("default_font");
+
+        StbGui.stbg_init_default_theme(
+            fontId,
+            new() { size = 1, style = StbGui.STBG_FONT_STYLE_FLAGS.NONE }
+        );
     }
 
     static protected void DestroyGui()
