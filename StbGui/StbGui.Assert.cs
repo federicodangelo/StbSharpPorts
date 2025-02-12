@@ -7,6 +7,12 @@ namespace StbSharp;
 
 public partial class StbGui
 {
+    public class StbgAssertException : Exception
+    {
+        public StbgAssertException(string? message) : base(message) { }
+    }
+
+
     // Use to asssert public API access and potential user errors
     private static void stbg__assert(bool condition, [CallerArgumentExpression(nameof(condition))] string? message = null)
     {
