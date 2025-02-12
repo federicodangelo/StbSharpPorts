@@ -7,18 +7,21 @@ public class StbGuiTestsBase : IDisposable
 {
     protected const float ScreenSizeWidth = 512;
     protected const float ScreenSizeHeight = 256;
+    static protected List<StbGui.stbg_render_command> render_commands = [];
 
     public void Dispose()
     {
         AssertHierarchyConsistency();
         DestroyGui();
+        render_commands = [];
     }
 
     static private StbGui.stbg_external_dependencies BuildExternalDependencies()
     {
         return new StbGui.stbg_external_dependencies()
         {
-            measure_text = (text, font, style) => new StbGui.stbg_size() { width = text.Length * style.size, height = style.size }
+            measure_text = (text, font, style) => new StbGui.stbg_size() { width = text.Length * style.size, height = style.size },
+            render = (commands) => render_commands.AddRange(commands),
         };
     }
 
@@ -36,7 +39,7 @@ public class StbGuiTestsBase : IDisposable
 
         StbGui.stbg_init_default_theme(
             fontId,
-            new() { size = 1, style = StbGui.STBG_FONT_STYLE_FLAGS.NONE }
+            new() { size = 1, style = StbGui.STBG_FONT_STYLE_FLAGS.NONE, color = StbGui.STBG_COLOR_WHITE }
         );
     }
 

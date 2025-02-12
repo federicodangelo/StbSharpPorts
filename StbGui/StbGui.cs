@@ -63,6 +63,14 @@ public partial class StbGui
         MEASURE_TEXT
     };
 
+    public record struct stbg_color
+    {
+        public byte r;
+        public byte g;
+        public byte b;
+        public byte a;
+    }
+
     [Flags]
     public enum STBG_FONT_STYLE_FLAGS
     {
@@ -75,6 +83,7 @@ public partial class StbGui
     {
         public float size;
         public STBG_FONT_STYLE_FLAGS style;
+        public stbg_color color;
     }
 
     public struct stbg_font
@@ -105,6 +114,9 @@ public partial class StbGui
     {
         NONE = 0,
 
+        // Root style
+        ROOT_BACKGROUND_COLOR,
+
         // Window styles
         WINDOW_BORDER_SIZE,
         WINDOW_TITLE_HEIGHT,
@@ -118,7 +130,10 @@ public partial class StbGui
         WINDOW_CHILDREN_PADDING_RIGHT,
         WINDOW_DEFAULT_WIDTH,
         WINDOW_DEFAULT_HEIGHT,
-
+        WINDOW_BORDER_COLOR,
+        WINDOW_BACKGROUND_COLOR,
+        WINDOW_TITLE_TEXT_COLOR,
+        WINDOW_TITLE_BACKGROUND_COLOR,
 
         // Button styles
         BUTTON_BORDER_SIZE,
@@ -126,7 +141,9 @@ public partial class StbGui
         BUTTON_PADDING_BOTTOM,
         BUTTON_PADDING_LEFT,
         BUTTON_PADDING_RIGHT,
-
+        BUTTON_BORDER_COLOR,
+        BUTTON_BACKGROUND_COLOR,
+        BUTTON_TEXT_COLOR,
 
         // ALWAYS LAST!!
         COUNT
@@ -139,8 +156,10 @@ public partial class StbGui
 
         /// <summary>
         /// One value for each entry in STBG_WIDGET_STYLE
+        /// We store doubles instead of floats so we can store the full 
+        /// range of a uint value, used to encode colors in the styles
         /// </summary>
-        public float[] styles;
+        public double[] styles;
     }
 
     public struct stbg_widget_intrinsic_size
@@ -321,6 +340,8 @@ public partial class StbGui
         public stbg_size screen_size;
 
         public stbg_theme theme;
+
+        public stbg_render_command[] render_commands_queue;
     }
 
     public enum STBG_ASSERT_BEHAVIOUR
@@ -343,19 +364,66 @@ public partial class StbGui
         NONE,
     }
 
-    public delegate stbg_size measure_text_delegate(ReadOnlySpan<char> text, stbg_font font, stbg_font_style style);
+    public delegate stbg_size stbg_measure_text_delegate(ReadOnlySpan<char> text, stbg_font font, stbg_font_style style);
+
+    public enum STBG_RENDER_COMMAND_TYPE
+    {
+        /// <summary>
+        /// Start rendering new frame, using bounds as screen size and background_color (as GUI background color)
+        /// </summary>
+        BEGIN_FRAME,
+
+        /// <summary>
+        /// Finish rendering current frame
+        /// </summary>
+        END_FRAME,
+
+        /// <summary>
+        /// Render rectangle using bounds and background_color (as fill color)
+        /// </summary>
+        RECTANGLE,
+
+        /// <summary>
+        /// Render border using bounds, size (border size), color (border color) and background_color (used to fill the content)
+        /// </summary>
+        BORDER,
+
+        /// <summary>
+        /// Render text using bounds, color, text, font and font_style
+        /// </summary>
+        TEXT,
+    }
+
+    public struct stbg_render_command
+    {
+        public STBG_RENDER_COMMAND_TYPE type;
+        public float size;
+        public stbg_rect bounds;
+        public stbg_color color;
+        public stbg_color background_color;
+        public stbg_text text;
+    }
+
+    public delegate void stbg_render_delegate(Span<stbg_render_command> commands);
 
     public struct stbg_external_dependencies
     {
         /// <summary>
         /// Measure text
         /// </summary>
-        public measure_text_delegate measure_text;
+        public stbg_measure_text_delegate measure_text;
+
+        /// <summary>
+        /// Render
+        /// </summary>
+        public stbg_render_delegate render;
     }
 
     public const int DEFAULT_MAX_WIDGETS = 32767;
 
     public const int DEFAULT_MAX_FONTS = 32;
+
+    public const int DEFAULT_RENDER_QUEUE_SIZE = 128;
 
     public struct stbg_init_options
     {
@@ -378,6 +446,11 @@ public partial class StbGui
         /// Behaviour of assert calls, defaults to ASSERT
         /// </summary>
         public STBG_ASSERT_BEHAVIOUR assert_behaviour;
+
+        /// <summary>
+        /// Size of render commands queue, defaults to DEFAULT_RENDER_QUEUE_SIZE
+        /// </summary>
+        public int render_commands_queue_size;
     }
 
     /// <summary>
@@ -417,6 +490,8 @@ public partial class StbGui
         theme.default_font_id = font_id;
         theme.default_font_style = font_style;
 
+        stbg_set_widget_style(STBG_WIDGET_STYLE.ROOT_BACKGROUND_COLOR, STBG_COLOR_CYAN);
+
         var buttonBorder = 1.0f;
         var buttonPaddingTopBottom = MathF.Ceiling(font_style.size / 2);
         var buttonPaddingLeftRight = MathF.Ceiling(font_style.size / 2);
@@ -426,6 +501,10 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PADDING_BOTTOM, buttonPaddingTopBottom);
         stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PADDING_LEFT, buttonPaddingLeftRight);
         stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PADDING_RIGHT, buttonPaddingLeftRight);
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_BORDER_COLOR, STBG_COLOR_BLUE);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_BACKGROUND_COLOR, STBG_COLOR_GRAY);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_TEXT_COLOR, STBG_COLOR_WHITE);
 
         var windowBorder = 1.0f;
         var windowTitleHeight = MathF.Ceiling(font_style.size);
@@ -449,6 +528,11 @@ public partial class StbGui
 
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, windowDefaultWidth);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, windowDefaultHeight);
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_COLOR, STBG_COLOR_BLUE);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BACKGROUND_COLOR, STBG_COLOR_GRAY);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_TEXT_COLOR, STBG_COLOR_WHITE);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR, STBG_COLOR_GRAY);
     }
 
     /// <summary>
@@ -460,11 +544,27 @@ public partial class StbGui
     }
 
     /// <summary>
+    /// Set widget style value
+    /// </summary>
+    public static void stbg_set_widget_style(STBG_WIDGET_STYLE style, stbg_color color)
+    {
+        context.theme.styles[(int)style] = stbg_color_to_uint(color);
+    }
+
+    /// <summary>
     /// Get widget style value
     /// </summary>
     public static float stbg_get_widget_style(STBG_WIDGET_STYLE style)
     {
-        return context.theme.styles[(int)style];
+        return (float)context.theme.styles[(int)style];
+    }
+
+    /// <summary>
+    /// Get widget style value
+    /// </summary>
+    public static stbg_color stbg_get_widget_style_color(STBG_WIDGET_STYLE style)
+    {
+        return stbg_uint_to_color((uint)context.theme.styles[(int)style]);
     }
 
     /// <summary>
@@ -519,6 +619,16 @@ public partial class StbGui
         }
 
         stbg__layout_widgets();
+    }
+
+    /// <summary>
+    /// Issues all render commands for the content of the screen
+    /// </summary>
+    public static void stbg_render()
+    {
+        stbg__assert(!context.inside_frame);
+
+        stbg__render();
     }
 
     /// <summary>

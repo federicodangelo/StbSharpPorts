@@ -15,6 +15,7 @@ public partial class StbGui
     private static void stbg_init_context(ref stbg_context context, stbg_external_dependencies external_dependencies, stbg_init_options options)
     {
         stbg__assert(external_dependencies.measure_text != null, "Missing measure text function");
+        stbg__assert(external_dependencies.render != null, "Missing render function");
 
         if (options.max_widgets == 0)
             options.max_widgets = DEFAULT_MAX_WIDGETS;
@@ -25,9 +26,13 @@ public partial class StbGui
         if (options.max_fonts == 0)
             options.max_fonts = DEFAULT_MAX_FONTS;
 
+        if (options.render_commands_queue_size == 0)
+            options.render_commands_queue_size = DEFAULT_RENDER_QUEUE_SIZE;
+
         var widgets = new stbg_widget[options.max_widgets + 1]; // first slot is never used (null widget)
-        var hashTable = new stbg_hash_entry[options.hash_table_size];
+        var hash_table = new stbg_hash_entry[options.hash_table_size];
         var fonts = new stbg_font[options.max_fonts + 1]; // first slot is never used (null font)
+        var render_commands_queue = new stbg_render_command[options.render_commands_queue_size];
 
         // init ids and flags
         for (int i = 0; i < widgets.Length; i++)
@@ -48,12 +53,13 @@ public partial class StbGui
 
         context.widgets = widgets;
         context.first_free_widget_id = context.widgets[1].id;
-        context.hash_table = hashTable;
+        context.hash_table = hash_table;
         context.fonts = fonts;
         context.first_free_font_id = 1;
         context.init_options = options;
         context.external_dependencies = external_dependencies;
-        context.theme.styles = new float[(int)STBG_WIDGET_STYLE.COUNT];
+        context.theme.styles = new double[(int)STBG_WIDGET_STYLE.COUNT];
+        context.render_commands_queue = render_commands_queue;
     }
 
     private static void stbg__layout_widgets()
