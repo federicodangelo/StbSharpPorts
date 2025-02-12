@@ -540,6 +540,7 @@ public partial class StbGui
     /// </summary>
     public static void stbg_set_widget_style(STBG_WIDGET_STYLE style, float value)
     {
+        stbg__assert(!context.inside_frame);
         context.theme.styles[(int)style] = value;
     }
 
@@ -548,6 +549,7 @@ public partial class StbGui
     /// </summary>
     public static void stbg_set_widget_style(STBG_WIDGET_STYLE style, stbg_color color)
     {
+        stbg__assert(!context.inside_frame);
         context.theme.styles[(int)style] = stbg_color_to_uint(color);
     }
 

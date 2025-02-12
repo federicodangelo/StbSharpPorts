@@ -32,6 +32,23 @@ public class StbGuiLayoutTests : StbGuiTestsBase
     }
 
     [Fact]
+    public void TestSetStyleWhildInsideAFrameShouldThrowAnException()
+    {
+        InitGUI();
+
+        var originalStyle = StbGui.stbg_get_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE);
+
+        StbGui.stbg_begin_frame();
+        {
+            Assert.Throws<StbGui.StbgAssertException>(() => StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, 333.33f));
+            Assert.Throws<StbGui.StbgAssertException>(() => StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, StbGui.stbg_build_color(30, 30, 30)));
+        }
+        StbGui.stbg_end_frame();
+
+        Assert.Equal(originalStyle, StbGui.stbg_get_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE));
+    }
+
+    [Fact]
     public void TestButtonLayoutWithNoPadding()
     {
         InitGUI();
