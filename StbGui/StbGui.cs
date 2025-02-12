@@ -6,9 +6,7 @@ using System;
 using widget_id = int;
 using widget_hash = int;
 using font_id = int;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
 
 // Reference:
 // - https://www.rfleury.com/p/posts-table-of-contents
@@ -18,7 +16,7 @@ using System.Runtime.CompilerServices;
 // - https://www.youtube.com/watch?v=-z8_F9ozERc
 // - https://asawicki.info/Download/Productions/Lectures/Immediate%20Mode%20GUI.pdf
 
-public class StbGui
+public partial class StbGui
 {
     public const widget_id STBG_WIDGET_ID_NULL = 0;
 
@@ -386,7 +384,7 @@ public class StbGui
         public STBG_ASSERT_BEHAVIOUR assert_behaviour;
     }
 
-    static private stbg_context context;
+    private static  stbg_context context;
 
     /// <summary>
     /// Returns a reference to the current context
@@ -398,7 +396,7 @@ public class StbGui
     /// Init GUI library.
     /// It initializes the shared context used by all the other functions.
     /// </summary>
-    static public void stbg_init(stbg_external_dependencies external_dependencies, stbg_init_options options)
+    public static  void stbg_init(stbg_external_dependencies external_dependencies, stbg_init_options options)
     {
         context = new stbg_context();
 
@@ -408,7 +406,7 @@ public class StbGui
     /// <summary>
     /// Inits the default theme, must be called after calling stbg_init()
     /// </summary>
-    static public void stbg_init_default_theme(font_id font_id, stbg_font_style font_style)
+    public static  void stbg_init_default_theme(font_id font_id, stbg_font_style font_style)
     {
         stbg__assert(!context.inside_frame);
 
@@ -451,54 +449,14 @@ public class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, windowDefaultHeight);
     }
 
-    static public void stbg_set_widget_style(STBG_WIDGET_STYLE style, float value)
+    public static  void stbg_set_widget_style(STBG_WIDGET_STYLE style, float value)
     {
         context.theme.styles[(int)style] = value;
     }
 
-    static public float stbg_get_widget_style(STBG_WIDGET_STYLE style)
+    public static  float stbg_get_widget_style(STBG_WIDGET_STYLE style)
     {
         return context.theme.styles[(int)style];
-    }
-
-    static private float stbg__sum_styles(STBG_WIDGET_STYLE style1)
-    {
-        return
-            context.theme.styles[(int)style1];
-    }
-
-    static private float stbg__sum_styles(STBG_WIDGET_STYLE style1, STBG_WIDGET_STYLE style2)
-    {
-        return
-            context.theme.styles[(int)style1] +
-            context.theme.styles[(int)style2];
-    }
-
-    static private float stbg__sum_styles(STBG_WIDGET_STYLE style1, STBG_WIDGET_STYLE style2, STBG_WIDGET_STYLE style3)
-    {
-        return
-            context.theme.styles[(int)style1] +
-            context.theme.styles[(int)style2] +
-            context.theme.styles[(int)style3];
-    }
-
-    static private float stbg__sum_styles(STBG_WIDGET_STYLE style1, STBG_WIDGET_STYLE style2, STBG_WIDGET_STYLE style3, STBG_WIDGET_STYLE style4)
-    {
-        return
-            context.theme.styles[(int)style1] +
-            context.theme.styles[(int)style2] +
-            context.theme.styles[(int)style3] +
-            context.theme.styles[(int)style4];
-    }
-
-    static private float stbg__sum_styles(STBG_WIDGET_STYLE style1, STBG_WIDGET_STYLE style2, STBG_WIDGET_STYLE style3, STBG_WIDGET_STYLE style4, STBG_WIDGET_STYLE style5)
-    {
-        return
-            context.theme.styles[(int)style1] +
-            context.theme.styles[(int)style2] +
-            context.theme.styles[(int)style3] +
-            context.theme.styles[(int)style4] +
-            context.theme.styles[(int)style5];
     }
 
     private static void stbg_init_context(ref stbg_context context, stbg_external_dependencies external_dependencies, stbg_init_options options)
@@ -863,33 +821,6 @@ public class StbGui
         return context.last_widget_id;
     }
 
-
-    private static stbg_widget_intrinsic_size stbg__build_intrinsic_size_text()
-    {
-        return new stbg_widget_intrinsic_size()
-        {
-            type = STBG_INTRINSIC_SIZE_TYPE.MEASURE_TEXT,
-        };
-    }
-
-    private static stbg_widget_intrinsic_size stbg__build_intrinsic_size_pixels(float width, float height)
-    {
-        return new stbg_widget_intrinsic_size()
-        {
-            type = STBG_INTRINSIC_SIZE_TYPE.FIXED_PIXELS,
-            size = new stbg_size() { width = width, height = height },
-        };
-    }
-
-    private static stbg_widget_constrains stbg__build_constrains_unconstrained()
-    {
-        return new stbg_widget_constrains()
-        {
-            min = new stbg_size() { width = 0, height = 0 },
-            max = new stbg_size() { width = float.MaxValue, height = float.MaxValue },
-        };
-    }
-
     /// <summary>
     /// Begins a new window with the given name.
     /// Returns true if the window is visible, false otherwise.
@@ -1015,48 +946,6 @@ public class StbGui
         context.current_widget_id = container.hierarchy.parent_id;
     }
 
-    // Use to asssert public API access and potential user errors
-    private static void stbg__assert(bool condition, [CallerArgumentExpression(nameof(condition))] string? message = null)
-    {
-        switch (context.init_options.assert_behaviour)
-        {
-            case STBG_ASSERT_BEHAVIOUR.ASSERT:
-                Debug.Assert(condition, message);
-                break;
-            case STBG_ASSERT_BEHAVIOUR.EXCEPTION:
-                if (!condition)
-                    throw new StbgAssertException(message);
-                break;
-            case STBG_ASSERT_BEHAVIOUR.CONSOLE:
-                if (!condition)
-                    Console.Error.WriteLine($"Failed assert: {message}");
-                break;
-            case STBG_ASSERT_BEHAVIOUR.NONE:
-                break;
-        }
-    }
-
-    // Use to assert internal code, it will be removed in production builds
-    [Conditional("DEBUG")]
-    private static void stbg__assert_internal(bool condition, [CallerArgumentExpression(nameof(condition))] string? message = null)
-    {
-        switch (context.init_options.assert_behaviour)
-        {
-            case STBG_ASSERT_BEHAVIOUR.ASSERT:
-                Debug.Assert(condition, message);
-                break;
-            case STBG_ASSERT_BEHAVIOUR.EXCEPTION:
-                if (!condition)
-                    throw new StbgAssertException(message);
-                break;
-            case STBG_ASSERT_BEHAVIOUR.CONSOLE:
-                if (!condition)
-                    Console.Error.WriteLine($"Failed assert: {message}");
-                break;
-            case STBG_ASSERT_BEHAVIOUR.NONE:
-                break;
-        }
-    }
 
     private static ref stbg_widget stbg__add_widget(STBG_WIDGET_TYPE type, string identifier, out bool is_new)
     {

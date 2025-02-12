@@ -20,6 +20,16 @@ public class StbGuiLayoutTests : StbGuiTestsBase
     }
 
     [Fact]
+    public void TestSetAndGetStyle()
+    {
+        InitGUI();
+
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, 333.33f);
+
+        Assert.Equal(333.33f, StbGui.stbg_get_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE));
+    }
+
+    [Fact]
     public void TestButtonLayoutWithNoPadding()
     {
         InitGUI();
