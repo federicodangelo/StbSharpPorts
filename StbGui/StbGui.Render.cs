@@ -1,5 +1,7 @@
 #pragma warning disable IDE1006 // Naming Styles
 
+using System.Runtime.CompilerServices;
+
 namespace StbSharp;
 
 public partial class StbGui
@@ -32,19 +34,23 @@ public partial class StbGui
             if (render_commands_queue_index + 1 == render_commands_queue.Length)
                 flush_queue();
 
-            ref var bounds = ref command.bounds;
 
-            // Apply global rect offset
-            bounds.top_left.x += last_global_rect.top_left.x;
-            bounds.top_left.y += last_global_rect.top_left.y;
-            bounds.bottom_right.x += last_global_rect.top_left.x;
-            bounds.bottom_right.y += last_global_rect.top_left.y;
+            if (command.type != STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME && command.type != STBG_RENDER_COMMAND_TYPE.END_FRAME)
+            {
+                ref var bounds = ref command.bounds;
 
-            // Clamp to global rect bounds and ensure that bottom_right is bigger than top_left
-            bounds.top_left.x = Math.Clamp(bounds.top_left.x, last_global_rect.top_left.x, last_global_rect.bottom_right.x);
-            bounds.top_left.y = Math.Clamp(bounds.top_left.y, last_global_rect.top_left.y, last_global_rect.bottom_right.y);
-            bounds.bottom_right.x = Math.Max(Math.Clamp(bounds.bottom_right.x, last_global_rect.top_left.x, last_global_rect.bottom_right.x), bounds.top_left.x);
-            bounds.bottom_right.y = Math.Max(Math.Clamp(bounds.bottom_right.y, last_global_rect.top_left.y, last_global_rect.bottom_right.y), bounds.top_left.y);
+                // Apply global rect offset
+                bounds.top_left.x += last_global_rect.top_left.x;
+                bounds.top_left.y += last_global_rect.top_left.y;
+                bounds.bottom_right.x += last_global_rect.top_left.x;
+                bounds.bottom_right.y += last_global_rect.top_left.y;
+
+                // Clamp to global rect bounds and ensure that bottom_right is bigger than top_left
+                bounds.top_left.x = Math.Clamp(bounds.top_left.x, last_global_rect.top_left.x, last_global_rect.bottom_right.x);
+                bounds.top_left.y = Math.Clamp(bounds.top_left.y, last_global_rect.top_left.y, last_global_rect.bottom_right.y);
+                bounds.bottom_right.x = Math.Max(Math.Clamp(bounds.bottom_right.x, last_global_rect.top_left.x, last_global_rect.bottom_right.x), bounds.top_left.x);
+                bounds.bottom_right.y = Math.Max(Math.Clamp(bounds.bottom_right.y, last_global_rect.top_left.y, last_global_rect.bottom_right.y), bounds.top_left.y);
+            }
 
             render_commands_queue[render_commands_queue_index] = command;
             render_commands_queue_index++;
@@ -66,7 +72,7 @@ public partial class StbGui
             draw_text = (rect, text) => enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.TEXT, bounds = rect, text = text }),
         };
 
-        enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME });
+        enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME, bounds = { bottom_right = { x = context.screen_size.width, y = context.screen_size.height } }, background_color = stbg_get_widget_style_color(STBG_WIDGET_STYLE.ROOT_BACKGROUND_COLOR) });
 
         ref var root = ref stbg_get_widget_by_id(context.root_widget_id);
 
@@ -144,6 +150,8 @@ public partial class StbGui
                 ref var children = ref stbg_get_widget_by_id(children_id);
 
                 stbg__render_widget(ref children, ref render_context);
+
+                children_id = children.hierarchy.next_sibling_id;
 
             } while (children_id != STBG_WIDGET_ID_NULL);
         }

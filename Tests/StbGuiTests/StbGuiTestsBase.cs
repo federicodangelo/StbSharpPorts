@@ -7,12 +7,14 @@ public class StbGuiTestsBase : IDisposable
 {
     protected const float ScreenSizeWidth = 512;
     protected const float ScreenSizeHeight = 256;
-    static protected List<StbGui.stbg_render_command> render_commands = [];
+    static protected List<StbGui.stbg_render_command> render_commands_all = []; // All render commands
+    static protected List<StbGui.stbg_render_command> render_commands = []; // Exclude begin and end frame commands
 
     public void Dispose()
     {
         AssertHierarchyConsistency();
         DestroyGui();
+        render_commands_all = [];
         render_commands = [];
     }
 
@@ -21,7 +23,11 @@ public class StbGuiTestsBase : IDisposable
         return new StbGui.stbg_external_dependencies()
         {
             measure_text = (text, font, style) => new StbGui.stbg_size() { width = text.Length * style.size, height = style.size },
-            render = (commands) => render_commands.AddRange(commands),
+            render = (commands) => 
+            {
+                render_commands_all.AddRange(commands);
+                render_commands.AddRange(commands.ToArray().Where(c => c.type != StbGui.STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME && c.type != StbGui.STBG_RENDER_COMMAND_TYPE.END_FRAME));
+            },
         };
     }
 

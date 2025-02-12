@@ -79,7 +79,7 @@ public partial class StbGui
         ITALIC = 1 << 1
     }
 
-    public struct stbg_font_style
+    public record struct stbg_font_style
     {
         public float size;
         public STBG_FONT_STYLE_FLAGS style;
@@ -92,7 +92,7 @@ public partial class StbGui
         public string name;
     }
 
-    public struct stbg_text
+    public record struct stbg_text
     {
         public ReadOnlyMemory<char> text;
         public font_id font_id;
@@ -394,7 +394,7 @@ public partial class StbGui
         TEXT,
     }
 
-    public struct stbg_render_command
+    public record struct stbg_render_command
     {
         public STBG_RENDER_COMMAND_TYPE type;
         public float size;
@@ -683,7 +683,7 @@ public partial class StbGui
     }
 
     /// <summary>
-    /// Begins a new window with the given name.
+    /// Begins a new window with the given title.
     /// Returns true if the window is visible, false otherwise.
     /// If it returns true, you MUST skip the window content and the stbg_end_window() call.
     /// <code>
@@ -696,13 +696,14 @@ public partial class StbGui
     /// }
     /// </code>
     /// </summary>
-    /// <param name="label"></param>
+    /// <param name="title">Window title. Must be unique inside the parent container</param>
     /// <returns>Returns if the window is visible or not</returns>
-    public static bool stbg_begin_window(string label)
+    public static bool stbg_begin_window(string title)
     {
-        ref var window = ref stbg__add_widget(STBG_WIDGET_TYPE.WINDOW, label, out var is_new);
+        ref var window = ref stbg__add_widget(STBG_WIDGET_TYPE.WINDOW, title, out var is_new);
 
-        window.text.text = label.AsMemory();
+        window.text.style.color = stbg_get_widget_style_color(STBG_WIDGET_STYLE.WINDOW_TITLE_TEXT_COLOR);
+        window.text.text = title.AsMemory();
 
         ref var layout = ref window.layout;
 
@@ -829,6 +830,7 @@ public partial class StbGui
     public static bool stbg_button(string label)
     {
         ref var button = ref stbg__add_widget(STBG_WIDGET_TYPE.BUTTON, label, out _);
+        button.text.style.color = stbg_get_widget_style_color(STBG_WIDGET_STYLE.BUTTON_TEXT_COLOR);
         button.text.text = label.AsMemory();
 
         ref var layout = ref button.layout;
