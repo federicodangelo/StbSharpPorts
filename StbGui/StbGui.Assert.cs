@@ -1,12 +1,14 @@
 #pragma warning disable IDE1006 // Naming Styles
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace StbSharp;
 
 public partial class StbGui
 {
+    [ExcludeFromCodeCoverage]
     public class StbgAssertException : Exception
     {
         public StbgAssertException(string? message) : base(message) { }
@@ -14,6 +16,7 @@ public partial class StbGui
 
 
     // Use to asssert public API access and potential user errors
+    [ExcludeFromCodeCoverage]
     private static void stbg__assert(bool condition, [CallerArgumentExpression(nameof(condition))] string? message = null)
     {
         switch (context.init_options.assert_behaviour)
@@ -36,6 +39,7 @@ public partial class StbGui
 
     // Use to assert internal code, it will be removed in production builds
     [Conditional("DEBUG")]
+    [ExcludeFromCodeCoverage]
     private static void stbg__assert_internal(bool condition, [CallerArgumentExpression(nameof(condition))] string? message = null)
     {
         switch (context.init_options.assert_behaviour)

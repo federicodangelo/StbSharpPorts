@@ -1,9 +1,12 @@
 #pragma warning disable IDE1006 // Naming Styles
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace StbSharp;
 
 public partial class StbGui
 {
+    [ExcludeFromCodeCoverage]
     private static stbg_widget_intrinsic_size stbg__build_intrinsic_size_text()
     {
         return new stbg_widget_intrinsic_size()
@@ -12,6 +15,7 @@ public partial class StbGui
         };
     }
 
+    [ExcludeFromCodeCoverage]
     private static stbg_widget_intrinsic_size stbg__build_intrinsic_size_pixels(float width, float height)
     {
         return new stbg_widget_intrinsic_size()
@@ -21,6 +25,7 @@ public partial class StbGui
         };
     }
 
+    [ExcludeFromCodeCoverage]
     private static stbg_widget_constrains stbg__build_constrains_unconstrained()
     {
         return new stbg_widget_constrains()
@@ -30,12 +35,14 @@ public partial class StbGui
         };
     }
 
+    [ExcludeFromCodeCoverage]
     static private float stbg__sum_styles(STBG_WIDGET_STYLE style1)
     {
         return
             context.theme.styles[(int)style1];
     }
 
+    [ExcludeFromCodeCoverage]
     static private float stbg__sum_styles(STBG_WIDGET_STYLE style1, STBG_WIDGET_STYLE style2)
     {
         return
@@ -43,6 +50,7 @@ public partial class StbGui
             context.theme.styles[(int)style2];
     }
 
+    [ExcludeFromCodeCoverage]
     static private float stbg__sum_styles(STBG_WIDGET_STYLE style1, STBG_WIDGET_STYLE style2, STBG_WIDGET_STYLE style3)
     {
         return
@@ -51,6 +59,7 @@ public partial class StbGui
             context.theme.styles[(int)style3];
     }
 
+    [ExcludeFromCodeCoverage]
     static private float stbg__sum_styles(STBG_WIDGET_STYLE style1, STBG_WIDGET_STYLE style2, STBG_WIDGET_STYLE style3, STBG_WIDGET_STYLE style4)
     {
         return
@@ -60,6 +69,7 @@ public partial class StbGui
             context.theme.styles[(int)style4];
     }
 
+    [ExcludeFromCodeCoverage]
     static private float stbg__sum_styles(STBG_WIDGET_STYLE style1, STBG_WIDGET_STYLE style2, STBG_WIDGET_STYLE style3, STBG_WIDGET_STYLE style4, STBG_WIDGET_STYLE style5)
     {
         return

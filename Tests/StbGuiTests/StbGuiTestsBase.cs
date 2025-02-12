@@ -118,4 +118,28 @@ public class StbGuiTestsBase : IDisposable
             }
         }
     }
+
+    static protected void AssertWidgetSize(int widget_id, float width, float height)
+    {
+        Assert.Equal(
+            new StbGui.stbg_size() { width = width, height = height },
+            StbGui.stbg_get_widget_by_id(widget_id).computed_bounds.size
+        );
+    }
+
+    static protected void AssertWidgetPosition(int widget_id, float x, float y)
+    {
+        Assert.Equal(
+            new StbGui.stbg_position() { x = x, y = y },
+            StbGui.stbg_get_widget_by_id(widget_id).computed_bounds.relative_position
+        );
+    }
+
+    static protected void AssertWidgetGlobalRect(int widget_id, float x0, float y0, float x1, float y1)
+    {
+        Assert.Equal(
+            new StbGui.stbg_rect() { top_left = new StbGui.stbg_position() { x = x0, y = y0 }, bottom_right = new StbGui.stbg_position() { x = x1, y = y1 } },
+            StbGui.stbg_get_widget_by_id(widget_id).computed_bounds.global_rect
+        );
+    }
 }

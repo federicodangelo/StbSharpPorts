@@ -16,7 +16,9 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         }
         StbGui.stbg_end_frame();
 
-        Assert.Equal(new StbGui.stbg_size() { width = "Hello World".Length + 4, height = 5 }, StbGui.stbg_get_widget_by_id(buttonId).computed_bounds.size);
+        AssertWidgetPosition(buttonId, 0, 0);
+        AssertWidgetSize(buttonId, "Hello World".Length + 4, 5);
+        AssertWidgetGlobalRect(buttonId, 0, 0, "Hello World".Length + 4, 5);
     }
 
     [Fact]
@@ -47,7 +49,7 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         }
         StbGui.stbg_end_frame();
 
-        Assert.Equal(new StbGui.stbg_size() { width = "Hello World".Length + 2, height = 3 }, StbGui.stbg_get_widget_by_id(buttonId).computed_bounds.size);
+        AssertWidgetSize(buttonId, "Hello World".Length + 2, 3);
     }
 
     [Fact]
@@ -69,7 +71,7 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         }
         StbGui.stbg_end_frame();
 
-        Assert.Equal(new StbGui.stbg_size() { width = "Hello World".Length, height = 1 }, StbGui.stbg_get_widget_by_id(buttonId).computed_bounds.size);
+        AssertWidgetSize(buttonId, "Hello World".Length, 1);
     }
 
     [Fact]
@@ -88,7 +90,7 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         }
         StbGui.stbg_end_frame();
 
-        Assert.Equal(new StbGui.stbg_size() { width = 34, height = 22 }, StbGui.stbg_get_widget_by_id(windowId).computed_bounds.size);
+        AssertWidgetSize(windowId, 34, 22);
     }
 
     [Fact]
@@ -109,7 +111,7 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         }
         StbGui.stbg_end_frame();
 
-        Assert.Equal(new StbGui.stbg_size() { width = 32, height = 20 }, StbGui.stbg_get_widget_by_id(windowId).computed_bounds.size);
+        AssertWidgetSize(windowId, 32, 20);
     }
 
     [Fact]
@@ -131,7 +133,7 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         }
         StbGui.stbg_end_frame();
 
-        Assert.Equal(new StbGui.stbg_size() { width = 32, height = 19 }, StbGui.stbg_get_widget_by_id(windowId).computed_bounds.size);
+        AssertWidgetSize(windowId, 32, 19);
     }
 
     [Fact]
@@ -162,7 +164,7 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         }
         StbGui.stbg_end_frame();
 
-        Assert.Equal(new StbGui.stbg_size() { width = 30, height = 15 }, StbGui.stbg_get_widget_by_id(windowId).computed_bounds.size);
+        AssertWidgetSize(windowId, 30, 15);
     }
 
     [Fact]
@@ -182,7 +184,8 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         StbGui.stbg_end_frame();
 
         // Validate initial position
-        Assert.Equal(new StbGui.stbg_position() { x = 0, y = 0 }, StbGui.stbg_get_widget_by_id(windowId).computed_bounds.relative_position);
+        AssertWidgetPosition(windowId, 0, 0);
+        AssertWidgetGlobalRect(windowId, 0, 0, 34, 22);
 
         StbGui.stbg_begin_frame();
         {
@@ -196,41 +199,8 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         StbGui.stbg_end_frame();
 
         // Validate new position
-        Assert.Equal(new StbGui.stbg_position() { x = 30, y = 40 }, StbGui.stbg_get_widget_by_id(windowId).computed_bounds.relative_position);
-    }
-
-    [Fact]
-    public void TestWindowLayoutResizeWindow()
-    {
-        InitGUI();
-
-        int windowId;
-        StbGui.stbg_begin_frame();
-        {
-            StbGui.stbg_begin_window("Hello World");
-            {
-                windowId = StbGui.stbg_get_last_widget_id();
-            }
-            StbGui.stbg_end_window();
-        }
-        StbGui.stbg_end_frame();
-
-        // Validate initial size
-        Assert.Equal(new StbGui.stbg_size() { width = 34, height = 22 }, StbGui.stbg_get_widget_by_id(windowId).computed_bounds.size);
-
-        StbGui.stbg_begin_frame();
-        {
-            StbGui.stbg_begin_window("Hello World");
-            {
-                windowId = StbGui.stbg_get_last_widget_id();
-                StbGui.stbg_resize_window(windowId, 70, 60);
-            }
-            StbGui.stbg_end_window();
-        }
-        StbGui.stbg_end_frame();
-
-        // Validate new position
-        Assert.Equal(new StbGui.stbg_size() { width = 70, height = 60 }, StbGui.stbg_get_widget_by_id(windowId).computed_bounds.size);
+        AssertWidgetPosition(windowId, 30, 40);
+        AssertWidgetGlobalRect(windowId, 30, 40, 30 + 34, 40 + 22);
     }
 
     [Fact]
@@ -257,8 +227,10 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         StbGui.stbg_end_frame();
 
         // Validate initial positions
-        Assert.Equal(new StbGui.stbg_position() { x = 0, y = 0 }, StbGui.stbg_get_widget_by_id(window1Id).computed_bounds.relative_position);
-        Assert.Equal(new StbGui.stbg_position() { x = 0, y = 0 }, StbGui.stbg_get_widget_by_id(window2Id).computed_bounds.relative_position);
+        AssertWidgetPosition(window1Id, 0, 0);
+        AssertWidgetGlobalRect(window1Id, 0, 0, 34, 22);
+        AssertWidgetPosition(window2Id, 0, 0);
+        AssertWidgetGlobalRect(window2Id, 0, 0, 34, 22);
 
         StbGui.stbg_begin_frame();
         {
@@ -279,8 +251,46 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         StbGui.stbg_end_frame();
 
         // Validate new positions
-        Assert.Equal(new StbGui.stbg_position() { x = 30, y = 40 }, StbGui.stbg_get_widget_by_id(window1Id).computed_bounds.relative_position);
-        Assert.Equal(new StbGui.stbg_position() { x = 100, y = 120 }, StbGui.stbg_get_widget_by_id(window2Id).computed_bounds.relative_position);
+        AssertWidgetPosition(window1Id, 30, 40);
+        AssertWidgetGlobalRect(window1Id, 30, 40, 30 + 34, 40 + 22);
+        AssertWidgetPosition(window2Id, 100, 120);
+        AssertWidgetGlobalRect(window2Id, 100, 120, 100 + 34, 120 + 22);
+    }
+
+    [Fact]
+    public void TestWindowLayoutResizeWindow()
+    {
+        InitGUI();
+
+        int windowId;
+        StbGui.stbg_begin_frame();
+        {
+            StbGui.stbg_begin_window("Hello World");
+            {
+                windowId = StbGui.stbg_get_last_widget_id();
+            }
+            StbGui.stbg_end_window();
+        }
+        StbGui.stbg_end_frame();
+
+        // Validate initial size
+        AssertWidgetSize(windowId, 34, 22);
+
+        Assert.Equal(new StbGui.stbg_size() { width = 34, height = 22 }, StbGui.stbg_get_widget_by_id(windowId).computed_bounds.size);
+
+        StbGui.stbg_begin_frame();
+        {
+            StbGui.stbg_begin_window("Hello World");
+            {
+                windowId = StbGui.stbg_get_last_widget_id();
+                StbGui.stbg_resize_window(windowId, 70, 60);
+            }
+            StbGui.stbg_end_window();
+        }
+        StbGui.stbg_end_frame();
+
+        // Validate new size
+        AssertWidgetSize(windowId, 70, 60);
     }
 
     [Fact]
@@ -300,7 +310,7 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         }
         StbGui.stbg_end_frame();
 
-        Assert.Equal(new StbGui.stbg_position() { x = 2, y = 5 }, StbGui.stbg_get_widget_by_id(buttonId).computed_bounds.relative_position);
+        AssertWidgetPosition(buttonId, 2, 5);
     }
 
     [Fact]
@@ -324,8 +334,8 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         }
         StbGui.stbg_end_frame();
 
-        Assert.Equal(new StbGui.stbg_position() { x = 2, y = 5 }, StbGui.stbg_get_widget_by_id(button1Id).computed_bounds.relative_position);
-        Assert.Equal(new StbGui.stbg_position() { x = 2, y = 5 + 5 }, StbGui.stbg_get_widget_by_id(button2Id).computed_bounds.relative_position);
+        AssertWidgetPosition(button1Id, 2, 5);
+        AssertWidgetPosition(button2Id, 2, 5 + 5);
     }
 
     [Fact]
@@ -343,7 +353,9 @@ public class StbGuiLayoutTests : StbGuiTestsBase
             StbGui.stbg_end_container();
         }
 
-        Assert.Equal(new StbGui.stbg_size() { width = 0, height = 0 }, StbGui.stbg_get_widget_by_id(containerId).computed_bounds.size);
+        AssertWidgetPosition(containerId, 0, 0);
+        AssertWidgetSize(containerId, 0, 0);
+        AssertWidgetGlobalRect(containerId, 0, 0, 0, 0);
     }
 
     [Fact]
@@ -365,8 +377,140 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         }
         StbGui.stbg_end_frame();
 
-        Assert.Equal(new StbGui.stbg_size() { width = "Button 1".Length + 4, height = 5 }, StbGui.stbg_get_widget_by_id(buttonId).computed_bounds.size);
-        Assert.Equal(StbGui.stbg_get_widget_by_id(buttonId).computed_bounds.size, StbGui.stbg_get_widget_by_id(containerId).computed_bounds.size);
+        AssertWidgetSize(buttonId, "Button 1".Length + 4, 5);
+        AssertWidgetSize(containerId, "Button 1".Length + 4, 5);
+    }
+
+    [Fact]
+    public void TestContainerWithTwoButtonsInHorizontalLayout()
+    {
+        InitGUI();
+
+        int button1Id, button2Id, containerId;
+        StbGui.stbg_begin_frame();
+        {
+            StbGui.stbg_begin_container("Container 1", StbGui.STBG_CHILDREN_LAYOUT_DIRECTION.HORIZONTAL);
+            {
+                containerId = StbGui.stbg_get_last_widget_id();
+
+                StbGui.stbg_button("Button 1");
+                button1Id = StbGui.stbg_get_last_widget_id();
+
+                StbGui.stbg_button("Button 2");
+                button2Id = StbGui.stbg_get_last_widget_id();
+            }
+
+            StbGui.stbg_end_container();
+        }
+        StbGui.stbg_end_frame();
+
+        // Container is top level
+        AssertWidgetPosition(containerId, 0, 0);
+        AssertWidgetGlobalRect(containerId, 0, 0, 24, 5);
+        // Buttons are inside the container
+        AssertWidgetPosition(button1Id, 0, 0);
+        AssertWidgetGlobalRect(button1Id, 0, 0, 12, 5);
+        AssertWidgetPosition(button2Id, 12, 0);
+        AssertWidgetGlobalRect(button2Id, 12, 0, 24, 5);
+    }
+
+    [Fact]
+    public void TestContainerWithSpacingWithTwoButtonsInHorizontalLayout()
+    {
+        InitGUI();
+
+        int button1Id, button2Id, containerId;
+        StbGui.stbg_begin_frame();
+        {
+            StbGui.stbg_begin_container("Container 1", StbGui.STBG_CHILDREN_LAYOUT_DIRECTION.HORIZONTAL, 1);
+            {
+                containerId = StbGui.stbg_get_last_widget_id();
+
+                StbGui.stbg_button("Button 1");
+                button1Id = StbGui.stbg_get_last_widget_id();
+
+                StbGui.stbg_button("Button 2");
+                button2Id = StbGui.stbg_get_last_widget_id();
+            }
+
+            StbGui.stbg_end_container();
+        }
+        StbGui.stbg_end_frame();
+
+        // Container is top level
+        AssertWidgetPosition(containerId, 0, 0);
+        AssertWidgetGlobalRect(containerId, 0, 0, 25, 5);
+        // Buttons are inside the container
+        AssertWidgetPosition(button1Id, 0, 0);
+        AssertWidgetGlobalRect(button1Id, 0, 0, 12, 5);
+        AssertWidgetPosition(button2Id, 13, 0);
+        AssertWidgetGlobalRect(button2Id, 13, 0, 25, 5);
+    }
+
+    [Fact]
+    public void TestContainerWithTwoButtonsInVerticalLayout()
+    {
+        InitGUI();
+
+        int button1Id, button2Id, containerId;
+        StbGui.stbg_begin_frame();
+        {
+            StbGui.stbg_begin_container("Container 1", StbGui.STBG_CHILDREN_LAYOUT_DIRECTION.VERTICAL);
+            {
+                containerId = StbGui.stbg_get_last_widget_id();
+
+                StbGui.stbg_button("Button 1");
+                button1Id = StbGui.stbg_get_last_widget_id();
+
+                StbGui.stbg_button("Button 2");
+                button2Id = StbGui.stbg_get_last_widget_id();
+            }
+
+            StbGui.stbg_end_container();
+        }
+        StbGui.stbg_end_frame();
+
+        // Container is top level
+        AssertWidgetPosition(containerId, 0, 0);
+        AssertWidgetGlobalRect(containerId, 0, 0, 12, 10);
+        // Buttons are inside the container
+        AssertWidgetPosition(button1Id, 0, 0);
+        AssertWidgetGlobalRect(button1Id, 0, 0, 12, 5);
+        AssertWidgetPosition(button2Id, 0, 5);
+        AssertWidgetGlobalRect(button2Id, 0, 5, 12, 10);
+    }
+
+    [Fact]
+    public void TestContainerWithSpacingWithTwoButtonsInVerticalLayout()
+    {
+        InitGUI();
+
+        int button1Id, button2Id, containerId;
+        StbGui.stbg_begin_frame();
+        {
+            StbGui.stbg_begin_container("Container 1", StbGui.STBG_CHILDREN_LAYOUT_DIRECTION.VERTICAL, 1);
+            {
+                containerId = StbGui.stbg_get_last_widget_id();
+
+                StbGui.stbg_button("Button 1");
+                button1Id = StbGui.stbg_get_last_widget_id();
+
+                StbGui.stbg_button("Button 2");
+                button2Id = StbGui.stbg_get_last_widget_id();
+            }
+
+            StbGui.stbg_end_container();
+        }
+        StbGui.stbg_end_frame();
+
+        // Container is top level
+        AssertWidgetPosition(containerId, 0, 0);
+        AssertWidgetGlobalRect(containerId, 0, 0, 12, 11);
+        // Buttons are inside the container
+        AssertWidgetPosition(button1Id, 0, 0);
+        AssertWidgetGlobalRect(button1Id, 0, 0, 12, 5);
+        AssertWidgetPosition(button2Id, 0, 6);
+        AssertWidgetGlobalRect(button2Id, 0, 6, 12, 11);
     }
 
     [Fact]
@@ -396,8 +540,13 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         }
         StbGui.stbg_end_frame();
 
-        Assert.Equal(new StbGui.stbg_position() { x = 2, y = 5 }, StbGui.stbg_get_widget_by_id(containerId).computed_bounds.relative_position);
-        Assert.Equal(new StbGui.stbg_position() { x = 0, y = 0 }, StbGui.stbg_get_widget_by_id(button1Id).computed_bounds.relative_position);
-        Assert.Equal(new StbGui.stbg_position() { x = 12, y = 0 }, StbGui.stbg_get_widget_by_id(button2Id).computed_bounds.relative_position);
+        // Container is inside the window
+        AssertWidgetPosition(containerId, 2, 5);
+        AssertWidgetGlobalRect(containerId, 2, 5, 26, 10);
+        // Buttons are inside the container
+        AssertWidgetPosition(button1Id, 0, 0);
+        AssertWidgetGlobalRect(button1Id, 2, 5, 14, 10);
+        AssertWidgetPosition(button2Id, 12, 0);
+        AssertWidgetGlobalRect(button2Id, 14, 5, 26, 10);
     }
 }

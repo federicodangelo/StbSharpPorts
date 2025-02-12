@@ -66,11 +66,7 @@ public partial class StbGui
         // - Sizes go up
         // - Parent sets position
 
-        stbg_widget_constrains constrains = new stbg_widget_constrains();
-        constrains.min.width = 0;
-        constrains.min.height = 0;
-        constrains.max.width = float.MaxValue;
-        constrains.max.height = float.MaxValue;
+        stbg_widget_constrains constrains = stbg__build_constrains_unconstrained();
 
         stbg__layout_widget(constrains, ref stbg_get_widget_by_id(context.root_widget_id));
 
@@ -117,9 +113,8 @@ public partial class StbGui
         // - Parent sets position
         var widget_layout = widget.layout;
         var widget_intrinsic_size = widget_layout.intrinsic_size;
-        var widget_intrinsic_position = widget_layout.intrinsic_position;
-        var widget_padding = widget.layout.children_padding;
         var widget_constrains = widget_layout.constrains;
+        var widget_inner_padding = widget.layout.inner_padding;
 
         // Build current contrains by merging the widget constrains with the parent constrains
         var constrains = new stbg_widget_constrains();
@@ -144,11 +139,13 @@ public partial class StbGui
         if (widget.hierarchy.first_children_id != STBG_WIDGET_ID_NULL)
         {
             // Widget has children
+            var widget_children_spacing = widget.layout.children_spacing;
+            var widget_children_layout_direction = widget.layout.children_layout_direction;
 
             // Build children constrains by removing padding
             var children_constrains = new stbg_widget_constrains();
-            children_constrains.max.width = Math.Max(constrains.max.width - (widget_padding.left + widget_padding.right), 0);
-            children_constrains.max.height = Math.Max(constrains.max.height - (widget_padding.top + widget_padding.bottom), 0);
+            children_constrains.max.width = Math.Max(constrains.max.width - (widget_inner_padding.left + widget_inner_padding.right), 0);
+            children_constrains.max.height = Math.Max(constrains.max.height - (widget_inner_padding.top + widget_inner_padding.bottom), 0);
             children_constrains.min.width = Math.Min(constrains.min.width, children_constrains.max.width);
             children_constrains.min.height = Math.Min(constrains.min.height, children_constrains.max.height);
 
@@ -161,13 +158,39 @@ public partial class StbGui
 
             var next_children_top_left = new stbg_position()
             {
-                x = widget_padding.left,
-                y = widget_padding.top
+                x = widget_inner_padding.left,
+                y = widget_inner_padding.top
             };
+
+            var first_chilren = true;
 
             do
             {
                 ref var children = ref stbg_get_widget_by_id(children_id);
+
+                if (!first_chilren && widget_children_spacing != 0)
+                {
+                    switch (widget_children_layout_direction)
+                    {
+                        case STBG_CHILDREN_LAYOUT_DIRECTION.VERTICAL:
+                            {
+                                var available_spacing = Math.Min(widget_children_spacing, children_constrains.max.height);
+                                next_children_top_left.y += available_spacing;
+                                children_constrains.max.height -= available_spacing;
+                                accumulated_children_size.height += available_spacing;
+                                break;
+                            }
+
+                        case STBG_CHILDREN_LAYOUT_DIRECTION.HORIZONTAL:
+                            {
+                                var available_spacing = Math.Min(widget_children_spacing, children_constrains.max.width);
+                                next_children_top_left.x += available_spacing;
+                                children_constrains.max.width -= available_spacing;
+                                accumulated_children_size.width += available_spacing;
+                                break;
+                            }
+                    }
+                }
 
                 var children_size = stbg__layout_widget(children_constrains, ref children);
 
@@ -178,7 +201,7 @@ public partial class StbGui
 
                 children.computed_bounds.size = children_size;
 
-                switch (widget.layout.children_layout_direction)
+                switch (widget_children_layout_direction)
                 {
                     case STBG_CHILDREN_LAYOUT_DIRECTION.VERTICAL:
                         children.computed_bounds.relative_position = next_children_top_left;
@@ -207,6 +230,7 @@ public partial class StbGui
                 }
 
                 children_id = children.hierarchy.next_sibling_id;
+                first_chilren = false;
             } while (children_id != STBG_WIDGET_ID_NULL);
         }
 
@@ -214,12 +238,12 @@ public partial class StbGui
         {
             width = Math.Max(
                 Math.Min(
-                    Math.Max(intrinsic_size.width, accumulated_children_size.width) + widget_padding.right + widget_padding.left,
+                    Math.Max(intrinsic_size.width, accumulated_children_size.width) + widget_inner_padding.right + widget_inner_padding.left,
                     constrains.max.width),
                 constrains.min.width),
             height = Math.Max(
                 Math.Min(
-                    Math.Max(intrinsic_size.height, accumulated_children_size.height) + widget_padding.top + widget_padding.bottom,
+                    Math.Max(intrinsic_size.height, accumulated_children_size.height) + widget_inner_padding.top + widget_inner_padding.bottom,
                     constrains.max.height),
                 constrains.min.height),
         };
@@ -240,6 +264,8 @@ public partial class StbGui
                 amount_to_destroy--;
             }
         }
+
+        stbg__assert_internal(amount_to_destroy == 0);
     }
 
     private static ref stbg_widget stbg__add_widget(STBG_WIDGET_TYPE type, string identifier, out bool is_new)
@@ -257,7 +283,7 @@ public partial class StbGui
     private static ref stbg_widget stbg__add_widget(widget_hash hash, out bool is_new)
     {
         stbg__assert(context.inside_frame);
-        stbg__assert(context.first_free_widget_id != STBG_WIDGET_ID_NULL);
+        stbg__assert(context.first_free_widget_id != STBG_WIDGET_ID_NULL, "No more room for widgets");
 
         ref var widget =
             ref (stbg__find_widget_by_hash(hash, out var existingWidgetId) ?

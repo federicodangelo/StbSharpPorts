@@ -170,7 +170,7 @@ public partial class StbGui
         public stbg_widget_constrains constrains;
 
         /// <summary>
-        /// Intrinsic size, doesn't include children_padding, can be overriden if the widget doesn't fit in the expected bounds, or if it auto-expands
+        /// Intrinsic size, doesn't include inner_padding, can be overriden if the widget doesn't fit in the expected bounds, or if it auto-expands
         /// </summary>
         public stbg_widget_intrinsic_size intrinsic_size;
 
@@ -180,9 +180,14 @@ public partial class StbGui
         public stbg_position intrinsic_position;
 
         /// <summary>
-        /// Children padding
+        /// Inner padding
         /// </summary>
-        public stbg_padding children_padding;
+        public stbg_padding inner_padding;
+
+        /// <summary>
+        /// Children spacing (used when layout direction is NOT FREE)
+        /// </summary>
+        public float children_spacing;
 
         /// <summary>
         /// Children layout direction
@@ -489,10 +494,7 @@ public partial class StbGui
         context.frame_stats = new stbg_context_frame_stats();
 
         ref var root = ref stbg__add_widget(STBG_WIDGET_TYPE.ROOT, "root", out _);
-        root.layout.constrains.min = new stbg_size();
         root.layout.constrains.max = context.screen_size;
-        root.layout.children_padding = new stbg_padding();
-        root.layout.children_layout_direction = STBG_CHILDREN_LAYOUT_DIRECTION.FREE;
 
         context.current_widget_id = root.id;
         context.root_widget_id = root.id;
@@ -526,6 +528,8 @@ public partial class StbGui
     /// <returns>A unique font identifier</returns>
     public static font_id stbg_add_font(string name)
     {
+        stbg__assert(context.first_free_font_id + 1 < context.fonts.Length, "No more room for fonts");
+
         var newFont = new stbg_font()
         {
             id = context.first_free_font_id,
@@ -590,7 +594,7 @@ public partial class StbGui
 
         ref var layout = ref window.layout;
 
-        layout.children_padding = new stbg_padding()
+        layout.inner_padding = new stbg_padding()
         {
             top = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP, STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT, STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_BOTTOM, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_TOP),
             bottom = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_BOTTOM),
@@ -656,8 +660,8 @@ public partial class StbGui
         ref var window = ref stbg_get_widget_by_id(window_id);
         stbg__assert(window.type == STBG_WIDGET_TYPE.WINDOW);
 
-        window.persistent_data.f3 = Math.Max(width - (window.layout.children_padding.left + window.layout.children_padding.right), 0);
-        window.persistent_data.f4 = Math.Max(height - (window.layout.children_padding.top + window.layout.children_padding.bottom), 0);
+        window.persistent_data.f3 = Math.Max(width - (window.layout.inner_padding.left + window.layout.inner_padding.right), 0);
+        window.persistent_data.f4 = Math.Max(height - (window.layout.inner_padding.top + window.layout.inner_padding.bottom), 0);
         window.layout.intrinsic_size = stbg__build_intrinsic_size_pixels(window.persistent_data.f3, window.persistent_data.f4);
     }
 
@@ -668,16 +672,29 @@ public partial class StbGui
     /// <param name="layout_direction">Layout direction</param>
     public static void stbg_begin_container(string identifier, STBG_CHILDREN_LAYOUT_DIRECTION layout_direction)
     {
+        stbg_begin_container(identifier, layout_direction, 0);
+    }
+
+    /// <summary>
+    /// Begins a new container with the specified layout direction and spacing between children
+    /// </summary>
+    /// <param name="identifier">Container identifier (must be unique inside the parent widget)</param>
+    /// <param name="layout_direction">Layout direction</param>
+    /// <param name="spacing">Spacing between children</param>
+    public static void stbg_begin_container(string identifier, STBG_CHILDREN_LAYOUT_DIRECTION layout_direction, float spacing)
+    {
         ref var container = ref stbg__add_widget(STBG_WIDGET_TYPE.CONTAINER, identifier, out _);
 
         ref var layout = ref container.layout;
 
-        layout.children_padding = new stbg_padding();
+        layout.inner_padding = new stbg_padding();
         layout.constrains = stbg__build_constrains_unconstrained();
         layout.children_layout_direction = layout_direction;
+        layout.children_spacing = spacing;
 
         context.current_widget_id = container.id;
     }
+
 
     /// <summary>
     /// Ends the current container.
@@ -705,7 +722,7 @@ public partial class StbGui
         ref var layout = ref button.layout;
 
         layout.constrains = stbg__build_constrains_unconstrained();
-        layout.children_padding = new stbg_padding()
+        layout.inner_padding = new stbg_padding()
         {
             top = stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_TOP),
             bottom = stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_BOTTOM),
