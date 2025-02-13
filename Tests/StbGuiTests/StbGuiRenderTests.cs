@@ -91,6 +91,43 @@ public class StbGuiRenderTests : StbGuiTestsBase
     }
 
     [Fact]
+    public void TestRenderWindowLongTitle()
+    {
+        InitGUI();
+
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, 4);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, 14);
+
+        StbGui.stbg_begin_frame();
+        {
+            StbGui.stbg_begin_window("Window with really really long title");
+            {
+
+            }
+            StbGui.stbg_end_window();
+        }
+        StbGui.stbg_end_frame();
+
+        StbGui.stbg_render();
+
+        RenderCommandsToTestScreen();
+
+        AssertScreenEqual([
+            ["""/----------------\""", "MW18"],
+            ["""|Window with real|""", "MW18"],
+            ["""\----------------/""", "MW18"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""\----------------/""", "BW18"],
+        ]);
+    }    
+
+    [Fact]
     public void TestRenderWindowTwoWindows()
     {
         InitGUI();
