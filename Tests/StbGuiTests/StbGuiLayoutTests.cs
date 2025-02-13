@@ -254,24 +254,24 @@ public class StbGuiLayoutTests : StbGuiTestsBase
             StbGui.stbg_begin_window("Window 1");
             {
                 window1Id = StbGui.stbg_get_last_widget_id();
-                StbGui.stbg_move_window(window1Id, 30, 40);
+                StbGui.stbg_move_window(window1Id, 10, 20);
             }
             StbGui.stbg_end_window();
 
             StbGui.stbg_begin_window("Window 2");
             {
                 window2Id = StbGui.stbg_get_last_widget_id();
-                StbGui.stbg_move_window(window2Id, 100, 120);
+                StbGui.stbg_move_window(window2Id, 30, 40);
             }
             StbGui.stbg_end_window();
         }
         StbGui.stbg_end_frame();
 
         // Validate new positions
-        AssertWidgetPosition(window1Id, 30, 40);
-        AssertWidgetGlobalRect(window1Id, 30, 40, 30 + 34, 40 + 22);
-        AssertWidgetPosition(window2Id, 100, 120);
-        AssertWidgetGlobalRect(window2Id, 100, 120, 100 + 34, 120 + 22);
+        AssertWidgetPosition(window1Id, 10, 20);
+        AssertWidgetGlobalRect(window1Id, 10, 20, 10 + 34, 20 + 22);
+        AssertWidgetPosition(window2Id, 30, 40);
+        AssertWidgetGlobalRect(window2Id, 30, 40, 30 + 34, 40 + 22);
     }
 
     [Fact]

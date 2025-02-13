@@ -130,8 +130,8 @@ public partial class StbGui
                 );
                 render_context.draw_text(
                     stbg_build_rect(
-                        stbg_get_widget_style(STBG_WIDGET_STYLE.BUTTON_PADDING_LEFT),
-                        stbg_get_widget_style(STBG_WIDGET_STYLE.BUTTON_PADDING_TOP),
+                        stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_LEFT),
+                        stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_TOP),
                         size.width - stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_PADDING_LEFT, STBG_WIDGET_STYLE.BUTTON_PADDING_RIGHT),
                         size.height - stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_PADDING_TOP, STBG_WIDGET_STYLE.BUTTON_PADDING_BOTTOM)
                     ),

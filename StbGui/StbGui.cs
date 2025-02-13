@@ -503,7 +503,7 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PADDING_RIGHT, buttonPaddingLeftRight);
 
         stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_BORDER_COLOR, STBG_COLOR_BLUE);
-        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_BACKGROUND_COLOR, STBG_COLOR_GRAY);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_BACKGROUND_COLOR, STBG_COLOR_CYAN);
         stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_TEXT_COLOR, STBG_COLOR_WHITE);
 
         var windowBorder = 1.0f;
@@ -530,9 +530,9 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, windowDefaultHeight);
 
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_COLOR, STBG_COLOR_BLUE);
-        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BACKGROUND_COLOR, STBG_COLOR_GRAY);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BACKGROUND_COLOR, STBG_COLOR_CYAN);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_TEXT_COLOR, STBG_COLOR_WHITE);
-        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR, STBG_COLOR_GRAY);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR, STBG_COLOR_CYAN);
     }
 
     /// <summary>
@@ -575,7 +575,7 @@ public partial class StbGui
     /// </summary>
     /// <param name="width"></param>
     /// <param name="height"></param>
-    public static void stbg_set_screen_size(float width, float height)
+    public static void stbg_set_screen_size(int width, int height)
     {
         stbg__assert(!context.inside_frame);
         context.screen_size.width = width;

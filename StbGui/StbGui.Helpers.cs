@@ -102,7 +102,6 @@ public partial class StbGui
     static public readonly stbg_color STBG_COLOR_CYAN = stbg_build_color(0, 255, 255);
     static public readonly stbg_color STBG_COLOR_MAGENTA = stbg_build_color(255, 0, 255);
     static public readonly stbg_color STBG_COLOR_WHITE = stbg_build_color(255, 255, 255);
-    static public readonly stbg_color STBG_COLOR_GRAY = stbg_build_color(128, 128, 128);
     static public readonly stbg_color STBG_COLOR_BLACK = stbg_build_color(0, 0, 0);
     static public readonly stbg_color STBG_COLOR_TRANSPARENT = stbg_build_color(0, 0, 0, 0);
 }
