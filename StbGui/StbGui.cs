@@ -529,10 +529,10 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, windowDefaultWidth);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, windowDefaultHeight);
 
-        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_COLOR, STBG_COLOR_BLUE);
-        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BACKGROUND_COLOR, STBG_COLOR_CYAN);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_COLOR, STBG_COLOR_WHITE);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BACKGROUND_COLOR, STBG_COLOR_BLUE);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_TEXT_COLOR, STBG_COLOR_WHITE);
-        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR, STBG_COLOR_CYAN);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR, STBG_COLOR_MAGENTA);
     }
 
     /// <summary>

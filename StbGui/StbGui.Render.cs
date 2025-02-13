@@ -100,13 +100,15 @@ public partial class StbGui
                     stbg_get_widget_style_color(STBG_WIDGET_STYLE.WINDOW_BACKGROUND_COLOR)
                 );
                 // title background
-                render_context.draw_rectangle(
+                render_context.draw_border(
                     stbg_build_rect(
-                        stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_LEFT),
-                        stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP),
-                        size.width - stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_LEFT, STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_RIGHT),
-                        size.height - stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP, STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_BOTTOM)
+                        0,
+                        0,
+                        size.width,
+                        stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP, STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT, STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_BOTTOM)
                     ),
+                    stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE),
+                    stbg_get_widget_style_color(STBG_WIDGET_STYLE.WINDOW_BORDER_COLOR),
                     stbg_get_widget_style_color(STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR)
                 );
                 // title text
