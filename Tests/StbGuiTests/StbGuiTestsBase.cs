@@ -1,6 +1,4 @@
 using System.Buffers;
-using System.Diagnostics;
-using StbSharp;
 
 namespace StbSharp.Tests;
 
@@ -10,45 +8,10 @@ public class StbGuiTestsBase : IDisposable
     protected const int ScreenSizeWidth = 120;
     protected const int ScreenSizeHeight = 80;
 
-    protected record struct TestRenderScreenPixel
-    {
-        public char character;
-        public StbGui.stbg_color character_color;
-        public StbGui.stbg_color background_color;
-    }
-
-    static protected TestRenderScreenPixel[][] test_render_screen;
+    static protected TestRenderScreen test_render_screen = new TestRenderScreen(ScreenSizeWidth, ScreenSizeHeight);
 
     static protected List<StbGui.stbg_render_command> render_commands_all = []; // All render commands
     static protected List<StbGui.stbg_render_command> render_commands = []; // Exclude begin and end frame commands
-
-    static StbGuiTestsBase()
-    {
-        test_render_screen = new TestRenderScreenPixel[ScreenSizeHeight][];
-        for (int i = 0; i < test_render_screen.Length; i++)
-            test_render_screen[i] = new TestRenderScreenPixel[ScreenSizeWidth];
-    }
-
-    static private void SetTestRenderScreenPixel(int x, int y, TestRenderScreenPixel pixel)
-    {
-        test_render_screen[y][x] = pixel;
-    }
-
-    static private void SetTestRenderScreenPixelCharacter(int x, int y, char c)
-    {
-        test_render_screen[y][x].character = c;
-    }
-
-    static private void SetTestRenderScreenPixelCharacterAndColor(int x, int y, char c, StbGui.stbg_color color)
-    {
-        test_render_screen[y][x].character = c;
-        test_render_screen[y][x].character_color = color;
-    }
-
-    static protected TestRenderScreenPixel GetTestRenderScreenPixel(int x, int y)
-    {
-        return test_render_screen[y][x];
-    }
 
     public void Dispose()
     {
@@ -56,7 +19,7 @@ public class StbGuiTestsBase : IDisposable
         DestroyGui();
         render_commands_all = [];
         render_commands = [];
-        test_render_screen.ToList().ForEach(l => Array.Clear(l));
+        test_render_screen.Clear();
     }
 
     static private StbGui.stbg_external_dependencies BuildExternalDependencies()
@@ -76,107 +39,8 @@ public class StbGuiTestsBase : IDisposable
     {
         foreach (var cmd in render_commands_all)
         {
-            ProcessRenderCommand(cmd);
+            test_render_screen.ProcessRenderCommand(cmd);
         }
-    }
-
-    private static void ProcessRenderCommand(StbGui.stbg_render_command cmd)
-    {
-        switch (cmd.type)
-        {
-            case StbGui.STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME:
-                {
-                    var bounds = cmd.bounds;
-                    var clear_pixel = new TestRenderScreenPixel() { character = ' ', background_color = cmd.background_color };
-                    for (int y = (int)bounds.top_left.y; y < (int)bounds.bottom_right.y; y++)
-                    {
-                        for (int x = (int)bounds.top_left.x; x < (int)bounds.bottom_right.x; x++)
-                        {
-                            SetTestRenderScreenPixel(x, y, clear_pixel);
-                        }
-                    }
-                    break;
-                }
-
-            case StbGui.STBG_RENDER_COMMAND_TYPE.BORDER:
-                {
-                    var color = cmd.color;
-                    var background_color = cmd.background_color;
-                    var bounds = cmd.bounds;
-
-                    for (int y = (int)bounds.top_left.y; y < (int)bounds.bottom_right.y; y++)
-                    {
-                        for (int x = (int)bounds.top_left.x; x < (int)bounds.bottom_right.x; x++)
-                        {
-                            char character =
-                                x == (int)bounds.top_left.x || x == (int)bounds.bottom_right.x - 1 ? '|' :
-                                y == (int)bounds.top_left.y || y == (int)bounds.bottom_right.y - 1 ? '-' :
-                                ' ';
-
-                            SetTestRenderScreenPixel(x, y, new() { character = character, background_color = background_color, character_color = character != ' ' ? color : GetTestRenderScreenPixel(x, y).character_color });
-                        }
-                    }
-                    SetTestRenderScreenPixelCharacter((int)bounds.top_left.x, (int)bounds.top_left.y, '/');
-                    SetTestRenderScreenPixelCharacter((int)bounds.bottom_right.x - 1, (int)bounds.top_left.y, '\\');
-                    SetTestRenderScreenPixelCharacter((int)bounds.bottom_right.x - 1, (int)bounds.bottom_right.y - 1, '/');
-                    SetTestRenderScreenPixelCharacter((int)bounds.top_left.x, (int)bounds.bottom_right.y - 1, '\\');
-                    break;
-                }
-
-            case StbGui.STBG_RENDER_COMMAND_TYPE.RECTANGLE:
-                {
-                    var background_color = cmd.background_color;
-                    var bounds = cmd.bounds;
-
-                    for (int y = (int)bounds.top_left.y; y < (int)bounds.bottom_right.y; y++)
-                    {
-                        for (int x = (int)bounds.top_left.x; x < (int)bounds.bottom_right.x; x++)
-                        {
-                            char character = ' ';
-                            SetTestRenderScreenPixel(x, y, new() { character = character, background_color = background_color, character_color = GetTestRenderScreenPixel(x, y).character_color });
-                        }
-                    }
-                    break;
-                }
-
-            case StbGui.STBG_RENDER_COMMAND_TYPE.TEXT:
-                {
-                    var bounds = cmd.bounds;
-                    var text = cmd.text.text.Span;
-                    var color = cmd.text.style.color;
-                    int text_index = 0;
-
-                    for (int y = (int)bounds.top_left.y; y < (int)bounds.bottom_right.y && text_index < text.Length; y++)
-                    {
-                        for (int x = (int)bounds.top_left.x; x < (int)bounds.bottom_right.x && text_index < text.Length; x++)
-                        {
-                            char character = text[text_index++];
-                            SetTestRenderScreenPixelCharacterAndColor(x, y, character, color);
-                        }
-                    }
-                    break;
-                }
-        }
-    }
-
-    static private readonly Dictionary<StbGui.stbg_color, string> NICE_COLOR_NAMES = new() {
-        { StbGui.STBG_COLOR_RED, "RED" },
-        { StbGui.STBG_COLOR_GREEN, "GREEN" },
-        { StbGui.STBG_COLOR_BLUE, "BLUE" },
-        { StbGui.STBG_COLOR_YELLOW, "YELLOW" },
-        { StbGui.STBG_COLOR_CYAN, "CYAN" },
-        { StbGui.STBG_COLOR_MAGENTA, "MAGENTA" },
-        { StbGui.STBG_COLOR_WHITE, "WHITE" },
-        { StbGui.STBG_COLOR_BLACK, "BLACK" },
-        { StbGui.STBG_COLOR_TRANSPARENT, "TRANSPARENT" },
-    };
-
-    static private string GetNiceColorName(StbGui.stbg_color color)
-    {
-        if (NICE_COLOR_NAMES.ContainsKey(color))
-            return NICE_COLOR_NAMES[color];
-
-        return color.ToString();
     }
 
     static protected readonly int COLOR_RED = (int)StbGui.stbg_color_to_uint(StbGui.STBG_COLOR_RED);
@@ -189,17 +53,13 @@ public class StbGuiTestsBase : IDisposable
     static protected readonly int COLOR_BLACK = (int)StbGui.stbg_color_to_uint(StbGui.STBG_COLOR_BLACK);
     static protected readonly int COLOR_TRANSPARENT = (int)StbGui.stbg_color_to_uint(StbGui.STBG_COLOR_TRANSPARENT);
 
-    static protected void AssertScreenEqual(string[] expectedLines, int[][][] expectedColors)
+    static private TestRenderScreenPixel[][] ConvertExpectedLinesAndColorsToExpectedPixels(string[][] expectedLinesAndColors)
     {
-        Assert.True(expectedLines.Length == expectedColors.Length, $"Wrong expected colors. Got {expectedLines.Length} expected lines but {expectedColors.Length} expected colors lines");
-
-        bool valid = true;
-
-        TestRenderScreenPixel[][] expectedPixels = new TestRenderScreenPixel[expectedLines.Length][];
-        for (int y = 0; y < expectedLines.Length; y++)
+        TestRenderScreenPixel[][] expectedPixels = new TestRenderScreenPixel[expectedLinesAndColors.Length][];
+        for (int y = 0; y < expectedLinesAndColors.Length; y++)
         {
-            var line = expectedLines[y];
-            var colors = expectedColors[y];
+            var line = expectedLinesAndColors[y][0];
+            var colors = expectedLinesAndColors[y][1];
 
             var pixels = new TestRenderScreenPixel[line.Length];
 
@@ -208,42 +68,96 @@ public class StbGuiTestsBase : IDisposable
                 pixels[x].character = line[x];
 
                 int acc_len = 0;
-                for (int n = 0; n < colors.Length; n++)
+                int n = 0;
+                while (n < colors.Length)
                 {
-                    var info = colors[n];
+                    var background_color_character = colors[n];
+                    var color_character = colors[n + 1];
+                    var lenDigits = 0;
 
-                    if (info.Length != 3)
-                        Assert.Fail("Wrong color information in row " + y);
+                    while (
+                        n + 2 + lenDigits < colors.Length &&
+                        colors[n + 2 + lenDigits] >= '0' &&
+                        colors[n + 2 + lenDigits] <= '9')
+                    {
+                        lenDigits++;
+                    }
 
-                    int backgroundColor = info[0];
-                    int color = info[1];
-                    int len = info[2];
-
-                    if (len == 0)
-                        Assert.Fail("Wrong color information in row " + y);
+                    var len = int.Parse(colors.AsSpan().Slice(n + 2, lenDigits));
 
                     if (x < len + acc_len)
                     {
-                        pixels[x].character_color = StbGui.stbg_uint_to_color((uint)color);
-                        pixels[x].background_color = StbGui.stbg_uint_to_color((uint)backgroundColor); ;
+                        pixels[x].character_color = ColorsHelper.GetColorFromSingleCharacterNiceColorName(color_character);
+                        pixels[x].background_color = ColorsHelper.GetColorFromSingleCharacterNiceColorName(background_color_character);
                         break;
                     }
 
                     acc_len += len;
+
+                    n += 2 + lenDigits;
                 }
             }
 
             expectedPixels[y] = pixels;
         }
 
+        return expectedPixels;
+    }
+
+    static protected TestRenderScreenPixel[][] GetUsedScreenPixels()
+    {
+        // Find max X and Y that have characters
+        int maxX = 0;
+        int maxY = 0;
+
+        for (int y = 0; y < test_render_screen.Height; y++)
+        {
+            for (int x = 0; x < test_render_screen.Width; x++)
+            {
+                if (test_render_screen.GetTestRenderScreenPixel(x, y).character != ' ')
+                {
+                    maxX = Math.Max(maxX, x + 1);
+                    maxY = Math.Max(maxY, y + 1);
+                }
+            }
+        }
+
+        var usedScreenPixels = new TestRenderScreenPixel[maxY][];
+        for (int y = 0; y < maxY; y++)
+        {
+            usedScreenPixels[y] = new TestRenderScreenPixel[maxX];
+
+            for (int x = 0; x < maxX; x++)
+            {
+                usedScreenPixels[y][x] = test_render_screen.GetTestRenderScreenPixel(x, y);
+            }
+        }
+
+        return usedScreenPixels;
+    }
+
+    static protected void AssertScreenEqual(string[][] expectedLinesAndColors)
+    {
+        var expectedPixels = ConvertExpectedLinesAndColorsToExpectedPixels(expectedLinesAndColors);
+        var actualPixels = GetUsedScreenPixels();
+
+        AssertScreenEqual(expectedPixels, actualPixels);
+    }
+
+    static protected void AssertScreenEqual(TestRenderScreenPixel[][] expectedPixels, TestRenderScreenPixel[][] actualPixels)
+    {
+        int maxY = Math.Max(actualPixels.Length, expectedPixels.Length);
+        int maxX = Math.Max(actualPixels[0].Length, expectedPixels[0].Length);
+
+        bool valid = true;
         int maxErrors = 5;
 
-        for (int y = 0; y < expectedPixels.Length; y++)
+        for (int y = 0; y < maxY; y++)
         {
-            for (int x = 0; x < expectedPixels[y].Length; x++)
+            for (int x = 0; x < maxX; x++)
             {
-                var expectedPixel = expectedPixels[y][x];
-                var actualPixel = GetTestRenderScreenPixel(x, y);
+                var expectedPixel = y < expectedPixels.Length && x < expectedPixels[0].Length ? expectedPixels[y][x] : new TestRenderScreenPixel();
+                var actualPixel = y < actualPixels.Length && x < actualPixels[0].Length ? actualPixels[y][x] : new TestRenderScreenPixel();
 
                 if (expectedPixel != actualPixel)
                 {
@@ -252,9 +166,9 @@ public class StbGuiTestsBase : IDisposable
                         if (expectedPixel.character != actualPixel.character)
                             Console.Error.WriteLine($"[{x},{y}] Expected: '{expectedPixel.character}' Actual: '{actualPixel.character}'");
                         else if (expectedPixel.character_color != actualPixel.character_color)
-                            Console.Error.WriteLine($"[{x},{y}] Expected: color '{GetNiceColorName(expectedPixel.character_color)}' Actual: color '{GetNiceColorName(actualPixel.character_color)}'");
+                            Console.Error.WriteLine($"[{x},{y}] Expected: color '{ColorsHelper.GetNiceColorName(expectedPixel.character_color)}' Actual: color '{ColorsHelper.GetNiceColorName(actualPixel.character_color)}'");
                         else
-                            Console.Error.WriteLine($"[{x},{y}] Expected: background color '{GetNiceColorName(expectedPixel.background_color)}' Actual: background color '{GetNiceColorName(actualPixel.background_color)}'");
+                            Console.Error.WriteLine($"[{x},{y}] Expected: background color '{ColorsHelper.GetNiceColorName(expectedPixel.background_color)}' Actual: background color '{ColorsHelper.GetNiceColorName(actualPixel.background_color)}'");
                         maxErrors--;
                     }
                     else if (maxErrors == 0)
@@ -268,194 +182,108 @@ public class StbGuiTestsBase : IDisposable
             }
         }
 
-        if (!valid)
+        if (valid)
         {
-            const string ANSI_COLOR_RESET = "\x1b[0m";
-
-            const string ANSI_COLOR_PREFIX = "\x1b[0;";
-            const string ANSI_COLOR_SEPARATOR = ";";
-            const string ANSI_COLOR_SUFFIX = "m";
-
-            const int ANSI_COLOR_BLACK = 30;
-            const int ANSI_COLOR_RED = 31;
-            const int ANSI_COLOR_GREEN = 32;
-            const int ANSI_COLOR_YELLOW = 33;
-            const int ANSI_COLOR_BLUE = 34;
-            const int ANSI_COLOR_MAGENTA = 35;
-            const int ANSI_COLOR_CYAN = 36;
-            const int ANSI_COLOR_WHITE = 37;
-            const int ANSI_COLOR_DEFAULT = 39;
-
-            const int ANSI_COLOR_BACKGROUND_BLACK = 40;
-            const int ANSI_COLOR_BACKGROUND_RED = 41;
-            const int ANSI_COLOR_BACKGROUND_GREEN = 42;
-            const int ANSI_COLOR_BACKGROUND_YELLOW = 43;
-            const int ANSI_COLOR_BACKGROUND_BLUE = 44;
-            const int ANSI_COLOR_BACKGROUND_MAGENTA = 45;
-            const int ANSI_COLOR_BACKGROUND_CYAN = 46;
-            const int ANSI_COLOR_BACKGROUND_WHITE = 47;
-            const int ANSI_COLOR_BACKGROUND_DEFAULT = 49;
-
-            string GetAnsiColor(StbGui.stbg_color color, StbGui.stbg_color backgroundColor)
-            {
-                if (color.a == 0 && backgroundColor.a == 0)
-                    return "";
-
-                string c = ANSI_COLOR_PREFIX;
-
-                if (color == StbGui.STBG_COLOR_BLACK)
-                    c += ANSI_COLOR_BLACK;
-                else if (color == StbGui.STBG_COLOR_RED)
-                    c += ANSI_COLOR_RED;
-                else if (color == StbGui.STBG_COLOR_GREEN)
-                    c += ANSI_COLOR_GREEN;
-                else if (color == StbGui.STBG_COLOR_YELLOW)
-                    c += ANSI_COLOR_YELLOW;
-                else if (color == StbGui.STBG_COLOR_BLUE)
-                    c += ANSI_COLOR_BLUE;
-                else if (color == StbGui.STBG_COLOR_MAGENTA)
-                    c += ANSI_COLOR_MAGENTA;
-                else if (color == StbGui.STBG_COLOR_CYAN)
-                    c += ANSI_COLOR_CYAN;
-                else if (color == StbGui.STBG_COLOR_WHITE)
-                    c += ANSI_COLOR_WHITE;
-                else
-                    c += ANSI_COLOR_DEFAULT;
-
-                c += ANSI_COLOR_SEPARATOR;
-
-                if (backgroundColor == StbGui.STBG_COLOR_BLACK)
-                    c += ANSI_COLOR_BACKGROUND_BLACK;
-                else if (backgroundColor == StbGui.STBG_COLOR_RED)
-                    c += ANSI_COLOR_BACKGROUND_RED;
-                else if (backgroundColor == StbGui.STBG_COLOR_GREEN)
-                    c += ANSI_COLOR_BACKGROUND_GREEN;
-                else if (backgroundColor == StbGui.STBG_COLOR_YELLOW)
-                    c += ANSI_COLOR_BACKGROUND_YELLOW;
-                else if (backgroundColor == StbGui.STBG_COLOR_BLUE)
-                    c += ANSI_COLOR_BACKGROUND_BLUE;
-                else if (backgroundColor == StbGui.STBG_COLOR_MAGENTA)
-                    c += ANSI_COLOR_BACKGROUND_MAGENTA;
-                else if (backgroundColor == StbGui.STBG_COLOR_CYAN)
-                    c += ANSI_COLOR_BACKGROUND_CYAN;
-                else if (backgroundColor == StbGui.STBG_COLOR_WHITE)
-                    c += ANSI_COLOR_BACKGROUND_WHITE;
-                else
-                    c += ANSI_COLOR_BACKGROUND_DEFAULT;
-
-                c += ANSI_COLOR_SUFFIX;
-
-                return c;
-            }
-
-            string[] expectedLinesWithColors = new string[expectedLines.Length];
-
-            // Interleave ASCII colors into the expected lines
-            for (int y = 0; y < expectedLines.Length; y++)
-            {
-                var line = expectedLines[y];
-                var lineWithColors = "";
-                for (int x = 0; x < line.Length; x++)
-                {
-                    lineWithColors += GetAnsiColor(expectedPixels[y][x].character_color, expectedPixels[y][x].background_color) + line[x] + ANSI_COLOR_RESET;
-                }
-                expectedLinesWithColors[y] = lineWithColors;
-            }
-
-            string joinedExpectedLinesWithColors = string.Join("\n", expectedLinesWithColors);
-
-            string[] actualLines = test_render_screen.Select(l => string.Join("", l.Select(c => c.character.ToString())).TrimEnd()).ToArray();
-
-            int emptyLinesAtBottom = 0;
-            for (int i = actualLines.Length - 1; i >= 0; i--)
-            {
-                if (actualLines[i] != "")
-                    break;
-                emptyLinesAtBottom++;
-            }
-
-            actualLines = actualLines.AsSpan().Slice(0, actualLines.Length - emptyLinesAtBottom).ToArray();
-
-            string[] actualLinesWithColor = new string[actualLines.Length];
-
-            // Interleave ASCII colors into the actual lines
-            for (int y = 0; y < actualLines.Length; y++)
-            {
-                var line = actualLines[y];
-                var lineWithColors = "";
-                for (int x = 0; x < line.Length; x++)
-                {
-                    lineWithColors += GetAnsiColor(GetTestRenderScreenPixel(x, y).character_color, GetTestRenderScreenPixel(x, y).background_color) + line[x] + ANSI_COLOR_RESET;
-                }
-                actualLinesWithColor[y] = lineWithColors;
-            }
-
-            string joinedActualLinesWithColor = string.Join("\n", actualLinesWithColor) + ANSI_COLOR_RESET;
-
-            Console.Error.WriteLine($"Expected screen: {GetAnsiColor(StbGui.STBG_COLOR_RED, StbGui.STBG_COLOR_TRANSPARENT)}[DON'T TRUST VISUAL STUDIO INTEGRATED TERMINAL COLORS{ANSI_COLOR_RESET}]");
-            Console.Error.WriteLine(joinedExpectedLinesWithColors);
-            Console.Error.WriteLine("Actual screen:");
-            Console.Error.WriteLine(joinedActualLinesWithColor);
-
-
-            string assert_actual_colors_code = "";
-
-            for (int y = 0; y < actualLines.Length; y++)
-            {
-                string last_background_color = "";
-                string last_character_color = "";
-                int last_count = 0;
-
-                string line = "    [";
-
-                for (int x = 0; x < actualLines[y].Length; x++)
-                {
-                    string background_color = "COLOR_" + GetNiceColorName(GetTestRenderScreenPixel(x, y).background_color);
-                    string character_color = "COLOR_" + GetNiceColorName(GetTestRenderScreenPixel(x, y).character_color);
-
-                    if (background_color != last_background_color || character_color != last_character_color)
-                    {
-                        if (last_count > 0)
-                        {
-                            line += $"[{last_background_color}, {last_character_color}, {last_count}], ";
-                        }
-                        last_character_color = character_color;
-                        last_background_color = background_color;
-                        last_count = 1;
-                    }
-                    else
-                    {
-                        last_count++;
-                    }
-                }
-
-                if (last_count > 0)
-                {
-                    line += $"[{last_background_color}, {last_character_color}, {last_count}],";
-                }
-
-                line += "],\n";
-
-                assert_actual_colors_code += line;
-            }
-
-            string assertCode =
-                "--------------------------------------\n" +
-                "-----------  ASSERTION CODE ----------\n" +
-                "--------------------------------------\n" +
-                "AssertScreenEqual([\n" +
-                string.Join("\n", actualLines.Select(line => "    \"\"\"" + line + "\"\"\",").ToArray()) + "\n" +
-                "], [\n" +
-                assert_actual_colors_code +
-                "]);\n" +
-                "--------------------------------------\n" +
-                "--------------------------------------\n" +
-                "--------------------------------------\n";
-
-            Console.Error.WriteLine($"\n\nAssertion code:\n{assertCode}\n\n");
-
-            Assert.Fail($"Expected screen doesn't match actual screen\nExpected screen (without colors):\n{joinedExpectedLinesWithColors}\nActual screen (without colors):\n{joinedActualLinesWithColor}");
+            return;
         }
+
+        string[] expectedLines = TestRenderScreen.ConvertPixelsToStrings(expectedPixels, false);
+        string[] expectedLinesWithColor = TestRenderScreen.ConvertPixelsToStrings(expectedPixels, true);
+        string[] actualLines = TestRenderScreen.ConvertPixelsToStrings(actualPixels, false);
+        string[] actualLinesWithColor = TestRenderScreen.ConvertPixelsToStrings(actualPixels, true);
+
+        string joinedExpectedLines = string.Join("\n", expectedLines);
+        string joinedActualLines = string.Join("\n", actualLines);
+
+        Console.Error.WriteLine($"Expected screen: {ColorsHelper.GetAnsiColor(StbGui.STBG_COLOR_RED, StbGui.STBG_COLOR_TRANSPARENT)}[DON'T TRUST VISUAL STUDIO INTEGRATED TERMINAL COLORS{ColorsHelper.GetAnsiColorReset()}]");
+        Console.Error.WriteLine(AddGuideLines(expectedLines, expectedLinesWithColor));
+        Console.Error.WriteLine("Actual screen:");
+        Console.Error.WriteLine(AddGuideLines(actualLines, actualLinesWithColor));
+
+        string assertCode = BuildAssertPixelsCode(actualPixels);
+
+        Console.Error.WriteLine($"{assertCode}");
+
+        Assert.Fail($"Expected screen doesn't match actual screen\nExpected screen (without colors):\n{joinedExpectedLines}\nActual screen (without colors):\n{joinedActualLines}");
+    }
+
+    private static string AddGuideLines(string[] expectedLines, string[] expectedLinesWithColor)
+    {
+        int height = expectedLines.Length;
+        int width = expectedLines[0].Length;
+        string paddingLeft = "   ";
+
+        var topGuide = paddingLeft;
+        for (int x = 0; x < width; x++)
+            topGuide += x.ToString()[x.ToString().Length - 1];
+
+
+        string finalLines = topGuide + "\n";
+        
+        for (int y = 0; y < height; y++)
+        {
+            finalLines += string.Format("{0,-3}", y) + expectedLinesWithColor[y] + "\n";
+        }
+
+        return finalLines;
+    }
+
+    private static string BuildAssertPixelsCode(TestRenderScreenPixel[][] actualPixels)
+    {
+        string assert_actual_colors_code = "";
+        string[] actualLines = TestRenderScreen.ConvertPixelsToStrings(actualPixels, false);
+
+        for (int y = 0; y < actualPixels.Length; y++)
+        {
+            string last_background_color = "";
+            string last_character_color = "";
+            int last_count = 0;
+
+            string line = "    [\"\"\"" + actualLines[y] + "\"\"\", \"";
+
+            for (int x = 0; x < actualPixels[y].Length; x++)
+            {
+                string background_color = ColorsHelper.GetNiceColorNameSingleCharacter(actualPixels[y][x].background_color).ToString();
+                string character_color = ColorsHelper.GetNiceColorNameSingleCharacter(actualPixels[y][x].character_color).ToString();
+
+                if (background_color != last_background_color || character_color != last_character_color)
+                {
+                    if (last_count > 0)
+                    {
+                        line += $"{last_background_color}{last_character_color}{last_count}";
+                    }
+                    last_character_color = character_color;
+                    last_background_color = background_color;
+                    last_count = 1;
+                }
+                else
+                {
+                    last_count++;
+                }
+            }
+
+            if (last_count > 0)
+            {
+                line += $"{last_background_color}{last_character_color}{last_count}";
+            }
+
+            line += "\"],\n";
+
+            assert_actual_colors_code += line;
+        }
+
+
+        string assertCode =
+            "--------------------------------------\n" +
+            "-----------  ASSERTION CODE ----------\n" +
+            "--------------------------------------\n" +
+            "AssertScreenEqual([\n" +
+            assert_actual_colors_code +
+            "]);\n" +
+            "--------------------------------------\n" +
+            "--------------------------------------\n" +
+            "--------------------------------------\n";
+        return assertCode;
     }
 
     static protected void InitGUI()

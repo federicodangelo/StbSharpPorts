@@ -25,8 +25,8 @@ public class StbGuiRenderTests : StbGuiTestsBase
 
         RenderCommandsToTestScreen();
 
-        Assert.Equal(GetTestRenderScreenPixel(0, 0).background_color, StbGui.stbg_get_widget_style_color(StbGui.STBG_WIDGET_STYLE.ROOT_BACKGROUND_COLOR));
-        Assert.Equal(GetTestRenderScreenPixel(ScreenSizeWidth - 1, ScreenSizeHeight - 1).background_color, StbGui.stbg_get_widget_style_color(StbGui.STBG_WIDGET_STYLE.ROOT_BACKGROUND_COLOR));
+        Assert.Equal(test_render_screen.GetTestRenderScreenPixel(0, 0).background_color, StbGui.stbg_get_widget_style_color(StbGui.STBG_WIDGET_STYLE.ROOT_BACKGROUND_COLOR));
+        Assert.Equal(test_render_screen.GetTestRenderScreenPixel(ScreenSizeWidth - 1, ScreenSizeHeight - 1).background_color, StbGui.stbg_get_widget_style_color(StbGui.STBG_WIDGET_STYLE.ROOT_BACKGROUND_COLOR));
     }
 
     [Fact]
@@ -45,17 +45,11 @@ public class StbGuiRenderTests : StbGuiTestsBase
         RenderCommandsToTestScreen();
 
         AssertScreenEqual([
-            """/----------\""",
-            """|          |""",
-            """| Button 1 |""",
-            """|          |""",
-            """\----------/""",
-        ], [
-            [[COLOR_CYAN, COLOR_BLUE, 12]],
-            [[COLOR_CYAN, COLOR_BLUE, 1], [COLOR_CYAN, COLOR_TRANSPARENT, 10],[COLOR_CYAN, COLOR_BLUE, 1]],
-            [[COLOR_CYAN, COLOR_BLUE, 1], [COLOR_CYAN, COLOR_TRANSPARENT, 1], [COLOR_CYAN, COLOR_WHITE, 8], [COLOR_CYAN, COLOR_TRANSPARENT, 1], [COLOR_CYAN, COLOR_BLUE, 1]],
-            [[COLOR_CYAN, COLOR_BLUE, 1], [COLOR_CYAN, COLOR_TRANSPARENT, 10],[COLOR_CYAN, COLOR_BLUE, 1]],
-            [[COLOR_CYAN, COLOR_BLUE, 12]],
+            ["""/----------\""", "CB12"],
+            ["""|          |""", "CB1CT10CB1"],
+            ["""| Button 1 |""", "CB1CT1CW8CT1CB1"],
+            ["""|          |""", "CB1CT10CB1"],
+            ["""\----------/""", "CB12"],
         ]);
     }
 
@@ -82,29 +76,17 @@ public class StbGuiRenderTests : StbGuiTestsBase
         RenderCommandsToTestScreen();
 
         AssertScreenEqual([
-            """/----------------\""",
-            """|Window 1        |""",
-            """\----------------/""",
-            """|                |""",
-            """|                |""",
-            """|                |""",
-            """|                |""",
-            """|                |""",
-            """|                |""",
-            """|                |""",
-            """\----------------/""",
-        ], [
-            [[COLOR_MAGENTA, COLOR_WHITE, 18]],
-            [[COLOR_MAGENTA, COLOR_WHITE, 9], [COLOR_MAGENTA, COLOR_TRANSPARENT, 8], [COLOR_MAGENTA, COLOR_WHITE, 1]],
-            [[COLOR_MAGENTA, COLOR_WHITE, 18]],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1]],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1]],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1]],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1]],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1]],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1]],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1]],
-            [[COLOR_BLUE, COLOR_WHITE, 18]],
+            ["""/----------------\""", "MW18"],
+            ["""|Window 1        |""", "MW9MT8MW1"],
+            ["""\----------------/""", "MW18"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""\----------------/""", "BW18"],
         ]);
     }
 
@@ -137,45 +119,25 @@ public class StbGuiRenderTests : StbGuiTestsBase
         RenderCommandsToTestScreen();
 
         AssertScreenEqual([
-            """/----------------\""",
-            """|Window 1        |""",
-            """\----------------/""",
-            """|                |""",
-            """|                |""",
-            """|                |  /----------------\""",
-            """|                |  |Window 2        |""",
-            """|                |  \----------------/""",
-            """|                |  |                |""",
-            """|                |  |                |""",
-            """|                |  |                |""",
-            """|                |  |                |""",
-            """|                |  |                |""",
-            """\----------------/  |                |""",
-            """                    |                |""",
-            """                    |                |""",
-            """                    |                |""",
-            """                    |                |""",
-            """                    \----------------/""",
-        ], [
-             [[COLOR_MAGENTA, COLOR_WHITE, 18],],
-            [[COLOR_MAGENTA, COLOR_WHITE, 9], [COLOR_MAGENTA, COLOR_TRANSPARENT, 8], [COLOR_MAGENTA, COLOR_WHITE, 1],],
-            [[COLOR_MAGENTA, COLOR_WHITE, 18],],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1],],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1],],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1], [COLOR_CYAN, COLOR_TRANSPARENT, 2], [COLOR_MAGENTA, COLOR_WHITE, 18],],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1], [COLOR_CYAN, COLOR_TRANSPARENT, 2], [COLOR_MAGENTA, COLOR_WHITE, 9], [COLOR_MAGENTA, COLOR_TRANSPARENT, 8], [COLOR_MAGENTA, COLOR_WHITE, 1],],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1], [COLOR_CYAN, COLOR_TRANSPARENT, 2], [COLOR_MAGENTA, COLOR_WHITE, 18],],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1], [COLOR_CYAN, COLOR_TRANSPARENT, 2], [COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1],],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1], [COLOR_CYAN, COLOR_TRANSPARENT, 2], [COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1],],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1], [COLOR_CYAN, COLOR_TRANSPARENT, 2], [COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1],],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1], [COLOR_CYAN, COLOR_TRANSPARENT, 2], [COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1],],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1], [COLOR_CYAN, COLOR_TRANSPARENT, 2], [COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1],],
-            [[COLOR_BLUE, COLOR_WHITE, 18], [COLOR_CYAN, COLOR_TRANSPARENT, 2], [COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1],],
-            [[COLOR_CYAN, COLOR_TRANSPARENT, 20], [COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1],],
-            [[COLOR_CYAN, COLOR_TRANSPARENT, 20], [COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1],],
-            [[COLOR_CYAN, COLOR_TRANSPARENT, 20], [COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1],],
-            [[COLOR_CYAN, COLOR_TRANSPARENT, 20], [COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 16], [COLOR_BLUE, COLOR_WHITE, 1],],
-            [[COLOR_CYAN, COLOR_TRANSPARENT, 20], [COLOR_BLUE, COLOR_WHITE, 18],],
+            ["""/----------------\                    """, "MW18CT20"],
+            ["""|Window 1        |                    """, "MW9MT8MW1CT20"],
+            ["""\----------------/                    """, "MW18CT20"],
+            ["""|                |                    """, "BW1BT16BW1CT20"],
+            ["""|                |                    """, "BW1BT16BW1CT20"],
+            ["""|                |  /----------------\""", "BW1BT16BW1CT2MW18"],
+            ["""|                |  |Window 2        |""", "BW1BT16BW1CT2MW9MT8MW1"],
+            ["""|                |  \----------------/""", "BW1BT16BW1CT2MW18"],
+            ["""|                |  |                |""", "BW1BT16BW1CT2BW1BT16BW1"],
+            ["""|                |  |                |""", "BW1BT16BW1CT2BW1BT16BW1"],
+            ["""|                |  |                |""", "BW1BT16BW1CT2BW1BT16BW1"],
+            ["""|                |  |                |""", "BW1BT16BW1CT2BW1BT16BW1"],
+            ["""|                |  |                |""", "BW1BT16BW1CT2BW1BT16BW1"],
+            ["""\----------------/  |                |""", "BW18CT2BW1BT16BW1"],
+            ["""                    |                |""", "CT20BW1BT16BW1"],
+            ["""                    |                |""", "CT20BW1BT16BW1"],
+            ["""                    |                |""", "CT20BW1BT16BW1"],
+            ["""                    |                |""", "CT20BW1BT16BW1"],
+            ["""                    \----------------/""", "CT20BW18"],
         ]);
     }
 
@@ -203,41 +165,23 @@ public class StbGuiRenderTests : StbGuiTestsBase
         RenderCommandsToTestScreen();
 
         AssertScreenEqual([
-            """/----------------------\""",
-            """|Window 1              |""",
-            """\----------------------/""",
-            """|                      |""",
-            """|                      |""",
-            """| /----------\         |""",
-            """| |          |         |""",
-            """| | Button 1 |         |""",
-            """| |          |         |""",
-            """| \----------/         |""",
-            """| /----------\         |""",
-            """| |          |         |""",
-            """| | Button 2 |         |""",
-            """| |          |         |""",
-            """| \----------/         |""",
-            """|                      |""",
-            """\----------------------/""",
-        ], [
-            [[COLOR_MAGENTA, COLOR_WHITE, 24],],
-            [[COLOR_MAGENTA, COLOR_WHITE, 9], [COLOR_MAGENTA, COLOR_TRANSPARENT, 14], [COLOR_MAGENTA, COLOR_WHITE, 1],],
-            [[COLOR_MAGENTA, COLOR_WHITE, 24],],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 22], [COLOR_BLUE, COLOR_WHITE, 1],],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 22], [COLOR_BLUE, COLOR_WHITE, 1],],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 1], [COLOR_CYAN, COLOR_BLUE, 12], [COLOR_BLUE, COLOR_TRANSPARENT, 9], [COLOR_BLUE, COLOR_WHITE, 1],],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 1], [COLOR_CYAN, COLOR_BLUE, 1], [COLOR_CYAN, COLOR_TRANSPARENT, 10], [COLOR_CYAN, COLOR_BLUE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 9], [COLOR_BLUE, COLOR_WHITE, 1],],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 1], [COLOR_CYAN, COLOR_BLUE, 1], [COLOR_CYAN, COLOR_TRANSPARENT, 1], [COLOR_CYAN, COLOR_WHITE, 8], [COLOR_CYAN, COLOR_TRANSPARENT, 1], [COLOR_CYAN, COLOR_BLUE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 9], [COLOR_BLUE, COLOR_WHITE, 1],],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 1], [COLOR_CYAN, COLOR_BLUE, 1], [COLOR_CYAN, COLOR_TRANSPARENT, 10], [COLOR_CYAN, COLOR_BLUE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 9], [COLOR_BLUE, COLOR_WHITE, 1],],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 1], [COLOR_CYAN, COLOR_BLUE, 12], [COLOR_BLUE, COLOR_TRANSPARENT, 9], [COLOR_BLUE, COLOR_WHITE, 1],],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 1], [COLOR_CYAN, COLOR_BLUE, 12], [COLOR_BLUE, COLOR_TRANSPARENT, 9], [COLOR_BLUE, COLOR_WHITE, 1],],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 1], [COLOR_CYAN, COLOR_BLUE, 1], [COLOR_CYAN, COLOR_TRANSPARENT, 10], [COLOR_CYAN, COLOR_BLUE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 9], [COLOR_BLUE, COLOR_WHITE, 1],],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 1], [COLOR_CYAN, COLOR_BLUE, 1], [COLOR_CYAN, COLOR_TRANSPARENT, 1], [COLOR_CYAN, COLOR_WHITE, 8], [COLOR_CYAN, COLOR_TRANSPARENT, 1], [COLOR_CYAN, COLOR_BLUE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 9], [COLOR_BLUE, COLOR_WHITE, 1],],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 1], [COLOR_CYAN, COLOR_BLUE, 1], [COLOR_CYAN, COLOR_TRANSPARENT, 10], [COLOR_CYAN, COLOR_BLUE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 9], [COLOR_BLUE, COLOR_WHITE, 1],],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 1], [COLOR_CYAN, COLOR_BLUE, 12], [COLOR_BLUE, COLOR_TRANSPARENT, 9], [COLOR_BLUE, COLOR_WHITE, 1],],
-            [[COLOR_BLUE, COLOR_WHITE, 1], [COLOR_BLUE, COLOR_TRANSPARENT, 22], [COLOR_BLUE, COLOR_WHITE, 1],],
-            [[COLOR_BLUE, COLOR_WHITE, 24],],
+            ["""/----------------------\""", "MW24"],
+            ["""|Window 1              |""", "MW9MT14MW1"],
+            ["""\----------------------/""", "MW24"],
+            ["""|                      |""", "BW1BT22BW1"],
+            ["""|                      |""", "BW1BT22BW1"],
+            ["""| /----------\         |""", "BW1BT1CB12BT9BW1"],
+            ["""| |          |         |""", "BW1BT1CB1CT10CB1BT9BW1"],
+            ["""| | Button 1 |         |""", "BW1BT1CB1CT1CW8CT1CB1BT9BW1"],
+            ["""| |          |         |""", "BW1BT1CB1CT10CB1BT9BW1"],
+            ["""| \----------/         |""", "BW1BT1CB12BT9BW1"],
+            ["""| /----------\         |""", "BW1BT1CB12BT9BW1"],
+            ["""| |          |         |""", "BW1BT1CB1CT10CB1BT9BW1"],
+            ["""| | Button 2 |         |""", "BW1BT1CB1CT1CW8CT1CB1BT9BW1"],
+            ["""| |          |         |""", "BW1BT1CB1CT10CB1BT9BW1"],
+            ["""| \----------/         |""", "BW1BT1CB12BT9BW1"],
+            ["""|                      |""", "BW1BT22BW1"],
+            ["""\----------------------/""", "BW24"],
         ]);
     }
 }
