@@ -213,16 +213,20 @@ public class StbGuiTestsBase : IDisposable
         int width = expectedLines[0].Length;
         string paddingLeft = "   ";
 
-        var topGuide = paddingLeft;
+        var topGuide0 = paddingLeft;
+        var topGuide1 = paddingLeft;
         for (int x = 0; x < width; x++)
-            topGuide += x.ToString()[x.ToString().Length - 1];
+        {
+            topGuide0 += x % 10 == 0 ? x.ToString()[0] : " ";
+            topGuide1 += x.ToString()[x.ToString().Length - 1];
+        }
 
 
-        string finalLines = topGuide + "\n";
+        string finalLines = topGuide0 + "\n" + topGuide1 + "\n";
         
         for (int y = 0; y < height; y++)
         {
-            finalLines += string.Format("{0,-3}", y) + expectedLinesWithColor[y] + "\n";
+            finalLines += string.Format("{0,2} ", y) + expectedLinesWithColor[y] + "\n";
         }
 
         return finalLines;
