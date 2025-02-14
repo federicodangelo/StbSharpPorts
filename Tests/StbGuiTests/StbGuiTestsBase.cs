@@ -1,8 +1,10 @@
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 
 namespace StbSharp.Tests;
 
 [Collection("Sequential")]
+[ExcludeFromCodeCoverage]
 public class StbGuiTestsBase : IDisposable
 {
     protected const int ScreenSizeWidth = 120;

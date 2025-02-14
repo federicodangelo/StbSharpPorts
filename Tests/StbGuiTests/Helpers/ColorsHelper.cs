@@ -1,6 +1,9 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace StbSharp.Tests;
+
+[ExcludeFromCodeCoverage]
 public class ColorsHelper
 {
     private const string ANSI_COLOR_RESET = "\x1b[0m";

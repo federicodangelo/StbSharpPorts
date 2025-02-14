@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace StbSharp.Tests;
 
 public record struct TestRenderScreenPixel
@@ -7,6 +9,7 @@ public record struct TestRenderScreenPixel
     public StbGui.stbg_color background_color;
 }
 
+[ExcludeFromCodeCoverage]
 public class TestRenderScreen
 {
     public readonly int Width;

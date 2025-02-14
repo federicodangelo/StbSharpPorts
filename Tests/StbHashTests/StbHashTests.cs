@@ -1,4 +1,6 @@
-﻿namespace StbSharp.Tests;
+﻿#pragma warning disable CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
+
+namespace StbSharp.Tests;
 
 public class StbHashTests
 {
@@ -18,13 +20,13 @@ public class StbHashTests
         for (int i = 0; i < 16; ++i)
             _k[i] = (byte)i;
 
+
         byte[][] vectors = version switch
         {
             Version.Sip64 => StbHashTestsVectors.vectors_sip64,
             Version.Sip128 => StbHashTestsVectors.vectors_sip128,
             Version.HSip32 => StbHashTestsVectors.vectors_hsip32,
             Version.HSip64 => StbHashTestsVectors.vectors_hsip64,
-            _ => throw new Exception("How did we even get here?!?"),
         };
 
         for (int i = 0; i < vectors.Length; ++i)
