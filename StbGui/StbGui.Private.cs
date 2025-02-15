@@ -62,7 +62,7 @@ public partial class StbGui
         context.render_commands_queue = render_commands_queue;
     }
 
-    private static stbg_size stbg_measure_text(stbg_text text)
+    private static stbg_size stbg__measure_text(stbg_text text)
     {
         return context.external_dependencies.measure_text(text.text.Span, stbg_get_font_by_id(text.font_id), text.style);
     }

@@ -175,7 +175,7 @@ public partial class StbGui
         return widget_intrinsic_size.type == STBG_INTRINSIC_SIZE_TYPE.FIXED_PIXELS ?
             widget_intrinsic_size.size :
             widget_intrinsic_size.type == STBG_INTRINSIC_SIZE_TYPE.MEASURE_TEXT ?
-            stbg_measure_text(widget.text) :
+            stbg__measure_text(widget.text) :
             stbg_build_size_zero();
     }
 }
