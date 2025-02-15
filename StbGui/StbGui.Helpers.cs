@@ -24,7 +24,7 @@ public partial class StbGui
         return new stbg_widget_intrinsic_size()
         {
             type = STBG_INTRINSIC_SIZE_TYPE.FIXED_PIXELS,
-            size = new stbg_size() { width = width, height = height },
+            size = stbg_build_size(width, height),
         };
     }
 
@@ -34,8 +34,8 @@ public partial class StbGui
     {
         return new stbg_widget_constrains()
         {
-            min = new stbg_size() { width = 0, height = 0 },
-            max = new stbg_size() { width = float.MaxValue, height = float.MaxValue },
+            min = stbg_build_size_zero(),
+            max = stbg_build_size(float.MaxValue, float.MaxValue),
         };
     }
 
@@ -45,11 +45,28 @@ public partial class StbGui
     {
         return new stbg_widget_constrains()
         {
-            min = new stbg_size() { width = minWidth, height = minHeight },
-            max = new stbg_size() { width = maxWidth, height = maxHeight },
+            min = stbg_build_size(minWidth, minHeight),
+            max = stbg_build_size(maxWidth, maxHeight)
         };
     }
 
+    [ExcludeFromCodeCoverage]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static stbg_widget_constrains stbg_merge_constrains(stbg_widget_constrains constrains1, stbg_widget_constrains constrains2)
+    {
+        var merged = stbg_build_constrains(
+                Math.Max(constrains1.min.width, constrains2.min.width),
+                Math.Max(constrains1.min.height, constrains2.min.height),
+                Math.Min(constrains1.max.width, constrains2.max.width),
+                Math.Min(constrains1.max.height, constrains2.max.height)
+        );
+
+        // Ensure that min values are never above max values
+        merged.min.width = Math.Min(merged.min.width, merged.max.width);
+        merged.min.height = Math.Min(merged.min.height, merged.max.height);
+
+        return merged;
+    }
 
     [ExcludeFromCodeCoverage]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -156,6 +173,45 @@ public partial class StbGui
     [ExcludeFromCodeCoverage]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static public stbg_position stbg_build_position(float x, float y) => new stbg_position() { x = x, y = y };
+
+    [ExcludeFromCodeCoverage]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static public stbg_size stbg_build_size(float width, float height) => new stbg_size() { width = width, height = height };
+
+    [ExcludeFromCodeCoverage]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static public stbg_size stbg_build_size_zero() => new stbg_size();
+
+    [ExcludeFromCodeCoverage]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static public stbg_size stbg_size_add_padding(stbg_size size, stbg_padding padding)
+    {
+        size.width += padding.right + padding.left;
+        size.height += padding.top + padding.bottom; 
+
+        return size;
+    }
+
+    [ExcludeFromCodeCoverage]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static public stbg_size stbg_size_min(stbg_size size1, stbg_size size2)
+    {
+        return stbg_build_size(Math.Min(size1.width, size2.width), Math.Min(size1.height, size2.height));
+    }
+
+    [ExcludeFromCodeCoverage]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static public stbg_size stbg_size_max(stbg_size size1, stbg_size size2)
+    {
+        return stbg_build_size(Math.Max(size1.width, size2.width), Math.Max(size1.height, size2.height));
+    }
+
+    [ExcludeFromCodeCoverage]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static public stbg_size stbg_size_constrain(stbg_size size, stbg_widget_constrains constrains)
+    {
+        return stbg_size_min(stbg_size_max(size, constrains.min), constrains.max);
+    }
 
     static public readonly stbg_color STBG_COLOR_RED = stbg_build_color(255, 0, 0);
     static public readonly stbg_color STBG_COLOR_GREEN = stbg_build_color(0, 255, 0);
