@@ -72,7 +72,7 @@ public partial class StbGui
         // - Sizes go up
         // - Parent sets position
 
-        stbg_widget_constrains constrains = stbg__build_constrains_unconstrained();
+        stbg_widget_constrains constrains = stbg_build_constrains_unconstrained();
 
         stbg__layout_widget(constrains, ref stbg_get_widget_by_id(context.root_widget_id));
 
@@ -85,10 +85,12 @@ public partial class StbGui
         // Update self bounds
         ref var widget_computed_bounds = ref widget.computed_bounds;
         ref var widget_global_rect = ref widget.computed_bounds.global_rect;
-        widget_global_rect.top_left.x = parent_global_rect.top_left.x + widget_computed_bounds.relative_position.x;
-        widget_global_rect.top_left.y = parent_global_rect.top_left.y + widget_computed_bounds.relative_position.y;
-        widget_global_rect.bottom_right.x = widget_global_rect.top_left.x + widget_computed_bounds.size.width;
-        widget_global_rect.bottom_right.y = widget_global_rect.top_left.y + widget_computed_bounds.size.height;
+        
+        widget_global_rect = stbg_build_rect(
+            widget_computed_bounds.position.x, widget_computed_bounds.position.y, 
+            widget_computed_bounds.position.x + widget_computed_bounds.size.width, widget_computed_bounds.position.y + widget_computed_bounds.size.height);
+
+        widget_global_rect = stbg_translate_rect(widget_global_rect, parent_global_rect.x0, parent_global_rect.y0);
 
         // Update children bounds
         if (widget.hierarchy.first_children_id != STBG_WIDGET_ID_NULL)
@@ -123,11 +125,12 @@ public partial class StbGui
         var widget_inner_padding = widget.layout.inner_padding;
 
         // Build current contrains by merging the widget constrains with the parent constrains
-        var constrains = new stbg_widget_constrains();
-        constrains.max.width = Math.Min(parent_constrains.max.width, widget_constrains.max.width);
-        constrains.max.height = Math.Min(parent_constrains.max.height, widget_constrains.max.height);
-        constrains.min.width = Math.Max(parent_constrains.min.width, widget_constrains.min.width);
-        constrains.min.height = Math.Max(parent_constrains.min.height, widget_constrains.min.height);
+        var constrains = stbg_build_constrains(
+                Math.Max(parent_constrains.min.width, widget_constrains.min.width),
+                Math.Max(parent_constrains.min.height, widget_constrains.min.height),
+                Math.Min(parent_constrains.max.width, widget_constrains.max.width),
+                Math.Min(parent_constrains.max.height, widget_constrains.max.height)
+        );
 
         // Ensure that min values are never above max values
         constrains.min.width = Math.Min(widget_constrains.min.width, widget_constrains.max.width);
@@ -149,11 +152,7 @@ public partial class StbGui
             var widget_children_layout_direction = widget.layout.children_layout_direction;
 
             // Build children constrains by removing padding
-            var children_constrains = new stbg_widget_constrains();
-            children_constrains.max.width = Math.Max(constrains.max.width - (widget_inner_padding.left + widget_inner_padding.right), 0);
-            children_constrains.max.height = Math.Max(constrains.max.height - (widget_inner_padding.top + widget_inner_padding.bottom), 0);
-            children_constrains.min.width = Math.Min(constrains.min.width, children_constrains.max.width);
-            children_constrains.min.height = Math.Min(constrains.min.height, children_constrains.max.height);
+            var children_constrains = stbg_constrains_remove_padding(constrains, widget_inner_padding);
 
             // Iterate children
             var children_id = widget.hierarchy.first_children_id;
@@ -162,11 +161,7 @@ public partial class StbGui
             // - add "expand_width" and "expand_height" properties, used to resize children to fill all available space 
             //   (they would modify min.width and min.height to match the expected size)
 
-            var next_children_top_left = new stbg_position()
-            {
-                x = widget_inner_padding.left,
-                y = widget_inner_padding.top
-            };
+            var next_children_top_left = stbg_build_position(widget_inner_padding.left, widget_inner_padding.top);
 
             var first_chilren = true;
 
@@ -210,7 +205,7 @@ public partial class StbGui
                 switch (widget_children_layout_direction)
                 {
                     case STBG_CHILDREN_LAYOUT_DIRECTION.VERTICAL:
-                        children.computed_bounds.relative_position = next_children_top_left;
+                        children.computed_bounds.position = next_children_top_left;
                         children_constrains.max.height -= children_size.height;
                         children_constrains.min.height = Math.Min(children_constrains.min.height, children_constrains.max.height);
                         accumulated_children_size.height += children_size.height;
@@ -219,7 +214,7 @@ public partial class StbGui
                         break;
 
                     case STBG_CHILDREN_LAYOUT_DIRECTION.HORIZONTAL:
-                        children.computed_bounds.relative_position = next_children_top_left;
+                        children.computed_bounds.position = next_children_top_left;
                         children_constrains.max.width -= children_size.height;
                         children_constrains.min.width = Math.Min(children_constrains.min.width, children_constrains.max.width);
                         accumulated_children_size.width += children_size.width;
@@ -228,9 +223,9 @@ public partial class StbGui
                         break;
 
                     case STBG_CHILDREN_LAYOUT_DIRECTION.FREE:
-                        children.computed_bounds.relative_position.x =
+                        children.computed_bounds.position.x =
                             next_children_top_left.x + Math.Min(children.layout.intrinsic_position.x, children_constrains.max.width - children_size.width);
-                        children.computed_bounds.relative_position.y =
+                        children.computed_bounds.position.y =
                             next_children_top_left.y + Math.Min(children.layout.intrinsic_position.y, children_constrains.max.height - children_size.height);
                         break;
                 }

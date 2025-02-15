@@ -17,7 +17,7 @@ public class StbGuiRenderTests : StbGuiTestsBase
 
         Assert.Equal(
             [
-                new StbGui.stbg_render_command() { type = StbGui.STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME, bounds ={ bottom_right = { x = ScreenSizeWidth, y = ScreenSizeHeight }}, background_color = StbGui.stbg_get_widget_style_color(StbGui.STBG_WIDGET_STYLE.ROOT_BACKGROUND_COLOR)},
+                new StbGui.stbg_render_command() { type = StbGui.STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME, bounds ={ x1 = ScreenSizeWidth, y1 = ScreenSizeHeight }, background_color = StbGui.stbg_get_widget_style_color(StbGui.STBG_WIDGET_STYLE.ROOT_BACKGROUND_COLOR)},
                 new StbGui.stbg_render_command() { type = StbGui.STBG_RENDER_COMMAND_TYPE.END_FRAME}
             ],
             render_commands_all

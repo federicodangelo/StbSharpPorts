@@ -63,9 +63,9 @@ public class TestRenderScreen
                 {
                     var bounds = cmd.bounds;
                     var clear_pixel = new TestRenderScreenPixel() { character = ' ', background_color = cmd.background_color };
-                    for (int y = (int)bounds.top_left.y; y < (int)bounds.bottom_right.y; y++)
+                    for (int y = (int)bounds.y0; y < (int)bounds.y1; y++)
                     {
-                        for (int x = (int)bounds.top_left.x; x < (int)bounds.bottom_right.x; x++)
+                        for (int x = (int)bounds.x0; x < (int)bounds.x1; x++)
                         {
                             SetTestRenderScreenPixel(x, y, clear_pixel);
                         }
@@ -79,22 +79,22 @@ public class TestRenderScreen
                     var background_color = cmd.background_color;
                     var bounds = cmd.bounds;
 
-                    for (int y = (int)bounds.top_left.y; y < (int)bounds.bottom_right.y; y++)
+                    for (int y = (int)bounds.y0; y < (int)bounds.y1; y++)
                     {
-                        for (int x = (int)bounds.top_left.x; x < (int)bounds.bottom_right.x; x++)
+                        for (int x = (int)bounds.x0; x < (int)bounds.x1; x++)
                         {
                             char character =
-                                x == (int)bounds.top_left.x || x == (int)bounds.bottom_right.x - 1 ? '|' :
-                                y == (int)bounds.top_left.y || y == (int)bounds.bottom_right.y - 1 ? '-' :
+                                x == (int)bounds.x0 || x == (int)bounds.x1 - 1 ? '|' :
+                                y == (int)bounds.y0 || y == (int)bounds.y1 - 1 ? '-' :
                                 ' ';
 
                             SetTestRenderScreenPixel(x, y, new() { character = character, background_color = background_color, character_color = character != ' ' ? color : GetTestRenderScreenPixel(x, y).character_color });
                         }
                     }
-                    SetTestRenderScreenPixelCharacter((int)bounds.top_left.x, (int)bounds.top_left.y, '/');
-                    SetTestRenderScreenPixelCharacter((int)bounds.bottom_right.x - 1, (int)bounds.top_left.y, '\\');
-                    SetTestRenderScreenPixelCharacter((int)bounds.bottom_right.x - 1, (int)bounds.bottom_right.y - 1, '/');
-                    SetTestRenderScreenPixelCharacter((int)bounds.top_left.x, (int)bounds.bottom_right.y - 1, '\\');
+                    SetTestRenderScreenPixelCharacter((int)bounds.x0, (int)bounds.y0, '/');
+                    SetTestRenderScreenPixelCharacter((int)bounds.x1 - 1, (int)bounds.y0, '\\');
+                    SetTestRenderScreenPixelCharacter((int)bounds.x1 - 1, (int)bounds.y1 - 1, '/');
+                    SetTestRenderScreenPixelCharacter((int)bounds.x0, (int)bounds.y1 - 1, '\\');
                     break;
                 }
 
@@ -103,9 +103,9 @@ public class TestRenderScreen
                     var background_color = cmd.background_color;
                     var bounds = cmd.bounds;
 
-                    for (int y = (int)bounds.top_left.y; y < (int)bounds.bottom_right.y; y++)
+                    for (int y = (int)bounds.y0; y < (int)bounds.y1; y++)
                     {
-                        for (int x = (int)bounds.top_left.x; x < (int)bounds.bottom_right.x; x++)
+                        for (int x = (int)bounds.x0; x < (int)bounds.x1; x++)
                         {
                             char character = ' ';
                             SetTestRenderScreenPixel(x, y, new() { character = character, background_color = background_color, character_color = GetTestRenderScreenPixel(x, y).character_color });
@@ -121,9 +121,9 @@ public class TestRenderScreen
                     var color = cmd.text.style.color;
                     int text_index = 0;
 
-                    for (int y = (int)bounds.top_left.y; y < (int)bounds.bottom_right.y && text_index < text.Length; y++)
+                    for (int y = (int)bounds.y0; y < (int)bounds.y1 && text_index < text.Length; y++)
                     {
-                        for (int x = (int)bounds.top_left.x; x < (int)bounds.bottom_right.x && text_index < text.Length; x++)
+                        for (int x = (int)bounds.x0; x < (int)bounds.x1 && text_index < text.Length; x++)
                         {
                             char character = text[text_index++];
                             SetTestRenderScreenPixelCharacterAndColor(x, y, character, color);

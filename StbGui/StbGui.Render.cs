@@ -40,16 +40,10 @@ public partial class StbGui
                 ref var bounds = ref command.bounds;
 
                 // Apply global rect offset
-                bounds.top_left.x += last_global_rect.top_left.x;
-                bounds.top_left.y += last_global_rect.top_left.y;
-                bounds.bottom_right.x += last_global_rect.top_left.x;
-                bounds.bottom_right.y += last_global_rect.top_left.y;
+                bounds = stbg_translate_rect(bounds, last_global_rect.x0, last_global_rect.y0);
 
-                // Clamp to global rect bounds and ensure that bottom_right is bigger than top_left
-                bounds.top_left.x = Math.Clamp(bounds.top_left.x, last_global_rect.top_left.x, last_global_rect.bottom_right.x);
-                bounds.top_left.y = Math.Clamp(bounds.top_left.y, last_global_rect.top_left.y, last_global_rect.bottom_right.y);
-                bounds.bottom_right.x = Math.Max(Math.Clamp(bounds.bottom_right.x, last_global_rect.top_left.x, last_global_rect.bottom_right.x), bounds.top_left.x);
-                bounds.bottom_right.y = Math.Max(Math.Clamp(bounds.bottom_right.y, last_global_rect.top_left.y, last_global_rect.bottom_right.y), bounds.top_left.y);
+                // Clamp to global rect bounds
+                bounds = stbg_clamp_rect(bounds, last_global_rect);
             }
 
             render_commands_queue[render_commands_queue_index] = command;
@@ -72,7 +66,7 @@ public partial class StbGui
             draw_text = (rect, text) => enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.TEXT, bounds = rect, text = text }),
         };
 
-        enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME, bounds = { bottom_right = { x = context.screen_size.width, y = context.screen_size.height } }, background_color = stbg_get_widget_style_color(STBG_WIDGET_STYLE.ROOT_BACKGROUND_COLOR) });
+        enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME, bounds = { x1 = context.screen_size.width, y1 = context.screen_size.height }, background_color = stbg_get_widget_style_color(STBG_WIDGET_STYLE.ROOT_BACKGROUND_COLOR) });
 
         ref var root = ref stbg_get_widget_by_id(context.root_widget_id);
 

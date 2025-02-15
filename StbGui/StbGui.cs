@@ -35,8 +35,8 @@ public partial class StbGui
 
     public record struct stbg_rect
     {
-        public stbg_position top_left;
-        public stbg_position bottom_right;
+        public float x0, y0;
+        public float x1, y1;
     }
 
     public record struct stbg_padding
@@ -230,8 +230,17 @@ public partial class StbGui
 
     public struct stbg_widget_computed_bounds
     {
-        public stbg_position relative_position;
+        /// <summary>
+        /// Position relative to parent
+        /// </summary>
+        public stbg_position position;
+        /// <summary>
+        /// Size
+        /// </summary>
         public stbg_size size;
+        /// <summary>
+        /// Global rect bounds
+        /// </summary>
         public stbg_rect global_rect;
     }
 
@@ -714,7 +723,7 @@ public partial class StbGui
             left = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_LEFT),
             right = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_RIGHT),
         };
-        layout.constrains = stbg__build_constrains_unconstrained();
+        layout.constrains = stbg_build_constrains_unconstrained();
         layout.children_layout_direction = STBG_CHILDREN_LAYOUT_DIRECTION.VERTICAL;
 
         if (is_new)
@@ -801,7 +810,7 @@ public partial class StbGui
         ref var layout = ref container.layout;
 
         layout.inner_padding = new stbg_padding();
-        layout.constrains = stbg__build_constrains_unconstrained();
+        layout.constrains = stbg_build_constrains_unconstrained();
         layout.children_layout_direction = layout_direction;
         layout.children_spacing = spacing;
 
@@ -835,7 +844,7 @@ public partial class StbGui
 
         ref var layout = ref button.layout;
 
-        layout.constrains = stbg__build_constrains_unconstrained();
+        layout.constrains = stbg_build_constrains_unconstrained();
         layout.inner_padding = new stbg_padding()
         {
             top = stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_TOP),

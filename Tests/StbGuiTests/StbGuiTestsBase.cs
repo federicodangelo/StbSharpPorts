@@ -225,7 +225,7 @@ public class StbGuiTestsBase : IDisposable
 
 
         string finalLines = topGuide0 + "\n" + topGuide1 + "\n";
-        
+
         for (int y = 0; y < height; y++)
         {
             finalLines += string.Format("{0,2} ", y) + expectedLinesWithColor[y] + "\n";
@@ -400,15 +400,15 @@ public class StbGuiTestsBase : IDisposable
     static protected void AssertWidgetPosition(int widget_id, float x, float y)
     {
         Assert.Equal(
-            new StbGui.stbg_position() { x = x, y = y },
-            StbGui.stbg_get_widget_by_id(widget_id).computed_bounds.relative_position
+            StbGui.stbg_build_position(x, y),
+            StbGui.stbg_get_widget_by_id(widget_id).computed_bounds.position
         );
     }
 
     static protected void AssertWidgetGlobalRect(int widget_id, float x0, float y0, float x1, float y1)
     {
         Assert.Equal(
-            new StbGui.stbg_rect() { top_left = new StbGui.stbg_position() { x = x0, y = y0 }, bottom_right = new StbGui.stbg_position() { x = x1, y = y1 } },
+            StbGui.stbg_build_rect(x0, y0, x1, y1),
             StbGui.stbg_get_widget_by_id(widget_id).computed_bounds.global_rect
         );
     }
