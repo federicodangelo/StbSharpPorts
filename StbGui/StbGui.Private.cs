@@ -75,7 +75,7 @@ public partial class StbGui
         {
             if ((widgets[i].flags & STBG_WIDGET_FLAGS.USED) != 0 && widgets[i].last_used_in_frame != context.current_frame)
             {
-                stbg__remove_widget(ref widgets[i]);
+                stbg__destroy_widget(ref widgets[i]);
                 amount_to_destroy--;
             }
         }
@@ -140,11 +140,6 @@ public partial class StbGui
             context.frame_stats.reused_widgets++;
         }
 
-        // Reset dynamic properties
-        //widget.layout = new stbg_widget_layout();
-        //widget.computed_bounds = new stbg_widget_computed_bounds();
-        //widget.text = new ReadOnlyMemory<char>();
-
         // Update last used
         if (widget.last_used_in_frame == context.current_frame)
         {
@@ -155,35 +150,133 @@ public partial class StbGui
 
         // Update hierarchy
         widget.hierarchy = new stbg_widget_hierarchy();
-        widget.hierarchy.parent_id = context.current_widget_id;
-        if (widget.hierarchy.parent_id != STBG_WIDGET_ID_NULL)
-        {
-            // If we have a parent:
-            // - Update the list of children of our parent
-            // - Update the list of siblings of any children
-            ref var parent = ref stbg_get_widget_by_id(widget.hierarchy.parent_id);
 
-            if (parent.hierarchy.last_children_id != STBG_WIDGET_ID_NULL)
-            {
-                // Parent already has children:
-                // - set ourselves as the next sibling to the last children
-                // - set our previous sibling to the last children
-                // - replace the last children with ourselves
-                stbg_get_widget_by_id(parent.hierarchy.last_children_id).hierarchy.next_sibling_id = widget.id;
-                widget.hierarchy.prev_sibling_id = parent.hierarchy.last_children_id;
-                parent.hierarchy.last_children_id = widget.id;
-            }
-            else
-            {
-                // Parent has no children, so we are the first and last children of our parent
-                parent.hierarchy.first_children_id = parent.hierarchy.last_children_id = widget.id;
-            }
+        if (context.current_widget_id != STBG_WIDGET_ID_NULL)
+        {
+            stbg__add_widget_to_parent_last(ref widget, context.current_widget_id);
         }
 
         return ref widget;
     }
 
-    private static void stbg__remove_widget(ref stbg_widget widget)
+    private static void stbg__remove_widget_from_parent(ref stbg_widget widget)
+    {
+        stbg__assert_internal(widget.hierarchy.parent_id != STBG_WIDGET_ID_NULL);
+
+        ref var parent = ref stbg_get_widget_by_id(widget.hierarchy.parent_id);
+
+        // Update parent's first / last widget id if it matches the widget to remove
+        if (parent.hierarchy.first_children_id == widget.id)
+            parent.hierarchy.first_children_id = widget.hierarchy.next_sibling_id;
+
+        if (parent.hierarchy.last_children_id == widget.id)
+            parent.hierarchy.last_children_id = widget.hierarchy.prev_sibling_id;
+
+        // If there is a next widget, update it to point to our previous widget
+        if (widget.hierarchy.next_sibling_id != STBG_WIDGET_ID_NULL)
+            stbg_get_widget_by_id(widget.hierarchy.next_sibling_id).hierarchy.prev_sibling_id = widget.hierarchy.prev_sibling_id;
+
+        // If there is a previous widget, update it to point to our next widget
+        if (widget.hierarchy.prev_sibling_id != STBG_WIDGET_ID_NULL)
+            stbg_get_widget_by_id(widget.hierarchy.prev_sibling_id).hierarchy.next_sibling_id = widget.hierarchy.next_sibling_id;
+
+        // NULL parent and next / prev siblings
+        widget.hierarchy.parent_id = STBG_WIDGET_ID_NULL;
+        widget.hierarchy.next_sibling_id = STBG_WIDGET_ID_NULL;
+        widget.hierarchy.prev_sibling_id = STBG_WIDGET_ID_NULL;
+    }
+
+    private static void stbg__add_widget_to_parent_last(ref stbg_widget widget, widget_id parent_id)
+    {
+        stbg__assert_internal(widget.hierarchy.parent_id == STBG_WIDGET_ID_NULL);
+        stbg__assert_internal(widget.hierarchy.next_sibling_id == STBG_WIDGET_ID_NULL);
+        stbg__assert_internal(widget.hierarchy.prev_sibling_id == STBG_WIDGET_ID_NULL);
+        stbg__assert_internal(parent_id != STBG_WIDGET_ID_NULL);
+
+        ref var parent = ref stbg_get_widget_by_id(parent_id);
+
+        widget.hierarchy.parent_id = parent_id;
+
+        // - Update the list of children of our parent
+        // - Update the list of siblings of any children
+        if (parent.hierarchy.last_children_id != STBG_WIDGET_ID_NULL)
+        {
+            // Parent already has children:
+            // - set ourselves as the next sibling to the last children
+            // - set our previous sibling to the last children
+            // - replace the last children with ourselves
+            stbg_get_widget_by_id(parent.hierarchy.last_children_id).hierarchy.next_sibling_id = widget.id;
+            widget.hierarchy.prev_sibling_id = parent.hierarchy.last_children_id;
+            parent.hierarchy.last_children_id = widget.id;
+        }
+        else
+        {
+            // Parent has no children, so we are the first and last children of our parent
+            parent.hierarchy.first_children_id = parent.hierarchy.last_children_id = widget.id;
+        }
+    }
+
+
+    private static void stbg__add_widget_to_parent_after_sibling_or_first(ref stbg_widget widget, widget_id prev_sibling_id, widget_id parent_id)
+    {
+        stbg__assert_internal(widget.hierarchy.parent_id == STBG_WIDGET_ID_NULL);
+        stbg__assert_internal(parent_id != STBG_WIDGET_ID_NULL);
+
+        ref var parent = ref stbg_get_widget_by_id(parent_id);
+
+        widget.hierarchy.parent_id = parent_id;
+
+        if (prev_sibling_id == STBG_WIDGET_ID_NULL)
+        {
+            // No previous sibling, add as first children of parent
+            widget.hierarchy.next_sibling_id = parent.hierarchy.first_children_id;
+            parent.hierarchy.first_children_id = widget.id;
+
+            // Update next sibling to point back to us
+            if (widget.hierarchy.next_sibling_id != STBG_WIDGET_ID_NULL)
+            {
+                stbg_get_widget_by_id(widget.hierarchy.next_sibling_id).hierarchy.prev_sibling_id = widget.id;
+            }
+            else // There is no next sibling, so we are the only children of our parent
+            {
+                parent.hierarchy.last_children_id = widget.id;
+            }
+        }
+        else
+        {
+            // Insert ourselves between our previous sibling and it's next sibling
+            ref var prev_sibling = ref stbg_get_widget_by_id(prev_sibling_id);
+            stbg__assert_internal(prev_sibling.hierarchy.parent_id == parent_id);
+
+            widget.hierarchy.next_sibling_id = prev_sibling.hierarchy.next_sibling_id;
+            widget.hierarchy.prev_sibling_id = prev_sibling.id;
+            prev_sibling.hierarchy.next_sibling_id = widget.id;
+        }
+
+        // Update next sibling to point back to us
+        if (widget.hierarchy.next_sibling_id != STBG_WIDGET_ID_NULL)
+        {
+            stbg_get_widget_by_id(widget.hierarchy.next_sibling_id).hierarchy.prev_sibling_id = widget.id;
+        }
+        else // There is no next sibling, so we are the last children of our parent
+        {
+            parent.hierarchy.last_children_id = widget.id;
+        }
+    }
+
+
+    private static void stbg__move_children_parent_last(ref stbg_widget widget)
+    {
+        if (widget.hierarchy.next_sibling_id != STBG_WIDGET_ID_NULL)
+        {
+            var parent_id = widget.hierarchy.parent_id;
+
+            stbg__remove_widget_from_parent(ref widget);
+            stbg__add_widget_to_parent_last(ref widget, parent_id);
+        }
+    }
+
+    private static void stbg__destroy_widget(ref stbg_widget widget)
     {
         stbg__assert_internal(!context.inside_frame);
         stbg__assert_internal((widget.flags & STBG_WIDGET_FLAGS.USED) != 0);
@@ -219,6 +312,14 @@ public partial class StbGui
         context.first_free_widget_id = widget.id;
 
         context.frame_stats.destroyed_widgets++;
+
+        // Remove widget from input feedback
+        if (context.input_feedback.dragged_widget_id == widget.id)
+            context.input_feedback.dragged_widget_id = STBG_WIDGET_ID_NULL;
+        if (context.input_feedback.hovered_widget_id == widget.id)
+            context.input_feedback.hovered_widget_id = STBG_WIDGET_ID_NULL;
+        if (context.input_feedback.pressed_widget_id == widget.id)
+            context.input_feedback.pressed_widget_id = STBG_WIDGET_ID_NULL;
     }
 
     private static bool stbg__find_widget_by_hash(widget_hash hash, out widget_id foundId)
@@ -277,5 +378,78 @@ public partial class StbGui
         widget_hash outputHash = BitConverter.ToInt32(output);
 
         return outputHash;
+    }
+
+    private static void stbg__process_input()
+    {
+        if (context.input_feedback.dragged_widget_id != STBG_WIDGET_ID_NULL)
+        {
+            context.input_feedback.hovered_widget_id = context.input_feedback.dragged_widget_id;
+            context.input_feedback.pressed_widget_id = context.input_feedback.dragged_widget_id;
+        }
+        else
+        {
+            var new_hover = stbg__get_widget_id_at_position(context.io.mouse_position, context.root_widget_id);
+
+            if (new_hover != context.input_feedback.hovered_widget_id)
+            {
+                context.input_feedback.hovered_widget_id = new_hover;
+                context.input_feedback.pressed_widget_id = STBG_WIDGET_ID_NULL;
+            }
+        }
+
+        if (context.root_widget_id != STBG_WIDGET_ID_NULL)
+            stbg__process_widget_input(context.root_widget_id);
+    }
+
+    private static void stbg__process_widget_input(widget_id widget_id)
+    {
+        ref var widget = ref stbg_get_widget_by_id(widget_id);
+
+        var children_id = widget.hierarchy.first_children_id;
+
+        while (children_id != STBG_WIDGET_ID_NULL)
+        {
+            stbg__process_widget_input(children_id);
+
+            children_id = stbg_get_widget_by_id(children_id).hierarchy.next_sibling_id;
+        }
+
+        var widget_update_input = STBG__WIDGET_UPDATE_INPUT_MAP[(int)widget.type];
+
+        if (widget_update_input != null)
+            widget_update_input(ref widget);
+    }
+
+    private static widget_id stbg__get_widget_id_at_position(stbg_position position, widget_id widget_id)
+    {
+        if (widget_id == STBG_WIDGET_ID_NULL)
+            return STBG_WIDGET_ID_NULL;
+
+        var widget = stbg_get_widget_by_id(widget_id);
+
+        var global_rect = widget.computed_bounds.global_rect;
+
+        if (position.x < global_rect.x0 ||
+            position.y < global_rect.y0 ||
+            position.x >= global_rect.x1 ||
+            position.y >= global_rect.y1)
+        {
+            return STBG_WIDGET_ID_NULL;
+        }
+
+        var children_id = widget.hierarchy.last_children_id;
+
+        while (children_id != STBG_WIDGET_ID_NULL)
+        {
+            var childrean_at_position = stbg__get_widget_id_at_position(position, children_id);
+
+            if (childrean_at_position != STBG_WIDGET_ID_NULL)
+                return childrean_at_position;
+
+            children_id = stbg_get_widget_by_id(children_id).hierarchy.prev_sibling_id;
+        }
+
+        return widget_id;
     }
 }

@@ -10,6 +10,13 @@
             "type": "dotnet",
             "request": "launch",
             "projectPath": "${workspaceFolder}/Examples/StbImage.Examples/StbImage.Examples.csproj"
+        },
+
+        {
+            "name": "C#: StbGui Examples Debug",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/Examples/StbGui.Examples/StbGui.Examples.csproj"
         }
 
     ]

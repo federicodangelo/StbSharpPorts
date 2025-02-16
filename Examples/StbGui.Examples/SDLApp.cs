@@ -19,20 +19,19 @@ public class SDLApp : IDisposable
         if (!SDL.Init(SDL.InitFlags.Video))
         {
             SDL.LogError(SDL.LogCategory.System, $"SDL could not initialize: {SDL.GetError()}");
-            return;
+            throw new Exception(SDL.GetError());
         }
 
         if (!SDL.CreateWindowAndRenderer("SDL3 Create Window", screenWidth, screenHeight, 0, out window, out renderer))
         {
             SDL.LogError(SDL.LogCategory.Application, $"Error creating window and rendering: {SDL.GetError()}");
-            return;
+            throw new Exception(SDL.GetError());
         }
 
         mainFont = new SDLFont("ProggyClean", "Fonts/ProggyClean.ttf", 13, renderer);
 
         InitStbGui(screenWidth, screenHeight);
-
-    }    
+    }
 
     private StbGui.stbg_io stbg_io;
 
@@ -46,7 +45,7 @@ public class SDLApp : IDisposable
 
             while (SDL.PollEvent(out var e) && loop)
             {
-                switch((SDL.EventType) e.Type)
+                switch ((SDL.EventType)e.Type)
                 {
                     case SDL.EventType.Quit:
                         loop = false;
@@ -144,7 +143,7 @@ public class SDLApp : IDisposable
                     var color = cmd.color;
                     var background_color = cmd.background_color;
                     var bounds = cmd.bounds;
-                    var border_size = (int) Math.Ceiling(cmd.size);
+                    var border_size = (int)Math.Ceiling(cmd.size);
 
                     SDL.SetRenderDrawColor(renderer, background_color.r, background_color.g, background_color.b, background_color.a);
                     SDL.RenderFillRect(renderer, new SDL.FRect() { X = bounds.x0, Y = bounds.y0, W = bounds.x1 - bounds.x0, H = bounds.y1 - bounds.y0 });
@@ -220,11 +219,19 @@ public class SDLApp : IDisposable
                 StbGui.stbg_button("Button 1");
                 if (StbGui.stbg_button("Toggle Button 3"))
                     showButton3 = !showButton3;
-                
+
                 if (showButton3)
                     StbGui.stbg_button("Button 3");
             }
             StbGui.stbg_end_window();
+
+            StbGui.stbg_begin_window("Window 2");
+            {
+                StbGui.stbg_button("Button 1");
+                StbGui.stbg_button("Button 3");
+            }
+            StbGui.stbg_end_window();
+
         }
         StbGui.stbg_end_frame();
 

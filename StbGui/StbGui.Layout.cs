@@ -22,10 +22,11 @@ public partial class StbGui
 
         stbg_widget_constrains constrains = stbg_build_constrains_unconstrained();
 
-        stbg__layout_widget(constrains, ref stbg_get_widget_by_id(context.root_widget_id));
+        ref var root = ref stbg_get_widget_by_id(context.root_widget_id);
+
+        root.computed_bounds.size = stbg__layout_widget(constrains, ref root);
 
         stbg__update_global_rect(ref stbg_get_widget_by_id(context.root_widget_id), new stbg_rect());
-
     }
 
     private static void stbg__update_global_rect(ref stbg_widget widget, stbg_rect parent_global_rect)
@@ -82,6 +83,11 @@ public partial class StbGui
             // Build children constrains by removing padding
             var children_constrains = stbg_constrains_remove_padding(constrains, widget_inner_padding);
 
+            if (widget_children_layout_direction == STBG_CHILDREN_LAYOUT_DIRECTION.FREE)
+            {
+                stbg__layout_sort_children_by_intrinsic_index(ref widget);
+            }
+
             // Iterate children
             var children_id = widget.hierarchy.first_children_id;
 
@@ -91,13 +97,15 @@ public partial class StbGui
 
             var next_children_top_left = stbg_build_position(widget_inner_padding.left, widget_inner_padding.top);
 
-            var first_chilren = true;
+            var first_children = true;
+
+            var child_index = 0;
 
             do
             {
                 ref var children = ref stbg_get_widget_by_id(children_id);
 
-                if (!first_chilren && widget_children_spacing != 0)
+                if (!first_children && widget_children_spacing != 0)
                 {
                     switch (widget_children_layout_direction)
                     {
@@ -153,13 +161,19 @@ public partial class StbGui
                     case STBG_CHILDREN_LAYOUT_DIRECTION.FREE:
                         children.layout.intrinsic_position.x = Math.Clamp(children.layout.intrinsic_position.x, 0, children_constrains.max.width - children_size.width);
                         children.layout.intrinsic_position.y = Math.Clamp(children.layout.intrinsic_position.y, 0, children_constrains.max.height - children_size.height);
+                        children.layout.intrinsic_sorting_index = child_index;
                         children.computed_bounds.position.x = next_children_top_left.x + children.layout.intrinsic_position.x;
                         children.computed_bounds.position.y = next_children_top_left.y + children.layout.intrinsic_position.y;
+
+                        accumulated_children_size.width = Math.Max(accumulated_children_size.width, children.layout.intrinsic_position.x + children_size.width);
+                        accumulated_children_size.height = Math.Max(accumulated_children_size.height, children.layout.intrinsic_position.y + children_size.height);
                         break;
                 }
 
                 children_id = children.hierarchy.next_sibling_id;
-                first_chilren = false;
+                first_children = false;
+
+                child_index++;
             } while (children_id != STBG_WIDGET_ID_NULL);
         }
 
@@ -168,6 +182,53 @@ public partial class StbGui
         widget_size = stbg_size_constrain(widget_size, constrains);
 
         return widget_size;
+    }
+
+    private static void stbg__layout_sort_children_by_intrinsic_index(ref stbg_widget widget)
+    {
+        var children_id = widget.hierarchy.first_children_id;
+        var has_prev_children = false;
+        var prev_children_sorting_index = 0;
+
+        while (children_id != STBG_WIDGET_ID_NULL)
+        {
+            ref var children = ref stbg_get_widget_by_id(children_id);
+
+            children_id = children.hierarchy.next_sibling_id;
+
+            if (has_prev_children && prev_children_sorting_index > children.layout.intrinsic_sorting_index)
+            {
+                // Children is ahead of were it is supposed to be!
+                // - Find the new insertion point
+                // - Remove it from the parent
+                // - Add it back to the list at the new insertion point
+
+                // Find new insertion point
+                var prev_children_id = children.hierarchy.prev_sibling_id;
+                while (prev_children_id != STBG_WIDGET_ID_NULL)
+                {
+                    ref var prev_children = ref stbg_get_widget_by_id(prev_children_id);
+
+                    if (prev_children.layout.intrinsic_sorting_index <= children.layout.intrinsic_sorting_index)
+                        break;
+
+                    prev_children_id = prev_children.hierarchy.prev_sibling_id;
+                }
+
+                // Remove from the parent
+                stbg__remove_widget_from_parent(ref children);
+
+                // Add it back to the list at the new insertion point
+                stbg__add_widget_to_parent_after_sibling_or_first(ref children, prev_children_id, widget.id);
+
+                has_prev_children = false;
+            }
+            else
+            {
+                prev_children_sorting_index = children.layout.intrinsic_sorting_index;
+                has_prev_children = true;
+            }
+        }
     }
 
     private static stbg_size stbg__get_instrinsic_size(stbg_widget widget, stbg_widget_intrinsic_size widget_intrinsic_size)

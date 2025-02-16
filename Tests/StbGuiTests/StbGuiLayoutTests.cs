@@ -246,8 +246,8 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         // Validate initial positions
         AssertWidgetPosition(window1Id, 0, 0);
         AssertWidgetGlobalRect(window1Id, 0, 0, 34, 22);
-        AssertWidgetPosition(window2Id, 0, 0);
-        AssertWidgetGlobalRect(window2Id, 0, 0, 34, 22);
+        AssertWidgetPosition(window2Id, 1, 1);
+        AssertWidgetGlobalRect(window2Id, 1, 1, 35, 23);
 
         StbGui.stbg_begin_frame();
         {

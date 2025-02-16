@@ -203,6 +203,11 @@ public partial class StbGui
         public stbg_position intrinsic_position;
 
         /// <summary>
+        /// Intrinsic sorting index value, used when the parent's children layout direction is FREE to sort the childrens
+        /// </summary>
+        public int intrinsic_sorting_index;
+
+        /// <summary>
         /// Inner padding
         /// </summary>
         public stbg_padding inner_padding;
@@ -263,8 +268,7 @@ public partial class StbGui
     {
         NONE = 0,
         USED = 1 << 0,
-        HOVERED = 1 << 1,
-        PRESSED = 1 << 2,
+        CLICKED = 1 << 1,
     }
 
     public struct stbg_widget_hash_chain
@@ -321,6 +325,13 @@ public partial class StbGui
         public int duplicated_widgets_ids;
     }
 
+    public struct stbg_context_input_feedback
+    {
+        public widget_id hovered_widget_id;
+        public widget_id pressed_widget_id;
+        public widget_id dragged_widget_id;
+    }
+
     public struct stbg_context
     {
         public stbg_widget[] widgets;
@@ -357,6 +368,10 @@ public partial class StbGui
         public stbg_render_command[] render_commands_queue;
 
         public stbg_io io;
+
+        public stbg_position next_new_window_position;
+
+        public stbg_context_input_feedback input_feedback;
     }
 
     public enum STBG_ASSERT_BEHAVIOUR
@@ -631,6 +646,9 @@ public partial class StbGui
     public static void stbg_begin_frame()
     {
         stbg__assert(!context.inside_frame);
+
+        stbg__process_input(); // Process previous frame input over the last updated hierarchy
+
         context.inside_frame = true;
         context.current_widget_id = STBG_WIDGET_ID_NULL;
         context.last_widget_id = STBG_WIDGET_ID_NULL;
@@ -743,65 +761,7 @@ public partial class StbGui
     /// <returns>Returns if the window is visible or not</returns>
     public static bool stbg_begin_window(string title)
     {
-        ref var window = ref stbg__add_widget(STBG_WIDGET_TYPE.WINDOW, title, out var is_new);
-
-        float title_height_total = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP, STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT, STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_BOTTOM, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_TOP);
-
-        if ((window.flags & STBG_WIDGET_FLAGS.PRESSED) != 0)
-        {
-            if (!context.io.mouse_button_1_down)
-            {
-                window.flags &= ~STBG_WIDGET_FLAGS.PRESSED;
-            }
-        }
-        else if (context.io.mouse_position.x >= window.computed_bounds.global_rect.x0 &&
-            context.io.mouse_position.x < window.computed_bounds.global_rect.x1 &&
-            context.io.mouse_position.y >= window.computed_bounds.global_rect.y0 &&
-            context.io.mouse_position.y < Math.Min(window.computed_bounds.global_rect.y1, window.computed_bounds.global_rect.y0 + title_height_total))
-        {
-            window.flags |= STBG_WIDGET_FLAGS.HOVERED;
-
-            if (context.io.mouse_button_1_down)
-            {
-                window.flags |= STBG_WIDGET_FLAGS.PRESSED;
-            }
-            else
-            {
-                window.flags &= ~STBG_WIDGET_FLAGS.PRESSED;
-            }
-        }
-        else
-        {
-            window.flags &= ~STBG_WIDGET_FLAGS.HOVERED;
-            window.flags &= ~STBG_WIDGET_FLAGS.PRESSED;
-        }
-
-        window.text = title.AsMemory();
-
-        ref var layout = ref window.layout;
-
-        layout.inner_padding = new stbg_padding()
-        {
-            top = title_height_total,
-            bottom = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_BOTTOM),
-            left = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_LEFT),
-            right = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_RIGHT),
-        };
-        layout.constrains = stbg_build_constrains_unconstrained();
-        layout.children_layout_direction = STBG_CHILDREN_LAYOUT_DIRECTION.VERTICAL;
-        layout.children_spacing = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING);
-
-        if (is_new)
-        {
-            window.layout.intrinsic_position = stbg_build_position(0, 0);
-            window.layout.intrinsic_size = stbg__build_intrinsic_size_pixels(stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH), stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT));
-        }
-
-        if ((window.flags & STBG_WIDGET_FLAGS.PRESSED) != 0)
-        {
-            window.layout.intrinsic_position.x += context.io.mouse_delta.x;
-            window.layout.intrinsic_position.y += context.io.mouse_delta.y;
-        }
+        ref var window = ref stbg__window_create(title);
 
         bool visible = true; //TODO: Implement
 
@@ -879,7 +839,6 @@ public partial class StbGui
         context.current_widget_id = container.id;
     }
 
-
     /// <summary>
     /// Ends the current container.
     /// </summary>
@@ -900,49 +859,14 @@ public partial class StbGui
     /// <returns>Returns true if the button was pressed</returns>
     public static bool stbg_button(string label)
     {
-        ref var button = ref stbg__add_widget(STBG_WIDGET_TYPE.BUTTON, label, out _);
+        ref var button = ref stbg__button_create(label);
 
-        bool clicked = false;
+        bool clicked = (button.flags & STBG_WIDGET_FLAGS.CLICKED) != 0;
 
-        if (context.io.mouse_position.x >= button.computed_bounds.global_rect.x0 &&
-            context.io.mouse_position.x < button.computed_bounds.global_rect.x1 &&
-            context.io.mouse_position.y >= button.computed_bounds.global_rect.y0 &&
-            context.io.mouse_position.y < button.computed_bounds.global_rect.y1)
+        if (clicked)
         {
-            button.flags |= STBG_WIDGET_FLAGS.HOVERED;
-
-            if (context.io.mouse_button_1_down)
-            {
-                button.flags |= STBG_WIDGET_FLAGS.PRESSED;
-            }
-            else
-            {
-                if ((button.flags & STBG_WIDGET_FLAGS.PRESSED) != 0)
-                {
-                    button.flags &= ~STBG_WIDGET_FLAGS.PRESSED;
-                    clicked = true;
-                }
-            }
+            button.flags &= ~STBG_WIDGET_FLAGS.CLICKED;
         }
-        else
-        {
-            button.flags &= ~STBG_WIDGET_FLAGS.HOVERED;
-            button.flags &= ~STBG_WIDGET_FLAGS.PRESSED;
-        }
-
-        button.text = label.AsMemory();
-
-        ref var layout = ref button.layout;
-
-        layout.constrains = stbg_build_constrains_unconstrained();
-        layout.inner_padding = new stbg_padding()
-        {
-            top = stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_TOP),
-            bottom = stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_BOTTOM),
-            left = stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_LEFT),
-            right = stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_RIGHT),
-        };
-        layout.intrinsic_size = stbg__build_intrinsic_size_text();
 
         return clicked;
     }
