@@ -1,7 +1,5 @@
 #pragma warning disable IDE1006 // Naming Styles
 
-using System.Runtime.CompilerServices;
-
 namespace StbSharp;
 
 public partial class StbGui
@@ -128,8 +126,8 @@ public partial class StbGui
                     stbg_build_rect(
                         stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_LEFT),
                         stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_TOP),
-                        size.width - stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_PADDING_LEFT, STBG_WIDGET_STYLE.BUTTON_PADDING_RIGHT),
-                        size.height - stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_PADDING_TOP, STBG_WIDGET_STYLE.BUTTON_PADDING_BOTTOM)
+                        size.width - stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_PADDING_RIGHT),
+                        size.height - stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_PADDING_BOTTOM)
                     ),
                     widget.text
                 );

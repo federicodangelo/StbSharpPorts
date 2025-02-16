@@ -304,11 +304,61 @@ public class StbGuiTestsBase : IDisposable
 
         int fontId = StbGui.stbg_add_font("default_font");
 
-        StbGui.stbg_init_default_theme(
-            fontId,
-            new() { size = 1, style = StbGui.STBG_FONT_STYLE_FLAGS.NONE, color = StbGui.STBG_COLOR_WHITE }
-        );
+        InitTestTheme(fontId, new() { size = 1, style = StbGui.STBG_FONT_STYLE_FLAGS.NONE, color = StbGui.STBG_COLOR_WHITE });
     }
+
+    static private void InitTestTheme(int font_id, StbGui.stbg_font_style font_style)
+    {
+        StbGui.stbg_init_default_theme(
+            font_id, font_style
+        );
+
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.ROOT_BACKGROUND_COLOR, StbGui.STBG_COLOR_CYAN);
+
+        var buttonBorder = 1.0f;
+        var buttonPaddingTopBottom = MathF.Ceiling(font_style.size / 2);
+        var buttonPaddingLeftRight = MathF.Ceiling(font_style.size / 2);
+
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, buttonBorder);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.BUTTON_PADDING_TOP, buttonPaddingTopBottom);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.BUTTON_PADDING_BOTTOM, buttonPaddingTopBottom);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.BUTTON_PADDING_LEFT, buttonPaddingLeftRight);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.BUTTON_PADDING_RIGHT, buttonPaddingLeftRight);
+
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.BUTTON_BORDER_COLOR, StbGui.STBG_COLOR_BLUE);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.BUTTON_BACKGROUND_COLOR, StbGui.STBG_COLOR_CYAN);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.BUTTON_TEXT_COLOR, StbGui.STBG_COLOR_WHITE);
+
+        var windowBorder = 1.0f;
+        var windowTitleHeight = MathF.Ceiling(font_style.size);
+        var windowTitlePadding = MathF.Ceiling(font_style.size / 4);
+        var windowChildrenPadding = MathF.Ceiling(font_style.size / 2);
+        var windowDefaultWidth = MathF.Ceiling(font_style.size * 30);
+        var windowDefaultHeight = MathF.Ceiling(font_style.size * 15);
+        var windowChidlrenSpacing = 0;
+
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, windowBorder);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT, windowTitleHeight);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP, windowTitlePadding);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_BOTTOM, windowTitlePadding);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_LEFT, windowTitlePadding);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_RIGHT, windowTitlePadding);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_TOP, windowChildrenPadding);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_BOTTOM, windowChildrenPadding);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_LEFT, windowChildrenPadding);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_RIGHT, windowChildrenPadding);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING, windowChidlrenSpacing);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, windowDefaultWidth);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, windowDefaultHeight);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_BORDER_COLOR, StbGui.STBG_COLOR_WHITE);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_BACKGROUND_COLOR, StbGui.STBG_COLOR_BLUE);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_TEXT_COLOR, StbGui.STBG_COLOR_WHITE);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR, StbGui.STBG_COLOR_MAGENTA);        
+    }
+
+
+
+
 
     static protected void DestroyGui()
     {

@@ -128,6 +128,7 @@ public partial class StbGui
         WINDOW_CHILDREN_PADDING_BOTTOM,
         WINDOW_CHILDREN_PADDING_LEFT,
         WINDOW_CHILDREN_PADDING_RIGHT,
+        WINDOW_CHILDREN_SPACING,
         WINDOW_DEFAULT_WIDTH,
         WINDOW_DEFAULT_HEIGHT,
         WINDOW_BORDER_COLOR,
@@ -499,7 +500,7 @@ public partial class StbGui
         theme.default_font_id = font_id;
         theme.default_font_style = font_style;
 
-        stbg_set_widget_style(STBG_WIDGET_STYLE.ROOT_BACKGROUND_COLOR, STBG_COLOR_CYAN);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.ROOT_BACKGROUND_COLOR, stbg_build_color(236, 240, 241));
 
         var buttonBorder = 1.0f;
         var buttonPaddingTopBottom = MathF.Ceiling(font_style.size / 2);
@@ -511,9 +512,9 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PADDING_LEFT, buttonPaddingLeftRight);
         stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PADDING_RIGHT, buttonPaddingLeftRight);
 
-        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_BORDER_COLOR, STBG_COLOR_BLUE);
-        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_BACKGROUND_COLOR, STBG_COLOR_CYAN);
-        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_TEXT_COLOR, STBG_COLOR_WHITE);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_BORDER_COLOR, stbg_build_color(41, 128, 185));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_BACKGROUND_COLOR, stbg_build_color(52, 152, 219));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_TEXT_COLOR, stbg_build_color(236, 240, 241));
 
         var windowBorder = 1.0f;
         var windowTitleHeight = MathF.Ceiling(font_style.size);
@@ -521,6 +522,7 @@ public partial class StbGui
         var windowChildrenPadding = MathF.Ceiling(font_style.size / 2);
         var windowDefaultWidth = MathF.Ceiling(font_style.size * 30);
         var windowDefaultHeight = MathF.Ceiling(font_style.size * 15);
+        var windowChidlrenSpacing = MathF.Ceiling(font_style.size / 4);
 
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, windowBorder);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT, windowTitleHeight);
@@ -534,14 +536,15 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_BOTTOM, windowChildrenPadding);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_LEFT, windowChildrenPadding);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_RIGHT, windowChildrenPadding);
-
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING, windowChidlrenSpacing);
+        
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, windowDefaultWidth);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, windowDefaultHeight);
 
-        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_COLOR, STBG_COLOR_WHITE);
-        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BACKGROUND_COLOR, STBG_COLOR_BLUE);
-        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_TEXT_COLOR, STBG_COLOR_WHITE);
-        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR, STBG_COLOR_MAGENTA);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_COLOR, stbg_build_color(41, 128, 185));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BACKGROUND_COLOR, stbg_build_color(189, 195, 199));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_TEXT_COLOR, stbg_build_color(236, 240, 241));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR, stbg_build_color(52, 73, 94));
     }
 
     /// <summary>
@@ -725,6 +728,7 @@ public partial class StbGui
         };
         layout.constrains = stbg_build_constrains_unconstrained();
         layout.children_layout_direction = STBG_CHILDREN_LAYOUT_DIRECTION.VERTICAL;
+        layout.children_spacing = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING);
 
         if (is_new)
         {
