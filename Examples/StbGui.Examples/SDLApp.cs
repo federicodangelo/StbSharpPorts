@@ -6,10 +6,14 @@ using StbSharp;
 
 public class SDLApp : IDisposable
 {
+    private const int BACKGROUND_FPS = 30;
+    private const int MAX_FPS = int.MaxValue;
+
     private SDLFont mainFont;
     private nint renderer;
-
     private nint window;
+
+    private bool use_fake_vsync;
 
     public SDLApp()
     {
@@ -22,10 +26,18 @@ public class SDLApp : IDisposable
             throw new Exception(SDL.GetError());
         }
 
-        if (!SDL.CreateWindowAndRenderer("SDL3 Create Window", screenWidth, screenHeight, 0, out window, out renderer))
+        if (!SDL.CreateWindowAndRenderer("StbGui Example App", screenWidth, screenHeight, 0, out window, out renderer))
         {
             SDL.LogError(SDL.LogCategory.Application, $"Error creating window and rendering: {SDL.GetError()}");
             throw new Exception(SDL.GetError());
+        }
+
+        SDL.SetWindowResizable(window, true);
+        SDL.SetWindowBordered(window, true);
+        if (!SDL.SetWindowSurfaceVSync(window, 1))
+        {
+            SDL.LogError(SDL.LogCategory.Application, $"Failed to enable window v-sync: {SDL.GetError()}, using fake v-sync");
+            use_fake_vsync = true;
         }
 
         mainFont = new SDLFont("ProggyClean", "Fonts/ProggyClean.ttf", 13, renderer);
@@ -33,53 +45,24 @@ public class SDLApp : IDisposable
         InitStbGui(screenWidth, screenHeight);
     }
 
-    private StbGui.stbg_io stbg_io;
+    private int fps = 0;
 
     public void MainLoop()
     {
         var loop = true;
 
+        var frames_ticks = SDL.GetTicks();
+        var frames_count = 0;
+
+        var stbg_io = new StbGui.stbg_io();
+
         while (loop)
         {
-            stbg_io.mouse_delta = StbGui.stbg_build_position(0, 0);
+            ulong frame_start_ns = SDL.GetTicksNS();
 
-            while (SDL.PollEvent(out var e) && loop)
-            {
-                switch ((SDL.EventType)e.Type)
-                {
-                    case SDL.EventType.Quit:
-                        loop = false;
-                        break;
+            loop = ProcessSDLEvents(ref stbg_io);
 
-                    case SDL.EventType.MouseMotion:
-                        stbg_io.mouse_position.x = e.Motion.X;
-                        stbg_io.mouse_position.y = e.Motion.Y;
-                        stbg_io.mouse_delta.x += e.Motion.XRel;
-                        stbg_io.mouse_delta.y += e.Motion.YRel;
-                        break;
-
-                    case SDL.EventType.MouseButtonDown:
-                        if (e.Button.Button == 1)
-                            stbg_io.mouse_button_1_down = true;
-                        else if (e.Button.Button == 2)
-                            stbg_io.mouse_button_2_down = true;
-                        stbg_io.mouse_position.x = e.Button.X;
-                        stbg_io.mouse_position.y = e.Button.Y;
-                        break;
-
-                    case SDL.EventType.MouseButtonUp:
-                        if (e.Button.Button == 1)
-                            stbg_io.mouse_button_1_down = false;
-                        else if (e.Button.Button == 2)
-                            stbg_io.mouse_button_2_down = false;
-                        stbg_io.mouse_position.x = e.Button.X;
-                        stbg_io.mouse_position.y = e.Button.Y;
-                        break;
-
-                }
-            }
-
-            if (!loop) continue;
+            if (!loop) break;
 
             // Screen clearing is handled by STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME
             //SDL.SetRenderDrawColor(renderer, 100, 149, 237, 0);
@@ -89,9 +72,103 @@ public class SDLApp : IDisposable
 
             RenderStbGui();
 
+            frames_count++;
+            if (SDL.GetTicks() - frames_ticks > 1000)
+            {
+                fps = (int)Math.Ceiling(frames_count / ((SDL.GetTicks() - frames_ticks) / 1000.0f));
+
+                frames_count = 0;
+                frames_ticks = SDL.GetTicks();
+            }
+
             // Screen presenting is handled by STBG_RENDER_COMMAND_TYPE.END_FRAME
             //SDL.RenderPresent(renderer);
+
+            ulong frame_end_ns = SDL.GetTicksNS();
+
+            var window_flags = SDL.GetWindowFlags(window);
+
+            var background_window = !((window_flags & SDL.WindowFlags.InputFocus) != 0);
+
+            if (use_fake_vsync || background_window)
+            {
+                var display = SDL.GetDisplayForWindow(window);
+
+                var displayMode = SDL.GetCurrentDisplayMode(display);
+
+                var refresh_rate = 60;
+
+                if (displayMode.HasValue)
+                {
+                    refresh_rate = (int)Math.Round(displayMode.Value.RefreshRate);
+                }
+
+                refresh_rate = Math.Clamp(refresh_rate, 1, MAX_FPS);
+
+                if (background_window)
+                    refresh_rate = Math.Min(refresh_rate, BACKGROUND_FPS);
+
+                ulong frame_delay_ns = 1_000_000_000 / (ulong)refresh_rate;
+
+                var frame_ns = frame_end_ns - frame_start_ns;
+
+                if (frame_ns < frame_delay_ns)
+                {
+                    SDL.DelayNS(frame_delay_ns - frame_ns);
+                }
+            }
         }
+    }
+
+    private bool ProcessSDLEvents(ref StbGui.stbg_io stbg_io)
+    {
+        bool loop = true;
+
+        stbg_io.mouse_delta = StbGui.stbg_build_position(0, 0);
+
+        while (SDL.PollEvent(out var e) && loop)
+        {
+            switch ((SDL.EventType)e.Type)
+            {
+                case SDL.EventType.Quit:
+                    loop = false;
+                    break;
+
+                case SDL.EventType.MouseMotion:
+                    stbg_io.mouse_position.x = e.Motion.X;
+                    stbg_io.mouse_position.y = e.Motion.Y;
+                    stbg_io.mouse_delta.x += e.Motion.XRel;
+                    stbg_io.mouse_delta.y += e.Motion.YRel;
+                    break;
+
+                case SDL.EventType.MouseButtonDown:
+                    if (e.Button.Button == 1)
+                        stbg_io.mouse_button_1_down = true;
+                    else if (e.Button.Button == 2)
+                        stbg_io.mouse_button_2_down = true;
+                    stbg_io.mouse_position.x = e.Button.X;
+                    stbg_io.mouse_position.y = e.Button.Y;
+                    break;
+
+                case SDL.EventType.MouseButtonUp:
+                    if (e.Button.Button == 1)
+                        stbg_io.mouse_button_1_down = false;
+                    else if (e.Button.Button == 2)
+                        stbg_io.mouse_button_2_down = false;
+                    stbg_io.mouse_position.x = e.Button.X;
+                    stbg_io.mouse_position.y = e.Button.Y;
+                    break;
+
+                case SDL.EventType.WindowResized:
+                    if (e.Window.WindowID == SDL.GetWindowID(window))
+                    {
+                        StbGui.stbg_set_screen_size(e.Window.Data1, e.Window.Data2);
+                    }
+                    break;
+            }
+        }
+
+        return loop;
     }
 
     public void Dispose()
@@ -169,17 +246,6 @@ public class SDLApp : IDisposable
                     var text = cmd.text.text.Span;
 
                     DrawText(text, StbGui.stbg_get_font_by_id(cmd.text.font_id), cmd.text.style, bounds);
-
-                    /*int text_index = 0;
-
-                    for (int y = (int)bounds.y0; y < (int)bounds.y1 && text_index < text.Length; y++)
-                    {
-                        for (int x = (int)bounds.x0; x < (int)bounds.x1 && text_index < text.Length; x++)
-                        {
-                            char character = text[text_index++];
-                            SetTestRenderScreenPixelCharacterAndColor(x, y, character, color);
-                        }
-                    }*/
                     break;
                 }
         }
@@ -214,8 +280,13 @@ public class SDLApp : IDisposable
     {
         StbGui.stbg_begin_frame();
         {
+            StbGui.stbg_button("FPS: " + fps);
+
             StbGui.stbg_begin_window("Window 1");
             {
+                if (StbGui.stbg_get_last_widget_is_new())
+                    StbGui.stbg_move_window(StbGui.stbg_get_last_widget_id(), 100, 50);
+
                 StbGui.stbg_button("Button 1");
                 if (StbGui.stbg_button("Toggle Button 3"))
                     showButton3 = !showButton3;
@@ -227,6 +298,9 @@ public class SDLApp : IDisposable
 
             StbGui.stbg_begin_window("Window 2");
             {
+                if (StbGui.stbg_get_last_widget_is_new())
+                    StbGui.stbg_move_window(StbGui.stbg_get_last_widget_id(), 200, 150);
+
                 StbGui.stbg_button("Button 1");
                 StbGui.stbg_button("Button 3");
             }

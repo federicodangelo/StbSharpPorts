@@ -88,6 +88,7 @@ public partial class StbGui
         ref var widget = ref stbg__add_widget(stbg__calculate_hash(type, identifier), out is_new);
         widget.type = type;
         context.last_widget_id = widget.id;
+        context.last_widget_is_new = is_new;
 
         return ref widget;
     }
@@ -106,6 +107,7 @@ public partial class StbGui
         {
             // New widget!
             is_new = true;
+
             context.frame_stats.new_widgets++;
 
             // Mark as used

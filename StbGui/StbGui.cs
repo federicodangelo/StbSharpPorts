@@ -351,6 +351,8 @@ public partial class StbGui
 
         public widget_id last_widget_id;
 
+        public bool last_widget_is_new;
+
         public widget_id root_widget_id;
 
         public stbg_context_frame_stats frame_stats;
@@ -652,6 +654,7 @@ public partial class StbGui
         context.inside_frame = true;
         context.current_widget_id = STBG_WIDGET_ID_NULL;
         context.last_widget_id = STBG_WIDGET_ID_NULL;
+        context.last_widget_is_new = false;
         context.current_frame++;
         context.prev_frame_stats = context.frame_stats;
         context.frame_stats = new stbg_context_frame_stats();
@@ -731,6 +734,14 @@ public partial class StbGui
     public static widget_id stbg_get_last_widget_id()
     {
         return context.last_widget_id;
+    }
+
+    /// <summary>
+    /// Returns if the last widget was a new widget
+    /// </summary>
+    public static bool stbg_get_last_widget_is_new()
+    {
+        return context.last_widget_is_new;
     }
 
     /// <summary>
