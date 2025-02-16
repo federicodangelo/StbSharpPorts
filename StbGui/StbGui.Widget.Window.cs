@@ -12,6 +12,14 @@ public partial class StbGui
     private static ref stbg_widget stbg__window_create(string title)
     {
         ref var window = ref stbg__add_widget(STBG_WIDGET_TYPE.WINDOW, title, out var is_new);
+
+        stbg__window_init(ref window, is_new, title);
+
+        return ref window;
+    }
+
+    private static void stbg__window_init(ref stbg_widget window, bool is_new, string title)
+    {
         window.text = title.AsMemory();
 
         ref var layout = ref window.layout;
@@ -33,8 +41,6 @@ public partial class StbGui
             context.next_new_window_position = stbg_offset_position(context.next_new_window_position, MathF.Ceiling(context.theme.default_font_style.size / 2), MathF.Ceiling(context.theme.default_font_style.size / 2));
             window.layout.intrinsic_size = stbg__build_intrinsic_size_pixels(stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH), stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT));
         }
-
-        return ref window;
     }
 
     private static void stbg__window_update_input(ref stbg_widget window)
@@ -86,8 +92,14 @@ public partial class StbGui
         bool hovered = context.input_feedback.hovered_widget_id == window.id;
         bool pressed = context.input_feedback.pressed_widget_id == window.id;
 
-        var title_background_color = stbg_get_widget_style_color(pressed ? STBG_WIDGET_STYLE.WINDOW_TITLE_PRESSED_BACKGROUND_COLOR : hovered ? STBG_WIDGET_STYLE.WINDOW_TITLE_HOVERED_BACKGROUND_COLOR : STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR);
-        var title_text_color = stbg_get_widget_style_color(pressed ? STBG_WIDGET_STYLE.WINDOW_TITLE_PRESSED_TEXT_COLOR : hovered ? STBG_WIDGET_STYLE.WINDOW_TITLE_HOVERED_TEXT_COLOR : STBG_WIDGET_STYLE.WINDOW_TITLE_TEXT_COLOR);
+        var title_background_color = stbg_get_widget_style_color(pressed || hovered ? STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR : STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR);
+        var title_text_color = stbg_get_widget_style_color(pressed || hovered ? STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_TEXT_COLOR : STBG_WIDGET_STYLE.WINDOW_TITLE_TEXT_COLOR);
+
+        if (window.hash == debug_window_hash)
+        {
+            title_background_color = stbg_get_widget_style_color(pressed || hovered ? STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR : STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_BACKGROUND_COLOR);
+            title_text_color = stbg_get_widget_style_color(pressed || hovered ? STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_ACTIVE_TEXT_COLOR : STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_TEXT_COLOR);
+        }
 
         // background and border
         render_context.draw_border(

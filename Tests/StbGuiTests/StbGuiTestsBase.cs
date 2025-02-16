@@ -294,7 +294,7 @@ public class StbGuiTestsBase : IDisposable
 
     static protected void InitGUI()
     {
-        InitGUI(new() { assert_behaviour = StbGui.STBG_ASSERT_BEHAVIOUR.EXCEPTION });
+        InitGUI(new() { assert_behaviour = StbGui.STBG_ASSERT_BEHAVIOUR.EXCEPTION, dont_nest_non_window_root_elements_into_debug_window = true });
     }
 
     static protected void InitGUI(StbGui.stbg_init_options options)
@@ -353,12 +353,15 @@ public class StbGuiTestsBase : IDisposable
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_BORDER_COLOR, StbGui.STBG_COLOR_WHITE);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_BACKGROUND_COLOR, StbGui.STBG_COLOR_BLUE);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_TEXT_COLOR, StbGui.STBG_COLOR_WHITE);
-        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR, StbGui.STBG_COLOR_MAGENTA);        
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR, StbGui.STBG_COLOR_MAGENTA);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_TEXT_COLOR, StbGui.STBG_COLOR_WHITE);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR, StbGui.STBG_COLOR_MAGENTA);
+
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_TEXT_COLOR, StbGui.STBG_COLOR_WHITE);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_BACKGROUND_COLOR, StbGui.STBG_COLOR_RED);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_ACTIVE_TEXT_COLOR, StbGui.STBG_COLOR_WHITE);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR, StbGui.STBG_COLOR_RED);
     }
-
-
-
-
 
     static protected void DestroyGui()
     {

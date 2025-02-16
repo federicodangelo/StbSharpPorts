@@ -75,7 +75,7 @@ public class SDLApp : IDisposable
             frames_count++;
             if (SDL.GetTicks() - frames_ticks > 1000)
             {
-                fps = (int)Math.Ceiling(frames_count / ((SDL.GetTicks() - frames_ticks) / 1000.0f));
+                fps = (int)Math.Round(frames_count / ((SDL.GetTicks() - frames_ticks) / 1000.0f));
 
                 frames_count = 0;
                 frames_ticks = SDL.GetTicks();
@@ -139,6 +139,7 @@ public class SDLApp : IDisposable
                     stbg_io.mouse_position.y = e.Motion.Y;
                     stbg_io.mouse_delta.x += e.Motion.XRel;
                     stbg_io.mouse_delta.y += e.Motion.YRel;
+                    stbg_io.mouse_position_valid = true;
                     break;
 
                 case SDL.EventType.MouseButtonDown:
@@ -148,6 +149,7 @@ public class SDLApp : IDisposable
                         stbg_io.mouse_button_2_down = true;
                     stbg_io.mouse_position.x = e.Button.X;
                     stbg_io.mouse_position.y = e.Button.Y;
+                    stbg_io.mouse_position_valid = true;
                     break;
 
                 case SDL.EventType.MouseButtonUp:
@@ -157,6 +159,11 @@ public class SDLApp : IDisposable
                         stbg_io.mouse_button_2_down = false;
                     stbg_io.mouse_position.x = e.Button.X;
                     stbg_io.mouse_position.y = e.Button.Y;
+                    stbg_io.mouse_position_valid = true;
+                    break;
+
+                case SDL.EventType.WindowMouseLeave:
+                    stbg_io.mouse_position_valid = false;
                     break;
 
                 case SDL.EventType.WindowResized:
@@ -280,7 +287,7 @@ public class SDLApp : IDisposable
     {
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_button("FPS: " + fps);
+            StbGui.stbg_label("FPS: " + fps);
 
             StbGui.stbg_begin_window("Window 1");
             {
@@ -306,6 +313,7 @@ public class SDLApp : IDisposable
             }
             StbGui.stbg_end_window();
 
+            StbGui.stbg_label("This is the debug window!");
         }
         StbGui.stbg_end_frame();
 

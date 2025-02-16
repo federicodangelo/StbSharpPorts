@@ -54,6 +54,47 @@ public class StbGuiRenderTests : StbGuiTestsBase
     }
 
     [Fact]
+    public void TestRenderButtonInDebugWindow()
+    {
+        InitGUI(new StbGui.stbg_init_options() { dont_nest_non_window_root_elements_into_debug_window = false });
+
+        StbGui.stbg_begin_frame();
+        {
+            StbGui.stbg_button("Button 1");
+        }
+        StbGui.stbg_end_frame();
+
+        StbGui.stbg_render();
+
+        RenderCommandsToTestScreen();
+
+        AssertScreenEqual([
+            ["""/--------------------------------\""", "RW34"],
+            ["""|_DEBUG_                         |""", "RW8RT25RW1"],
+            ["""\--------------------------------/""", "RW34"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""| /----------\                   |""", "BW1BT1CB12BT19BW1"],
+            ["""| |          |                   |""", "BW1BT1CB1CT10CB1BT19BW1"],
+            ["""| | Button 1 |                   |""", "BW1BT1CB1CT1CW8CT1CB1BT19BW1"],
+            ["""| |          |                   |""", "BW1BT1CB1CT10CB1BT19BW1"],
+            ["""| \----------/                   |""", "BW1BT1CB12BT19BW1"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""\--------------------------------/""", "BW34"],
+        ]);
+    }
+
+    [Fact]
     public void TestRenderWindow()
     {
         InitGUI();
@@ -125,7 +166,7 @@ public class StbGuiRenderTests : StbGuiTestsBase
             ["""|                |""", "BW1BT16BW1"],
             ["""\----------------/""", "BW18"],
         ]);
-    }    
+    }
 
     [Fact]
     public void TestRenderWindowTwoWindows()

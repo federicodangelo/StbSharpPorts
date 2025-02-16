@@ -110,6 +110,12 @@ public partial class StbGui
         // Root style
         ROOT_BACKGROUND_COLOR,
 
+        // Debug window
+        DEBUG_WINDOW_TITLE_TEXT_COLOR,
+        DEBUG_WINDOW_TITLE_BACKGROUND_COLOR,
+        DEBUG_WINDOW_TITLE_ACTIVE_TEXT_COLOR,
+        DEBUG_WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR,
+
         // Window styles
         WINDOW_BORDER_SIZE,
         WINDOW_TITLE_HEIGHT,
@@ -128,10 +134,8 @@ public partial class StbGui
         WINDOW_BACKGROUND_COLOR,
         WINDOW_TITLE_TEXT_COLOR,
         WINDOW_TITLE_BACKGROUND_COLOR,
-        WINDOW_TITLE_HOVERED_TEXT_COLOR,
-        WINDOW_TITLE_HOVERED_BACKGROUND_COLOR,
-        WINDOW_TITLE_PRESSED_TEXT_COLOR,
-        WINDOW_TITLE_PRESSED_BACKGROUND_COLOR,
+        WINDOW_TITLE_ACTIVE_TEXT_COLOR,
+        WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR,
 
         // Button styles
         BUTTON_BORDER_SIZE,
@@ -148,6 +152,14 @@ public partial class StbGui
         BUTTON_PRESSED_BORDER_COLOR,
         BUTTON_PRESSED_BACKGROUND_COLOR,
         BUTTON_PRESSED_TEXT_COLOR,
+
+        // Label styles
+        LABEL_PADDING_TOP,
+        LABEL_PADDING_BOTTOM,
+        LABEL_PADDING_LEFT,
+        LABEL_PADDING_RIGHT,
+        LABEL_BACKGROUND_COLOR,
+        LABEL_TEXT_COLOR,
 
         // ALWAYS LAST!!
         COUNT
@@ -260,6 +272,7 @@ public partial class StbGui
         WINDOW,
         CONTAINER,
         BUTTON,
+        LABEL,
         COUNT, // MUST BE LAST
     }
 
@@ -308,6 +321,7 @@ public partial class StbGui
     {
         public stbg_position mouse_position;
         public stbg_position mouse_delta;
+        public bool mouse_position_valid;
         public bool mouse_button_1_down;
         public bool mouse_button_2_down;
     }
@@ -483,6 +497,11 @@ public partial class StbGui
         /// Size of render commands queue, defaults to DEFAULT_RENDER_QUEUE_SIZE
         /// </summary>
         public int render_commands_queue_size;
+
+        /// <summary>
+        /// Disables the nesting of non window root elements into the debug window
+        /// </summary>
+        public bool dont_nest_non_window_root_elements_into_debug_window;
     }
 
     /// <summary>
@@ -524,8 +543,17 @@ public partial class StbGui
         theme.default_font_id = font_id;
         theme.default_font_style = font_style;
 
+        // ROOT
         stbg_set_widget_style(STBG_WIDGET_STYLE.ROOT_BACKGROUND_COLOR, stbg_build_color(236, 240, 241));
 
+        // DEBUG WINDOW
+        stbg_set_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_TEXT_COLOR, stbg_build_color(236, 240, 241));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_BACKGROUND_COLOR, stbg_build_color(192, 57, 43));
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_ACTIVE_TEXT_COLOR, stbg_build_color(236, 240, 241));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR, stbg_build_color(231, 76, 60));
+
+        // BUTTON
         var buttonBorder = 1.0f;
         var buttonPaddingTopBottom = MathF.Ceiling(font_style.size / 2);
         var buttonPaddingLeftRight = MathF.Ceiling(font_style.size / 2);
@@ -548,6 +576,7 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PRESSED_BACKGROUND_COLOR, stbg_build_color(46, 204, 113));
         stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PRESSED_TEXT_COLOR, stbg_build_color(236, 240, 241));
 
+        // WINDOW
         var windowBorder = 1.0f;
         var windowTitleHeight = MathF.Ceiling(font_style.size);
         var windowTitlePadding = MathF.Ceiling(font_style.size / 4);
@@ -579,11 +608,21 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_TEXT_COLOR, stbg_build_color(236, 240, 241));
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR, stbg_build_color(44, 62, 80));
 
-        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_HOVERED_TEXT_COLOR, stbg_build_color(236, 240, 241));
-        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_HOVERED_BACKGROUND_COLOR, stbg_build_color(52, 73, 94));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_TEXT_COLOR, stbg_build_color(236, 240, 241));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR, stbg_build_color(52, 73, 94));
 
-        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_PRESSED_TEXT_COLOR, stbg_build_color(236, 240, 241));
-        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_PRESSED_BACKGROUND_COLOR, stbg_build_color(52, 73, 94));
+        // LABEL
+        var labelPaddingTopBottom = 0;
+        var labelPaddingLeftRight = 0;
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.LABEL_PADDING_TOP, labelPaddingTopBottom);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.LABEL_PADDING_BOTTOM, labelPaddingTopBottom);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.LABEL_PADDING_LEFT, labelPaddingLeftRight);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.LABEL_PADDING_RIGHT, labelPaddingLeftRight);
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.LABEL_BACKGROUND_COLOR, STBG_COLOR_TRANSPARENT);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.LABEL_TEXT_COLOR, stbg_build_color(44, 62, 80));
+
     }
 
     /// <summary>
@@ -640,6 +679,14 @@ public partial class StbGui
     {
         stbg__assert(!context.inside_frame);
         context.io = io;
+
+        // This prevents the default mouse position of (0,0) from triggering a hover effect when the mouse is really outside the screen
+        if (!context.io.mouse_position_valid)
+        {
+            context.io.mouse_position.x = -999999;
+            context.io.mouse_position.y = -999999; 
+            context.io.mouse_delta = new stbg_position();
+        }
     }
 
     /// <summary>
@@ -880,5 +927,14 @@ public partial class StbGui
         }
 
         return clicked;
+    }
+
+    /// <summary>
+    /// Shows a label.
+    /// </summary>
+    /// <param name="text">Label text, must be unique in the parent</param>
+    public static void stbg_label(string text)
+    {
+        stbg__label_create(text);
     }
 }

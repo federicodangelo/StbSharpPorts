@@ -220,8 +220,6 @@ public partial class StbGui
 
                 // Add it back to the list at the new insertion point
                 stbg__add_widget_to_parent_after_sibling_or_first(ref children, prev_children_id, widget.id);
-
-                has_prev_children = false;
             }
             else
             {
