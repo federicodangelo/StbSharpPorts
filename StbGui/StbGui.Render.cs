@@ -81,9 +81,16 @@ public partial class StbGui
 
         var size = widget.computed_bounds.size;
 
+        bool hovered = (widget.flags & STBG_WIDGET_FLAGS.HOVERED) != 0;
+        bool pressed = (widget.flags & STBG_WIDGET_FLAGS.PRESSED) != 0;
+
         switch (widget.type)
         {
             case STBG_WIDGET_TYPE.WINDOW:
+            {
+                var title_background_color = stbg_get_widget_style_color(pressed ? STBG_WIDGET_STYLE.WINDOW_TITLE_PRESSED_BACKGROUND_COLOR : hovered ? STBG_WIDGET_STYLE.WINDOW_TITLE_HOVERED_BACKGROUND_COLOR : STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR);
+                var title_text_color = stbg_get_widget_style_color(pressed ? STBG_WIDGET_STYLE.WINDOW_TITLE_PRESSED_TEXT_COLOR : hovered ? STBG_WIDGET_STYLE.WINDOW_TITLE_HOVERED_TEXT_COLOR : STBG_WIDGET_STYLE.WINDOW_TITLE_TEXT_COLOR);
+
                 // background and border
                 render_context.draw_border(
                     stbg_build_rect(0, 0, size.width, size.height),
@@ -101,7 +108,7 @@ public partial class StbGui
                     ),
                     stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE),
                     stbg_get_widget_style_color(STBG_WIDGET_STYLE.WINDOW_BORDER_COLOR),
-                    stbg_get_widget_style_color(STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR)
+                    title_background_color
                 );
                 // title text
                 render_context.draw_text(
@@ -111,27 +118,34 @@ public partial class StbGui
                         size.width - stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_RIGHT),
                         stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP, STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT)
                     ),
-                    widget.text
+                    stbg__build_text(widget.text, title_text_color)
                 );
                 break;
+            }
 
             case STBG_WIDGET_TYPE.BUTTON:
-                render_context.draw_border(
-                    stbg_build_rect(0, 0, size.width, size.height),
-                    stbg_get_widget_style(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE),
-                    stbg_get_widget_style_color(STBG_WIDGET_STYLE.BUTTON_BORDER_COLOR),
-                    stbg_get_widget_style_color(STBG_WIDGET_STYLE.BUTTON_BACKGROUND_COLOR)
-                );
-                render_context.draw_text(
-                    stbg_build_rect(
-                        stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_LEFT),
-                        stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_TOP),
-                        size.width - stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_PADDING_RIGHT),
-                        size.height - stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_PADDING_BOTTOM)
-                    ),
-                    widget.text
-                );
-                break;
+                {
+                    var border_color = stbg_get_widget_style_color(pressed ? STBG_WIDGET_STYLE.BUTTON_PRESSED_BORDER_COLOR : hovered ? STBG_WIDGET_STYLE.BUTTON_HOVERED_BORDER_COLOR : STBG_WIDGET_STYLE.BUTTON_BORDER_COLOR);
+                    var background_color = stbg_get_widget_style_color(pressed ? STBG_WIDGET_STYLE.BUTTON_PRESSED_BACKGROUND_COLOR : hovered ? STBG_WIDGET_STYLE.BUTTON_HOVERED_BACKGROUND_COLOR : STBG_WIDGET_STYLE.BUTTON_BACKGROUND_COLOR);
+                    var text_color = stbg_get_widget_style_color(pressed ? STBG_WIDGET_STYLE.BUTTON_PRESSED_TEXT_COLOR : hovered ? STBG_WIDGET_STYLE.BUTTON_HOVERED_TEXT_COLOR : STBG_WIDGET_STYLE.BUTTON_TEXT_COLOR);
+
+                    render_context.draw_border(
+                        stbg_build_rect(0, 0, size.width, size.height),
+                        stbg_get_widget_style(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE),
+                        border_color,
+                        background_color
+                    );
+                    render_context.draw_text(
+                        stbg_build_rect(
+                            stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_LEFT),
+                            stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_TOP),
+                            size.width - stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_PADDING_RIGHT),
+                            size.height - stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_PADDING_BOTTOM)
+                        ),
+                        stbg__build_text(widget.text, text_color)
+                    );
+                    break;
+                }
         }
 
         if (widget.hierarchy.first_children_id != STBG_WIDGET_ID_NULL)

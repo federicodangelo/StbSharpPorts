@@ -89,9 +89,6 @@ public partial class StbGui
         widget.type = type;
         context.last_widget_id = widget.id;
 
-        widget.text.style = context.theme.default_font_style;
-        widget.text.font_id = context.theme.default_font_id;
-
         return ref widget;
     }
 
@@ -114,9 +111,6 @@ public partial class StbGui
             // Mark as used
             widget.flags |= STBG_WIDGET_FLAGS.USED;
 
-            // Reset persistent data
-            widget.persistent_data = new stbg_widget_persistent_data();
-
             // Update the next free widget id        
             context.first_free_widget_id = widget.hierarchy.next_sibling_id;
             widget.hierarchy.next_sibling_id = STBG_WIDGET_ID_NULL;
@@ -133,6 +127,11 @@ public partial class StbGui
                 widget.hash_chain.next_same_bucket = bucket.first_widget_in_bucket;
             }
             bucket.first_widget_in_bucket = widget.id;
+
+            // Reset dynamic properties
+            widget.layout = new stbg_widget_layout();
+            widget.computed_bounds = new stbg_widget_computed_bounds();
+            widget.text = new ReadOnlyMemory<char>();
         }
         else
         {
@@ -142,9 +141,9 @@ public partial class StbGui
         }
 
         // Reset dynamic properties
-        widget.layout = new stbg_widget_layout();
-        widget.computed_bounds = new stbg_widget_computed_bounds();
-        widget.text = new stbg_text();
+        //widget.layout = new stbg_widget_layout();
+        //widget.computed_bounds = new stbg_widget_computed_bounds();
+        //widget.text = new ReadOnlyMemory<char>();
 
         // Update last used
         if (widget.last_used_in_frame == context.current_frame)

@@ -151,10 +151,10 @@ public partial class StbGui
                         break;
 
                     case STBG_CHILDREN_LAYOUT_DIRECTION.FREE:
-                        children.computed_bounds.position.x =
-                            next_children_top_left.x + Math.Min(children.layout.intrinsic_position.x, children_constrains.max.width - children_size.width);
-                        children.computed_bounds.position.y =
-                            next_children_top_left.y + Math.Min(children.layout.intrinsic_position.y, children_constrains.max.height - children_size.height);
+                        children.layout.intrinsic_position.x = Math.Clamp(children.layout.intrinsic_position.x, 0, children_constrains.max.width - children_size.width);
+                        children.layout.intrinsic_position.y = Math.Clamp(children.layout.intrinsic_position.y, 0, children_constrains.max.height - children_size.height);
+                        children.computed_bounds.position.x = next_children_top_left.x + children.layout.intrinsic_position.x;
+                        children.computed_bounds.position.y = next_children_top_left.y + children.layout.intrinsic_position.y;
                         break;
                 }
 
@@ -175,7 +175,7 @@ public partial class StbGui
         return widget_intrinsic_size.type == STBG_INTRINSIC_SIZE_TYPE.FIXED_PIXELS ?
             widget_intrinsic_size.size :
             widget_intrinsic_size.type == STBG_INTRINSIC_SIZE_TYPE.MEASURE_TEXT ?
-            stbg__measure_text(widget.text) :
+            stbg__measure_text(stbg__build_text(widget.text)) :
             stbg_build_size_zero();
     }
 }

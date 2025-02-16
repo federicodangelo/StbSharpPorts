@@ -132,6 +132,22 @@ public partial class StbGui
 
     [ExcludeFromCodeCoverage]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static private stbg_text stbg__build_text(ReadOnlyMemory<char> text)
+    {
+        return new stbg_text() { text = text, font_id = context.theme.default_font_id, style = context.theme.default_font_style };
+    }
+
+    [ExcludeFromCodeCoverage]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static private stbg_text stbg__build_text(ReadOnlyMemory<char> text, stbg_color color)
+    {
+        var style = context.theme.default_font_style;
+        style.color = color;
+        return new stbg_text() { text = text, font_id = context.theme.default_font_id, style = style };
+    }
+
+    [ExcludeFromCodeCoverage]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static public stbg_color stbg_build_color(byte r, byte g, byte b, byte a = 255) => new stbg_color() { r = r, g = g, b = b, a = a };
 
     [ExcludeFromCodeCoverage]
@@ -187,7 +203,7 @@ public partial class StbGui
     static public stbg_size stbg_size_add_padding(stbg_size size, stbg_padding padding)
     {
         size.width += padding.right + padding.left;
-        size.height += padding.top + padding.bottom; 
+        size.height += padding.top + padding.bottom;
 
         return size;
     }

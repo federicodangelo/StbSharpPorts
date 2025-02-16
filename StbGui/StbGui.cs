@@ -99,13 +99,6 @@ public partial class StbGui
         public stbg_font_style style;
     }
 
-    public struct stbg_widget_style
-    {
-        public font_id font_id;
-        public stbg_font_style font_style;
-        public stbg_widget_layout layout;
-    }
-
     /// <summary>
     /// Widget styles
     /// - Paddings always go in (top, bottom, left, right) order (so we can automate padding object construction given a single index)
@@ -135,6 +128,10 @@ public partial class StbGui
         WINDOW_BACKGROUND_COLOR,
         WINDOW_TITLE_TEXT_COLOR,
         WINDOW_TITLE_BACKGROUND_COLOR,
+        WINDOW_TITLE_HOVERED_TEXT_COLOR,
+        WINDOW_TITLE_HOVERED_BACKGROUND_COLOR,
+        WINDOW_TITLE_PRESSED_TEXT_COLOR,
+        WINDOW_TITLE_PRESSED_BACKGROUND_COLOR,
 
         // Button styles
         BUTTON_BORDER_SIZE,
@@ -145,6 +142,12 @@ public partial class StbGui
         BUTTON_BORDER_COLOR,
         BUTTON_BACKGROUND_COLOR,
         BUTTON_TEXT_COLOR,
+        BUTTON_HOVERED_BORDER_COLOR,
+        BUTTON_HOVERED_BACKGROUND_COLOR,
+        BUTTON_HOVERED_TEXT_COLOR,
+        BUTTON_PRESSED_BORDER_COLOR,
+        BUTTON_PRESSED_BACKGROUND_COLOR,
+        BUTTON_PRESSED_TEXT_COLOR,
 
         // ALWAYS LAST!!
         COUNT
@@ -260,20 +263,14 @@ public partial class StbGui
     {
         NONE = 0,
         USED = 1 << 0,
+        HOVERED = 1 << 1,
+        PRESSED = 1 << 2,
     }
 
     public struct stbg_widget_hash_chain
     {
         public widget_id next_same_bucket;
         public widget_id prev_same_bucket;
-    }
-
-    public struct stbg_widget_persistent_data
-    {
-        public float f1;
-        public float f2;
-        public float f3;
-        public float f4;
     }
 
     public struct stbg_widget
@@ -296,13 +293,19 @@ public partial class StbGui
 
         public stbg_widget_hash_chain hash_chain;
 
-        public stbg_widget_persistent_data persistent_data;
-
         public stbg_widget_layout layout;
 
         public stbg_widget_computed_bounds computed_bounds;
 
-        public stbg_text text;
+        public ReadOnlyMemory<char> text;
+    }
+
+    public struct stbg_io
+    {
+        public stbg_position mouse_position;
+        public stbg_position mouse_delta;
+        public bool mouse_button_1_down;
+        public bool mouse_button_2_down;
     }
 
     public struct stbg_hash_entry
@@ -352,6 +355,8 @@ public partial class StbGui
         public stbg_theme theme;
 
         public stbg_render_command[] render_commands_queue;
+
+        public stbg_io io;
     }
 
     public enum STBG_ASSERT_BEHAVIOUR
@@ -493,6 +498,8 @@ public partial class StbGui
     /// </summary>
     public static void stbg_init_default_theme(font_id font_id, stbg_font_style font_style)
     {
+        // https://materialui.co/flatuicolors
+
         stbg__assert(!context.inside_frame);
 
         ref var theme = ref context.theme;
@@ -513,8 +520,16 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PADDING_RIGHT, buttonPaddingLeftRight);
 
         stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_BORDER_COLOR, stbg_build_color(41, 128, 185));
-        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_BACKGROUND_COLOR, stbg_build_color(52, 152, 219));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_BACKGROUND_COLOR, stbg_build_color(41, 128, 185));
         stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_TEXT_COLOR, stbg_build_color(236, 240, 241));
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_HOVERED_BORDER_COLOR, stbg_build_color(41, 128, 185));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_HOVERED_BACKGROUND_COLOR, stbg_build_color(52, 152, 219));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_HOVERED_TEXT_COLOR, stbg_build_color(236, 240, 241));
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PRESSED_BORDER_COLOR, stbg_build_color(41, 128, 185));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PRESSED_BACKGROUND_COLOR, stbg_build_color(46, 204, 113));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PRESSED_TEXT_COLOR, stbg_build_color(236, 240, 241));
 
         var windowBorder = 1.0f;
         var windowTitleHeight = MathF.Ceiling(font_style.size);
@@ -537,14 +552,21 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_LEFT, windowChildrenPadding);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_RIGHT, windowChildrenPadding);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING, windowChidlrenSpacing);
-        
+
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, windowDefaultWidth);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, windowDefaultHeight);
 
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_COLOR, stbg_build_color(41, 128, 185));
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BACKGROUND_COLOR, stbg_build_color(189, 195, 199));
+
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_TEXT_COLOR, stbg_build_color(236, 240, 241));
-        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR, stbg_build_color(52, 73, 94));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR, stbg_build_color(44, 62, 80));
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_HOVERED_TEXT_COLOR, stbg_build_color(236, 240, 241));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_HOVERED_BACKGROUND_COLOR, stbg_build_color(52, 73, 94));
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_PRESSED_TEXT_COLOR, stbg_build_color(236, 240, 241));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_PRESSED_BACKGROUND_COLOR, stbg_build_color(52, 73, 94));
     }
 
     /// <summary>
@@ -592,6 +614,15 @@ public partial class StbGui
         stbg__assert(!context.inside_frame);
         context.screen_size.width = width;
         context.screen_size.height = height;
+    }
+
+    /// <summary>
+    /// Sets the IO
+    /// </summary>
+    public static void stbg_set_io(stbg_io io)
+    {
+        stbg__assert(!context.inside_frame);
+        context.io = io;
     }
 
     /// <summary>
@@ -714,14 +745,44 @@ public partial class StbGui
     {
         ref var window = ref stbg__add_widget(STBG_WIDGET_TYPE.WINDOW, title, out var is_new);
 
-        window.text.style.color = stbg_get_widget_style_color(STBG_WIDGET_STYLE.WINDOW_TITLE_TEXT_COLOR);
-        window.text.text = title.AsMemory();
+        float title_height_total = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP, STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT, STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_BOTTOM, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_TOP);
+
+        if ((window.flags & STBG_WIDGET_FLAGS.PRESSED) != 0)
+        {
+            if (!context.io.mouse_button_1_down)
+            {
+                window.flags &= ~STBG_WIDGET_FLAGS.PRESSED;
+            }
+        }
+        else if (context.io.mouse_position.x >= window.computed_bounds.global_rect.x0 &&
+            context.io.mouse_position.x < window.computed_bounds.global_rect.x1 &&
+            context.io.mouse_position.y >= window.computed_bounds.global_rect.y0 &&
+            context.io.mouse_position.y < Math.Min(window.computed_bounds.global_rect.y1, window.computed_bounds.global_rect.y0 + title_height_total))
+        {
+            window.flags |= STBG_WIDGET_FLAGS.HOVERED;
+
+            if (context.io.mouse_button_1_down)
+            {
+                window.flags |= STBG_WIDGET_FLAGS.PRESSED;
+            }
+            else
+            {
+                window.flags &= ~STBG_WIDGET_FLAGS.PRESSED;
+            }
+        }
+        else
+        {
+            window.flags &= ~STBG_WIDGET_FLAGS.HOVERED;
+            window.flags &= ~STBG_WIDGET_FLAGS.PRESSED;
+        }
+
+        window.text = title.AsMemory();
 
         ref var layout = ref window.layout;
 
         layout.inner_padding = new stbg_padding()
         {
-            top = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP, STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT, STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_BOTTOM, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_TOP),
+            top = title_height_total,
             bottom = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_BOTTOM),
             left = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_LEFT),
             right = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_RIGHT),
@@ -732,15 +793,15 @@ public partial class StbGui
 
         if (is_new)
         {
-            window.persistent_data.f1 = 0;
-            window.persistent_data.f2 = 0;
-            window.persistent_data.f3 = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH);
-            window.persistent_data.f4 = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT);
+            window.layout.intrinsic_position = stbg_build_position(0, 0);
+            window.layout.intrinsic_size = stbg__build_intrinsic_size_pixels(stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH), stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT));
         }
 
-        window.layout.intrinsic_position.x = window.persistent_data.f1;
-        window.layout.intrinsic_position.y = window.persistent_data.f2;
-        layout.intrinsic_size = stbg__build_intrinsic_size_pixels(window.persistent_data.f3, window.persistent_data.f4);
+        if ((window.flags & STBG_WIDGET_FLAGS.PRESSED) != 0)
+        {
+            window.layout.intrinsic_position.x += context.io.mouse_delta.x;
+            window.layout.intrinsic_position.y += context.io.mouse_delta.y;
+        }
 
         bool visible = true; //TODO: Implement
 
@@ -771,10 +832,8 @@ public partial class StbGui
         ref var window = ref stbg_get_widget_by_id(window_id);
         stbg__assert(window.type == STBG_WIDGET_TYPE.WINDOW);
 
-        window.persistent_data.f1 = x;
-        window.persistent_data.f2 = y;
-        window.layout.intrinsic_position.x = window.persistent_data.f1;
-        window.layout.intrinsic_position.y = window.persistent_data.f2;
+        window.layout.intrinsic_position.x = x;
+        window.layout.intrinsic_position.y = y;
     }
 
     /// <summary>
@@ -786,9 +845,8 @@ public partial class StbGui
         ref var window = ref stbg_get_widget_by_id(window_id);
         stbg__assert(window.type == STBG_WIDGET_TYPE.WINDOW);
 
-        window.persistent_data.f3 = Math.Max(width - (window.layout.inner_padding.left + window.layout.inner_padding.right), 0);
-        window.persistent_data.f4 = Math.Max(height - (window.layout.inner_padding.top + window.layout.inner_padding.bottom), 0);
-        window.layout.intrinsic_size = stbg__build_intrinsic_size_pixels(window.persistent_data.f3, window.persistent_data.f4);
+        window.layout.intrinsic_size.size.width = Math.Max(width - (window.layout.inner_padding.left + window.layout.inner_padding.right), 0);
+        window.layout.intrinsic_size.size.height = Math.Max(height - (window.layout.inner_padding.top + window.layout.inner_padding.bottom), 0);
     }
 
     /// <summary>
@@ -843,8 +901,36 @@ public partial class StbGui
     public static bool stbg_button(string label)
     {
         ref var button = ref stbg__add_widget(STBG_WIDGET_TYPE.BUTTON, label, out _);
-        button.text.style.color = stbg_get_widget_style_color(STBG_WIDGET_STYLE.BUTTON_TEXT_COLOR);
-        button.text.text = label.AsMemory();
+
+        bool clicked = false;
+
+        if (context.io.mouse_position.x >= button.computed_bounds.global_rect.x0 &&
+            context.io.mouse_position.x < button.computed_bounds.global_rect.x1 &&
+            context.io.mouse_position.y >= button.computed_bounds.global_rect.y0 &&
+            context.io.mouse_position.y < button.computed_bounds.global_rect.y1)
+        {
+            button.flags |= STBG_WIDGET_FLAGS.HOVERED;
+
+            if (context.io.mouse_button_1_down)
+            {
+                button.flags |= STBG_WIDGET_FLAGS.PRESSED;
+            }
+            else
+            {
+                if ((button.flags & STBG_WIDGET_FLAGS.PRESSED) != 0)
+                {
+                    button.flags &= ~STBG_WIDGET_FLAGS.PRESSED;
+                    clicked = true;
+                }
+            }
+        }
+        else
+        {
+            button.flags &= ~STBG_WIDGET_FLAGS.HOVERED;
+            button.flags &= ~STBG_WIDGET_FLAGS.PRESSED;
+        }
+
+        button.text = label.AsMemory();
 
         ref var layout = ref button.layout;
 
@@ -858,8 +944,6 @@ public partial class StbGui
         };
         layout.intrinsic_size = stbg__build_intrinsic_size_text();
 
-        bool pressed = false; // TODO: Implement!
-
-        return pressed;
+        return clicked;
     }
 }
