@@ -1,4 +1,3 @@
-
 namespace StbSharp.Tests;
 
 public class StbGuiInputTests : StbGuiTestsBase
@@ -598,7 +597,6 @@ public class StbGuiInputTests : StbGuiTestsBase
         StbGui.stbg_set_input(new()
         {
             mouse_position = StbGui.stbg_build_position(4, 2),
-            mouse_delta = StbGui.stbg_build_position(2, 0),
             mouse_position_valid = true,
             mouse_button_1_pressed = true,
         });
@@ -645,7 +643,6 @@ public class StbGuiInputTests : StbGuiTestsBase
         StbGui.stbg_set_input(new()
         {
             mouse_position = StbGui.stbg_build_position(6, 2),
-            mouse_delta = StbGui.stbg_build_position(2, 0),
             mouse_position_valid = true,
             mouse_button_1_released = true,
             mouse_button_1_down = false,
@@ -687,6 +684,6 @@ public class StbGuiInputTests : StbGuiTestsBase
             ["""    |                |""", "CT4BW1BT16BW1"],
             ["""    |                |""", "CT4BW1BT16BW1"],
             ["""    \----------------/""", "CT4BW18"],
-        ]);        
+        ]);
     }
 }

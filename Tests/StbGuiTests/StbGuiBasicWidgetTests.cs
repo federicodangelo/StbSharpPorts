@@ -15,6 +15,26 @@ public class StbGuiBasicWidgetTests : StbGuiTestsBase
     }
 
     [Fact]
+    public void TestLastWidgetIsNew()
+    {
+        InitGUI();
+
+        StbGui.stbg_begin_frame();
+        {
+            StbGui.stbg_button("Hello");
+            Assert.True(StbGui.stbg_get_last_widget_is_new());
+        }
+        StbGui.stbg_end_frame();
+
+        StbGui.stbg_begin_frame();
+        {
+            StbGui.stbg_button("Hello");
+            Assert.False(StbGui.stbg_get_last_widget_is_new()); // Reused widget, should NOT be new
+        }
+        StbGui.stbg_end_frame();
+    }
+
+    [Fact]
     public void TestAddSameButtonTwiceInSameFrameShouldThrowAnException()
     {
         InitGUI();

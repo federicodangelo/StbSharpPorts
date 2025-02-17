@@ -199,7 +199,6 @@ public class SDLAppBase : IDisposable
     {
         bool quit = false;
 
-        input.mouse_delta = StbGui.stbg_build_position(0, 0);
         input.mouse_button_1_down = false;
         input.mouse_button_2_down = false;
         input.mouse_button_1_released = false;
@@ -216,8 +215,6 @@ public class SDLAppBase : IDisposable
                 case SDL.EventType.MouseMotion:
                     input.mouse_position.x = e.Motion.X;
                     input.mouse_position.y = e.Motion.Y;
-                    input.mouse_delta.x += e.Motion.XRel;
-                    input.mouse_delta.y += e.Motion.YRel;
                     input.mouse_position_valid = true;
                     break;
 

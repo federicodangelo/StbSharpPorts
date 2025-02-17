@@ -62,9 +62,6 @@ public partial class StbGui
 
     private static widget_id stbg__get_widget_id_at_position(stbg_position position, widget_id widget_id)
     {
-        if (widget_id == STBG_WIDGET_ID_NULL)
-            return STBG_WIDGET_ID_NULL;
-
         ref var widget = ref stbg_get_widget_by_id(widget_id);
         var mouse_tolerance = widget.properties.mouse_tolerance;
 

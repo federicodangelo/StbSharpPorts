@@ -296,18 +296,6 @@ public partial class StbGui
         }
     }
 
-
-    private static void stbg__move_children_parent_last(ref stbg_widget widget)
-    {
-        if (widget.hierarchy.next_sibling_id != STBG_WIDGET_ID_NULL)
-        {
-            var parent_id = widget.hierarchy.parent_id;
-
-            stbg__remove_widget_from_parent(ref widget);
-            stbg__add_widget_to_parent_last(ref widget, parent_id);
-        }
-    }
-
     private static void stbg__destroy_widget(ref stbg_widget widget)
     {
         stbg__assert_internal(!context.inside_frame);
