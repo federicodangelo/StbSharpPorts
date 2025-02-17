@@ -82,7 +82,7 @@ public partial class StbGui
 
     private static void stbg__render_widget(ref stbg_widget widget, ref stbg_render_context render_context)
     {
-        render_context.set_global_rect(widget.computed_bounds.global_rect);
+        render_context.set_global_rect(widget.properties.computed_bounds.global_rect);
 
         var widget_render = STBG__WIDGET_RENDER_MAP[(int)widget.type];
 

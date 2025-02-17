@@ -208,6 +208,7 @@ public class StbGuiInputTests : StbGuiTestsBase
             mouse_position = StbGui.stbg_build_position(2, 2),
             mouse_position_valid = true,
             mouse_button_1_down = true,
+            mouse_button_1_pressed = true,
         });
 
         StbGui.stbg_begin_frame();
@@ -233,6 +234,7 @@ public class StbGuiInputTests : StbGuiTestsBase
         {
             mouse_position = StbGui.stbg_build_position(2, 2),
             mouse_position_valid = true,
+            mouse_button_1_released = true,
             mouse_button_1_down = false,
         });
 
@@ -287,8 +289,8 @@ public class StbGuiInputTests : StbGuiTestsBase
     {
         InitGUI();
 
-        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, 4);
-        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, 14);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, 11);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, 18);
 
         // Normal render
         StbGui.stbg_begin_frame();
@@ -361,8 +363,8 @@ public class StbGuiInputTests : StbGuiTestsBase
     {
         InitGUI();
 
-        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, 4);
-        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, 14);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, 11);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, 18);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_SPACING_BETWEEN_NEW_WINDOWS, 4);
 
         // Normal render
@@ -502,8 +504,8 @@ public class StbGuiInputTests : StbGuiTestsBase
     {
         InitGUI();
 
-        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, 4);
-        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, 14);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, 11);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, 18);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_SPACING_BETWEEN_NEW_WINDOWS, 4);
 
         // Normal render
@@ -551,6 +553,7 @@ public class StbGuiInputTests : StbGuiTestsBase
             mouse_position = StbGui.stbg_build_position(2, 2),
             mouse_position_valid = true,
             mouse_button_1_down = true,
+            mouse_button_1_pressed = true,
         });
 
         StbGui.stbg_begin_frame();
@@ -597,7 +600,7 @@ public class StbGuiInputTests : StbGuiTestsBase
             mouse_position = StbGui.stbg_build_position(4, 2),
             mouse_delta = StbGui.stbg_build_position(2, 0),
             mouse_position_valid = true,
-            mouse_button_1_down = true,
+            mouse_button_1_pressed = true,
         });
 
         StbGui.stbg_begin_frame();
@@ -644,6 +647,7 @@ public class StbGuiInputTests : StbGuiTestsBase
             mouse_position = StbGui.stbg_build_position(6, 2),
             mouse_delta = StbGui.stbg_build_position(2, 0),
             mouse_position_valid = true,
+            mouse_button_1_released = true,
             mouse_button_1_down = false,
         });
 

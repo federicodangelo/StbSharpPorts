@@ -13,9 +13,9 @@ public partial class StbGui
     {
         ref var label = ref stbg__add_widget(STBG_WIDGET_TYPE.LABEL, text, out _);
 
-        label.text = text.AsMemory();
+        label.properties.text = text.AsMemory();
 
-        ref var layout = ref label.layout;
+        ref var layout = ref label.properties.layout;
 
         layout.constrains = stbg_build_constrains_unconstrained();
         layout.constrains.min.height = context.theme.default_font_style.size;
@@ -33,7 +33,7 @@ public partial class StbGui
 
     private static void stbg__label_render(ref stbg_widget label, ref stbg_render_context render_context)
     {
-        var size = label.computed_bounds.size;
+        var size = label.properties.computed_bounds.size;
 
         var background_color = stbg_get_widget_style_color(STBG_WIDGET_STYLE.LABEL_BACKGROUND_COLOR);
         var text_color = stbg_get_widget_style_color(STBG_WIDGET_STYLE.LABEL_TEXT_COLOR);
@@ -50,7 +50,7 @@ public partial class StbGui
                 size.width - stbg__sum_styles(STBG_WIDGET_STYLE.LABEL_PADDING_RIGHT),
                 size.height - stbg__sum_styles(STBG_WIDGET_STYLE.LABEL_PADDING_BOTTOM)
             ),
-            stbg__build_text(label.text, text_color)
+            stbg__build_text(label.properties.text, text_color)
         );
     }
 }

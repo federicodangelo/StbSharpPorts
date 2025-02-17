@@ -233,6 +233,14 @@ public partial class StbGui
         return stbg_size_min(stbg_size_max(size, constrains.min), constrains.max);
     }
 
+
+    [ExcludeFromCodeCoverage]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static public bool stbg_is_value_near(float value, float near, float near_tolerance) 
+    {
+        return value >= near - near_tolerance && value <= near + near_tolerance;
+    }
+
     static public readonly stbg_color STBG_COLOR_RED = stbg_build_color(255, 0, 0);
     static public readonly stbg_color STBG_COLOR_GREEN = stbg_build_color(0, 255, 0);
     static public readonly stbg_color STBG_COLOR_BLUE = stbg_build_color(0, 0, 255);

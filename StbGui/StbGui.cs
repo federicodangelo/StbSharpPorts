@@ -120,6 +120,7 @@ public partial class StbGui
         WINDOW_DEFAULT_WIDTH,
         WINDOW_DEFAULT_HEIGHT,
         WINDOW_SPACING_BETWEEN_NEW_WINDOWS,
+        WINDOW_BORDER_RESIZE_TOLERANCE,
         WINDOW_BORDER_SIZE,
         WINDOW_TITLE_HEIGHT,
         WINDOW_TITLE_PADDING_TOP,
@@ -291,6 +292,17 @@ public partial class StbGui
         public widget_id prev_same_bucket;
     }
 
+    public struct stbg_widget_properties
+    {
+        public stbg_widget_layout layout;
+
+        public stbg_widget_computed_bounds computed_bounds;
+
+        public ReadOnlyMemory<char> text;
+
+        public float mouse_tolerance;
+    }
+
     public struct stbg_widget
     {
         // This widget id (it's also the index in the main widgets array)
@@ -311,11 +323,92 @@ public partial class StbGui
 
         public stbg_widget_hash_chain hash_chain;
 
-        public stbg_widget_layout layout;
+        public stbg_widget_properties properties;
+    }
 
-        public stbg_widget_computed_bounds computed_bounds;
-
-        public ReadOnlyMemory<char> text;
+    // Names and descriptions taken from SDL Library!!
+    public enum STBG_ACTIVE_CURSOR_TYPE
+    {
+        /// <summary>
+        /// Default cursor. Usually an arrow.
+        /// </summary>
+        DEFAULT,
+        /// <summary>
+        /// Text selection. Usually an I-beam.
+        /// </summary>
+        TEXT,
+        /// <summary>
+        /// Wait. Usually an hourglass or watch or spinning ball.
+        /// </summary>
+        WAIT,
+        /// <summary>
+        /// Crosshair.
+        /// </summary>
+        CROSSHAIR,
+        /// <summary>
+        /// Program is busy but still interactive. Usually it's WAIT with an arrow.
+        /// </summary>
+        PROGRESS,
+        /// <summary>
+        /// Four pointed arrow pointing north, south, east, and west.
+        /// </summary>
+        MOVE,
+        /// <summary>
+        /// Not permitted. Usually a slashed circle or crossbones.
+        /// </summary>
+        NOT_ALLOW,
+        /// <summary>
+        /// Pointer that indicates a link. Usually a pointing hand.
+        /// </summary>
+        POINTER,
+        /// <summary>
+        /// Double arrow pointing northwest and southeast.
+        /// </summary>
+        RESIZE_NWSE,
+        /// <summary>
+        /// Double arrow pointing northeast and southwest.
+        /// </summary>
+        RESIZE_NESW,
+        /// <summary>
+        /// Double arrow pointing west and east.
+        /// </summary>
+        RESIZE_EW,
+        /// <summary>
+        /// Double arrow pointing north and south.
+        /// </summary>
+        RESIZE_NS,
+        /// <summary>
+        /// Window resize top-left.
+        /// </summary>
+        RESIZE_NW,
+        /// <summary>
+        /// Window resize top.
+        /// </summary>
+        RESIZE_N,
+        /// <summary>
+        /// Window resize top-right.
+        /// </summary>
+        RESIZE_NE,
+        /// <summary>
+        /// Window resize right
+        /// </summary>
+        RESIZE_E,
+        /// <summary>
+        /// Window resize bottom-right
+        /// </summary>
+        RESIZE_SE,
+        /// <summary>
+        /// Window resize bottom
+        /// </summary>
+        RESIZE_S,
+        /// <summary>
+        /// Window resize bottom-left
+        /// </summary>
+        RESIZE_SW,
+        /// <summary>
+        /// Window resize left
+        /// </summary>
+        RESIZE_W,
     }
 
     public struct stbg_input
@@ -323,8 +416,32 @@ public partial class StbGui
         public stbg_position mouse_position;
         public stbg_position mouse_delta;
         public bool mouse_position_valid;
+
+        /// <summary>
+        /// True only the first frame that is down
+        /// </summary>
         public bool mouse_button_1_down;
+        /// <summary>
+        /// True only while the button is pressed
+        /// </summary>
+        public bool mouse_button_1_pressed;
+        /// <summary>
+        /// True only the first frame that is released
+        /// </summary>
+        public bool mouse_button_1_released;
+
+        /// <summary>
+        /// True only the first frame that is down
+        /// </summary>
         public bool mouse_button_2_down;
+        /// <summary>
+        /// True only while the button is pressed
+        /// </summary>
+        public bool mouse_button_2_pressed;
+        /// <summary>
+        /// True only the first frame that is released
+        /// </summary>
+        public bool mouse_button_2_released;
     }
 
     public struct stbg_hash_entry
@@ -346,6 +463,11 @@ public partial class StbGui
         public widget_id pressed_widget_id;
         public widget_id dragged_widget_id;
         public widget_id active_widget_id;
+
+        public float drag_resize_x;
+        public float drag_resize_y;
+        public float drag_from_widget_x;
+        public float drag_from_widget_y;
     }
 
     public struct stbg_context
@@ -385,11 +507,13 @@ public partial class StbGui
 
         public stbg_render_command[] render_commands_queue;
 
-        public stbg_input input;
-
         public stbg_position next_new_window_position;
 
+        public stbg_input input;
+
         public stbg_context_input_feedback input_feedback;
+
+        public STBG_ACTIVE_CURSOR_TYPE active_cursor;
     }
 
     public enum STBG_ASSERT_BEHAVIOUR
@@ -586,7 +710,8 @@ public partial class StbGui
         var windowDefaultWidth = MathF.Ceiling(font_style.size * 30);
         var windowDefaultHeight = MathF.Ceiling(font_style.size * 15);
         var windowChidlrenSpacing = MathF.Ceiling(font_style.size / 4);
-        var windowSpacingBetweenNewWindows = MathF.Ceiling(context.theme.default_font_style.size / 2);
+        var windowSpacingBetweenNewWindows = MathF.Ceiling(font_style.size / 2);
+        var windowBorderResizeTolerance = MathF.Ceiling(font_style.size / 4);
 
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, windowBorder);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT, windowTitleHeight);
@@ -605,7 +730,7 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, windowDefaultWidth);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, windowDefaultHeight);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_SPACING_BETWEEN_NEW_WINDOWS, windowSpacingBetweenNewWindows);
-         
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_RESIZE_TOLERANCE, windowBorderResizeTolerance);
 
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_COLOR, stbg_build_color(41, 128, 185));
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BACKGROUND_COLOR, stbg_build_color(189, 195, 199));
@@ -687,11 +812,21 @@ public partial class StbGui
     }
 
     /// <summary>
+    /// Returns the active cursor
+    /// </summary>
+    public static STBG_ACTIVE_CURSOR_TYPE stbg_get_cursor()
+    {
+        return context.active_cursor;
+    }
+
+    /// <summary>
     /// Starts a new frame
     /// </summary>
     public static void stbg_begin_frame()
     {
         stbg__assert(!context.inside_frame);
+
+        context.active_cursor = STBG_ACTIVE_CURSOR_TYPE.DEFAULT;
 
         stbg__process_input(); // Process previous frame input over the last updated hierarchy
 
@@ -704,7 +839,7 @@ public partial class StbGui
         context.frame_stats = new stbg_context_frame_stats();
 
         ref var root = ref stbg__add_widget(STBG_WIDGET_TYPE.ROOT, "root", out _);
-        root.layout.constrains.max = context.screen_size;
+        root.properties.layout.constrains.max = context.screen_size;
 
         context.current_widget_id = root.id;
         context.root_widget_id = root.id;
@@ -847,8 +982,8 @@ public partial class StbGui
         ref var window = ref stbg_get_widget_by_id(window_id);
         stbg__assert(window.type == STBG_WIDGET_TYPE.WINDOW);
 
-        window.layout.intrinsic_position.x = x;
-        window.layout.intrinsic_position.y = y;
+        window.properties.layout.intrinsic_position.x = x;
+        window.properties.layout.intrinsic_position.y = y;
     }
 
     /// <summary>
@@ -860,8 +995,8 @@ public partial class StbGui
         ref var window = ref stbg_get_widget_by_id(window_id);
         stbg__assert(window.type == STBG_WIDGET_TYPE.WINDOW);
 
-        window.layout.intrinsic_size.size.width = Math.Max(width - (window.layout.inner_padding.left + window.layout.inner_padding.right), 0);
-        window.layout.intrinsic_size.size.height = Math.Max(height - (window.layout.inner_padding.top + window.layout.inner_padding.bottom), 0);
+        window.properties.layout.intrinsic_size.size.width = Math.Max(width, 0);
+        window.properties.layout.intrinsic_size.size.height = Math.Max(height, 0);
     }
 
     /// <summary>
@@ -884,7 +1019,7 @@ public partial class StbGui
     {
         ref var container = ref stbg__add_widget(STBG_WIDGET_TYPE.CONTAINER, identifier, out _);
 
-        ref var layout = ref container.layout;
+        ref var layout = ref container.properties.layout;
 
         layout.inner_padding = new stbg_padding();
         layout.constrains = stbg_build_constrains_unconstrained();

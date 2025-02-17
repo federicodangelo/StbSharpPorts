@@ -13,9 +13,9 @@ public partial class StbGui
     {
         ref var button = ref stbg__add_widget(STBG_WIDGET_TYPE.BUTTON, label, out _);
 
-        button.text = label.AsMemory();
+        button.properties.text = label.AsMemory();
 
-        ref var layout = ref button.layout;
+        ref var layout = ref button.properties.layout;
 
         layout.constrains = stbg_build_constrains_unconstrained();
         layout.inner_padding = new stbg_padding()
@@ -38,7 +38,7 @@ public partial class StbGui
         if (context.input.mouse_button_1_down)
             context.input_feedback.pressed_widget_id = button.id;
 
-        if (!context.input.mouse_button_1_down && context.input_feedback.pressed_widget_id == button.id)
+        if (context.input.mouse_button_1_released && context.input_feedback.pressed_widget_id == button.id)
         {
             button.flags |= STBG_WIDGET_FLAGS.CLICKED;
             context.input_feedback.pressed_widget_id = STBG_WIDGET_ID_NULL;
@@ -47,7 +47,7 @@ public partial class StbGui
 
     private static void stbg__button_render(ref stbg_widget button, ref stbg_render_context render_context)
     {
-        var size = button.computed_bounds.size;
+        var size = button.properties.computed_bounds.size;
 
         bool hovered = context.input_feedback.hovered_widget_id == button.id;
         bool pressed = context.input_feedback.pressed_widget_id == button.id;
@@ -69,7 +69,7 @@ public partial class StbGui
                 size.width - stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_PADDING_RIGHT),
                 size.height - stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_PADDING_BOTTOM)
             ),
-            stbg__build_text(button.text, text_color)
+            stbg__build_text(button.properties.text, text_color)
         );
     }
 }

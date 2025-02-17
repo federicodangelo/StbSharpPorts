@@ -24,7 +24,9 @@ public partial class StbGui
 
         ref var root = ref stbg_get_widget_by_id(context.root_widget_id);
 
-        root.computed_bounds.size = stbg__layout_widget(constrains, ref root);
+        stbg__layout_widget(constrains, ref root);
+
+        root.properties.computed_bounds.size = context.screen_size;
 
         stbg__update_global_rect(ref stbg_get_widget_by_id(context.root_widget_id), new stbg_rect());
     }
@@ -32,8 +34,8 @@ public partial class StbGui
     private static void stbg__update_global_rect(ref stbg_widget widget, stbg_rect parent_global_rect)
     {
         // Update self bounds
-        ref var widget_computed_bounds = ref widget.computed_bounds;
-        ref var widget_global_rect = ref widget.computed_bounds.global_rect;
+        ref var widget_computed_bounds = ref widget.properties.computed_bounds;
+        ref var widget_global_rect = ref widget.properties.computed_bounds.global_rect;
 
         widget_global_rect = stbg_build_rect(
             widget_computed_bounds.position.x, widget_computed_bounds.position.y,
@@ -62,23 +64,24 @@ public partial class StbGui
         // - Constrains go down
         // - Sizes go up
         // - Parent sets position
-        var widget_layout = widget.layout;
+        var widget_layout = widget.properties.layout;
         var widget_intrinsic_size = widget_layout.intrinsic_size;
         var widget_constrains = widget_layout.constrains;
-        var widget_inner_padding = widget.layout.inner_padding;
+        var widget_inner_padding = widget.properties.layout.inner_padding;
 
         // Build current contrains by merging the widget constrains with the parent constrains
         var constrains = stbg_merge_constrains(parent_constrains, widget_constrains);
 
         stbg_size intrinsic_size = stbg__get_instrinsic_size(widget, widget_intrinsic_size);
+        bool intrinsic_size_includes_padding = stbg__get_instrinsic_size_includes_padding(widget_intrinsic_size);
 
         var accumulated_children_size = stbg_build_size_zero();
 
         if (widget.hierarchy.first_children_id != STBG_WIDGET_ID_NULL)
         {
             // Widget has children
-            var widget_children_spacing = widget.layout.children_spacing;
-            var widget_children_layout_direction = widget.layout.children_layout_direction;
+            var widget_children_spacing = widget.properties.layout.children_spacing;
+            var widget_children_layout_direction = widget.properties.layout.children_layout_direction;
 
             // Build children constrains by removing padding
             var children_constrains = stbg_constrains_remove_padding(constrains, widget_inner_padding);
@@ -136,12 +139,12 @@ public partial class StbGui
                 stbg__assert_internal(children_size.height <= children_constrains.max.height);
                 stbg__assert_internal(children_size.height >= children_constrains.min.height);
 
-                children.computed_bounds.size = children_size;
+                children.properties.computed_bounds.size = children_size;
 
                 switch (widget_children_layout_direction)
                 {
                     case STBG_CHILDREN_LAYOUT_DIRECTION.VERTICAL:
-                        children.computed_bounds.position = next_children_top_left;
+                        children.properties.computed_bounds.position = next_children_top_left;
                         children_constrains.max.height -= children_size.height;
                         children_constrains.min.height = Math.Min(children_constrains.min.height, children_constrains.max.height);
                         accumulated_children_size.height += children_size.height;
@@ -150,7 +153,7 @@ public partial class StbGui
                         break;
 
                     case STBG_CHILDREN_LAYOUT_DIRECTION.HORIZONTAL:
-                        children.computed_bounds.position = next_children_top_left;
+                        children.properties.computed_bounds.position = next_children_top_left;
                         children_constrains.max.width -= children_size.height;
                         children_constrains.min.width = Math.Min(children_constrains.min.width, children_constrains.max.width);
                         accumulated_children_size.width += children_size.width;
@@ -159,14 +162,14 @@ public partial class StbGui
                         break;
 
                     case STBG_CHILDREN_LAYOUT_DIRECTION.FREE:
-                        children.layout.intrinsic_position.x = Math.Clamp(children.layout.intrinsic_position.x, 0, children_constrains.max.width - children_size.width);
-                        children.layout.intrinsic_position.y = Math.Clamp(children.layout.intrinsic_position.y, 0, children_constrains.max.height - children_size.height);
-                        children.layout.intrinsic_sorting_index = child_index;
-                        children.computed_bounds.position.x = next_children_top_left.x + children.layout.intrinsic_position.x;
-                        children.computed_bounds.position.y = next_children_top_left.y + children.layout.intrinsic_position.y;
+                        children.properties.layout.intrinsic_position.x = Math.Clamp(children.properties.layout.intrinsic_position.x, 0, children_constrains.max.width - children_size.width);
+                        children.properties.layout.intrinsic_position.y = Math.Clamp(children.properties.layout.intrinsic_position.y, 0, children_constrains.max.height - children_size.height);
+                        children.properties.layout.intrinsic_sorting_index = child_index;
+                        children.properties.computed_bounds.position.x = next_children_top_left.x + children.properties.layout.intrinsic_position.x;
+                        children.properties.computed_bounds.position.y = next_children_top_left.y + children.properties.layout.intrinsic_position.y;
 
-                        accumulated_children_size.width = Math.Max(accumulated_children_size.width, children.layout.intrinsic_position.x + children_size.width);
-                        accumulated_children_size.height = Math.Max(accumulated_children_size.height, children.layout.intrinsic_position.y + children_size.height);
+                        accumulated_children_size.width = Math.Max(accumulated_children_size.width, children.properties.layout.intrinsic_position.x + children_size.width);
+                        accumulated_children_size.height = Math.Max(accumulated_children_size.height, children.properties.layout.intrinsic_position.y + children_size.height);
                         break;
                 }
 
@@ -177,8 +180,11 @@ public partial class StbGui
             } while (children_id != STBG_WIDGET_ID_NULL);
         }
 
+        accumulated_children_size = stbg_size_add_padding(accumulated_children_size, widget_inner_padding);
+        if (!intrinsic_size_includes_padding)
+            intrinsic_size = stbg_size_add_padding(intrinsic_size, widget_inner_padding);
+
         stbg_size widget_size = stbg_size_max(intrinsic_size, accumulated_children_size);
-        widget_size = stbg_size_add_padding(widget_size, widget_inner_padding);
         widget_size = stbg_size_constrain(widget_size, constrains);
 
         return widget_size;
@@ -196,7 +202,7 @@ public partial class StbGui
 
             children_id = children.hierarchy.next_sibling_id;
 
-            if (has_prev_children && prev_children_sorting_index > children.layout.intrinsic_sorting_index)
+            if (has_prev_children && prev_children_sorting_index > children.properties.layout.intrinsic_sorting_index)
             {
                 // Children is ahead of were it is supposed to be!
                 // - Find the new insertion point
@@ -209,7 +215,7 @@ public partial class StbGui
                 {
                     ref var prev_children = ref stbg_get_widget_by_id(prev_children_id);
 
-                    if (prev_children.layout.intrinsic_sorting_index <= children.layout.intrinsic_sorting_index)
+                    if (prev_children.properties.layout.intrinsic_sorting_index <= children.properties.layout.intrinsic_sorting_index)
                         break;
 
                     prev_children_id = prev_children.hierarchy.prev_sibling_id;
@@ -223,7 +229,7 @@ public partial class StbGui
             }
             else
             {
-                prev_children_sorting_index = children.layout.intrinsic_sorting_index;
+                prev_children_sorting_index = children.properties.layout.intrinsic_sorting_index;
                 has_prev_children = true;
             }
         }
@@ -234,7 +240,12 @@ public partial class StbGui
         return widget_intrinsic_size.type == STBG_INTRINSIC_SIZE_TYPE.FIXED_PIXELS ?
             widget_intrinsic_size.size :
             widget_intrinsic_size.type == STBG_INTRINSIC_SIZE_TYPE.MEASURE_TEXT ?
-            stbg__measure_text(stbg__build_text(widget.text)) :
+            stbg__measure_text(stbg__build_text(widget.properties.text)) :
             stbg_build_size_zero();
+    }
+
+    private static bool stbg__get_instrinsic_size_includes_padding(stbg_widget_intrinsic_size widget_intrinsic_size)
+    {
+        return widget_intrinsic_size.type == STBG_INTRINSIC_SIZE_TYPE.FIXED_PIXELS;
     }
 }

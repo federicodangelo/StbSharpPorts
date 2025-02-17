@@ -144,9 +144,9 @@ public partial class StbGui
             bucket.first_widget_in_bucket = widget.id;
 
             // Reset dynamic properties
-            widget.layout = new stbg_widget_layout();
-            widget.computed_bounds = new stbg_widget_computed_bounds();
-            widget.text = new ReadOnlyMemory<char>();
+            widget.properties = new stbg_widget_properties();
+
+            // Reset hierarchy
             widget.hierarchy = new stbg_widget_hierarchy();
 
             // Set type
@@ -158,7 +158,10 @@ public partial class StbGui
             is_new = false;
             is_already_created_in_same_frame = widget.last_used_in_frame == context.current_frame;
             if (!is_already_created_in_same_frame)
+            {
                 context.frame_stats.reused_widgets++;
+                widget.hierarchy = new stbg_widget_hierarchy();
+            }
         }
 
         // Update last used
@@ -177,9 +180,6 @@ public partial class StbGui
         {
             parent_id = stbg__get_or_create_debug_window().id;
         }
-
-        if (!is_already_created_in_same_frame)
-            widget.hierarchy = new stbg_widget_hierarchy();
 
         // Update hierarchy
         if (parent_id != STBG_WIDGET_ID_NULL)
@@ -414,85 +414,4 @@ public partial class StbGui
         return outputHash;
     }
 
-    private static void stbg__process_input()
-    {
-        if (context.root_widget_id == STBG_WIDGET_ID_NULL)
-            return;
-
-        if (!context.input.mouse_position_valid)
-        {
-            context.input.mouse_position = stbg_build_position(-99999, -99999);
-        }
-
-        if (context.input_feedback.dragged_widget_id != STBG_WIDGET_ID_NULL)
-        {
-            context.input_feedback.hovered_widget_id = context.input_feedback.dragged_widget_id;
-            context.input_feedback.pressed_widget_id = context.input_feedback.dragged_widget_id;
-        }
-        else
-        {
-            var new_hover = context.input.mouse_position_valid ?
-                                stbg__get_widget_id_at_position(context.input.mouse_position, context.root_widget_id) :
-                                STBG_WIDGET_ID_NULL;
-
-            if (new_hover != context.input_feedback.hovered_widget_id)
-            {
-                context.input_feedback.hovered_widget_id = new_hover;
-                context.input_feedback.pressed_widget_id = STBG_WIDGET_ID_NULL;
-            }
-        }
-
-        stbg__process_widget_input(context.root_widget_id);
-    }
-
-    private static void stbg__process_widget_input(widget_id widget_id)
-    {
-        ref var widget = ref stbg_get_widget_by_id(widget_id);
-
-        var children_id = widget.hierarchy.first_children_id;
-
-        while (children_id != STBG_WIDGET_ID_NULL)
-        {
-            stbg__process_widget_input(children_id);
-
-            children_id = stbg_get_widget_by_id(children_id).hierarchy.next_sibling_id;
-        }
-
-        var widget_update_input = STBG__WIDGET_UPDATE_INPUT_MAP[(int)widget.type];
-
-        if (widget_update_input != null)
-            widget_update_input(ref widget);
-    }
-
-    private static widget_id stbg__get_widget_id_at_position(stbg_position position, widget_id widget_id)
-    {
-        if (widget_id == STBG_WIDGET_ID_NULL)
-            return STBG_WIDGET_ID_NULL;
-
-        var widget = stbg_get_widget_by_id(widget_id);
-
-        var global_rect = widget.computed_bounds.global_rect;
-
-        if (position.x < global_rect.x0 ||
-            position.y < global_rect.y0 ||
-            position.x >= global_rect.x1 ||
-            position.y >= global_rect.y1)
-        {
-            return STBG_WIDGET_ID_NULL;
-        }
-
-        var children_id = widget.hierarchy.last_children_id;
-
-        while (children_id != STBG_WIDGET_ID_NULL)
-        {
-            var childrean_at_position = stbg__get_widget_id_at_position(position, children_id);
-
-            if (childrean_at_position != STBG_WIDGET_ID_NULL)
-                return childrean_at_position;
-
-            children_id = stbg_get_widget_by_id(children_id).hierarchy.prev_sibling_id;
-        }
-
-        return widget_id;
-    }
 }

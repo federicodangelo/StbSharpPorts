@@ -128,7 +128,7 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         }
         StbGui.stbg_end_frame();
 
-        AssertWidgetSize(windowId, 32, 20);
+        AssertWidgetSize(windowId, 34, 22);
     }
 
     [Fact]
@@ -150,7 +150,7 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         }
         StbGui.stbg_end_frame();
 
-        AssertWidgetSize(windowId, 32, 19);
+        AssertWidgetSize(windowId, 34, 22);
     }
 
     [Fact]
@@ -181,7 +181,7 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         }
         StbGui.stbg_end_frame();
 
-        AssertWidgetSize(windowId, 30, 15);
+        AssertWidgetSize(windowId, 34, 22);
     }
 
     [Fact]
@@ -293,7 +293,7 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         // Validate initial size
         AssertWidgetSize(windowId, 34, 22);
 
-        Assert.Equal(new StbGui.stbg_size() { width = 34, height = 22 }, StbGui.stbg_get_widget_by_id(windowId).computed_bounds.size);
+        Assert.Equal(new StbGui.stbg_size() { width = 34, height = 22 }, StbGui.stbg_get_widget_by_id(windowId).properties.computed_bounds.size);
 
         StbGui.stbg_begin_frame();
         {

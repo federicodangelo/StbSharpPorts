@@ -334,8 +334,8 @@ public class StbGuiTestsBase : IDisposable
         var windowTitleHeight = MathF.Ceiling(font_style.size);
         var windowTitlePadding = MathF.Ceiling(font_style.size / 4);
         var windowChildrenPadding = MathF.Ceiling(font_style.size / 2);
-        var windowDefaultWidth = MathF.Ceiling(font_style.size * 30);
-        var windowDefaultHeight = MathF.Ceiling(font_style.size * 15);
+        var windowDefaultWidth = 34;
+        var windowDefaultHeight = 22;
         var windowChidlrenSpacing = 0;
 
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, windowBorder);
@@ -348,9 +348,6 @@ public class StbGuiTestsBase : IDisposable
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_BOTTOM, windowChildrenPadding);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_LEFT, windowChildrenPadding);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_RIGHT, windowChildrenPadding);
-        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING, windowChidlrenSpacing);
-        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, windowDefaultWidth);
-        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, windowDefaultHeight);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_BORDER_COLOR, StbGui.STBG_COLOR_WHITE);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_BACKGROUND_COLOR, StbGui.STBG_COLOR_BLUE);
         
@@ -359,6 +356,10 @@ public class StbGuiTestsBase : IDisposable
 
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_TEXT_COLOR, StbGui.STBG_COLOR_MAGENTA);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR, StbGui.STBG_COLOR_WHITE);
+
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING, windowChidlrenSpacing);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, windowDefaultWidth);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, windowDefaultHeight);
 
         // DEBUG WINDOW
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_TEXT_COLOR, StbGui.STBG_COLOR_WHITE);
@@ -454,7 +455,7 @@ public class StbGuiTestsBase : IDisposable
     {
         Assert.Equal(
             new StbGui.stbg_size() { width = width, height = height },
-            StbGui.stbg_get_widget_by_id(widget_id).computed_bounds.size
+            StbGui.stbg_get_widget_by_id(widget_id).properties.computed_bounds.size
         );
     }
 
@@ -462,7 +463,7 @@ public class StbGuiTestsBase : IDisposable
     {
         Assert.Equal(
             StbGui.stbg_build_position(x, y),
-            StbGui.stbg_get_widget_by_id(widget_id).computed_bounds.position
+            StbGui.stbg_get_widget_by_id(widget_id).properties.computed_bounds.position
         );
     }
 
@@ -470,7 +471,7 @@ public class StbGuiTestsBase : IDisposable
     {
         Assert.Equal(
             StbGui.stbg_build_rect(x0, y0, x1, y1),
-            StbGui.stbg_get_widget_by_id(widget_id).computed_bounds.global_rect
+            StbGui.stbg_get_widget_by_id(widget_id).properties.computed_bounds.global_rect
         );
     }
 }
