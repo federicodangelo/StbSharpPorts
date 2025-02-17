@@ -28,7 +28,7 @@ public class StbGuiInputTests : StbGuiTestsBase
         ]);
 
         // Hover
-        StbGui.stbg_set_io(new()
+        StbGui.stbg_set_input(new()
         {
             mouse_position = StbGui.stbg_build_position(2, 2),
             mouse_position_valid = true
@@ -78,7 +78,7 @@ public class StbGuiInputTests : StbGuiTestsBase
         ]);
 
         // Hover
-        StbGui.stbg_set_io(new()
+        StbGui.stbg_set_input(new()
         {
             mouse_position = StbGui.stbg_build_position(2, 2),
             mouse_position_valid = true
@@ -103,7 +103,7 @@ public class StbGuiInputTests : StbGuiTestsBase
         ]);
 
         // Hover off
-        StbGui.stbg_set_io(new()
+        StbGui.stbg_set_input(new()
         {
             mouse_position_valid = false
         });
@@ -152,7 +152,7 @@ public class StbGuiInputTests : StbGuiTestsBase
         ]);
 
         // Press
-        StbGui.stbg_set_io(new()
+        StbGui.stbg_set_input(new()
         {
             mouse_position = StbGui.stbg_build_position(2, 2),
             mouse_position_valid = true,
@@ -203,7 +203,7 @@ public class StbGuiInputTests : StbGuiTestsBase
         ]);
 
         // Press
-        StbGui.stbg_set_io(new()
+        StbGui.stbg_set_input(new()
         {
             mouse_position = StbGui.stbg_build_position(2, 2),
             mouse_position_valid = true,
@@ -229,7 +229,7 @@ public class StbGuiInputTests : StbGuiTestsBase
         ]);
 
         // Release (triggers click)
-        StbGui.stbg_set_io(new()
+        StbGui.stbg_set_input(new()
         {
             mouse_position = StbGui.stbg_build_position(2, 2),
             mouse_position_valid = true,
@@ -256,7 +256,7 @@ public class StbGuiInputTests : StbGuiTestsBase
 
 
         // Frame after click (should not triggers click anymore)
-        StbGui.stbg_set_io(new()
+        StbGui.stbg_set_input(new()
         {
             mouse_position = StbGui.stbg_build_position(2, 2),
             mouse_position_valid = true,
@@ -320,7 +320,7 @@ public class StbGuiInputTests : StbGuiTestsBase
         ]);
 
         // Hover middle of window
-        StbGui.stbg_set_io(new()
+        StbGui.stbg_set_input(new()
         {
             mouse_position = StbGui.stbg_build_position(8, 10),
             mouse_position_valid = true,
@@ -405,7 +405,7 @@ public class StbGuiInputTests : StbGuiTestsBase
         ]);
 
         // Hover near Window 1 and press mouse button, Window 1 should be on top
-        StbGui.stbg_set_io(new()
+        StbGui.stbg_set_input(new()
         {
             mouse_position = StbGui.stbg_build_position(2, 2),
             mouse_position_valid = true,
@@ -451,7 +451,7 @@ public class StbGuiInputTests : StbGuiTestsBase
         ]);
 
         // Hover near Window 1 and release mouse button, Window 1 should still be on top
-        StbGui.stbg_set_io(new()
+        StbGui.stbg_set_input(new()
         {
             mouse_position = StbGui.stbg_build_position(2, 2),
             mouse_position_valid = true,
@@ -546,7 +546,7 @@ public class StbGuiInputTests : StbGuiTestsBase
         ]);
 
         // Hover near Window 1 and press mouse button, Window 1 should be on top
-        StbGui.stbg_set_io(new()
+        StbGui.stbg_set_input(new()
         {
             mouse_position = StbGui.stbg_build_position(2, 2),
             mouse_position_valid = true,
@@ -592,7 +592,7 @@ public class StbGuiInputTests : StbGuiTestsBase
         ]);
 
         // Hover near Window 1 and drag mouse, window should be moved
-        StbGui.stbg_set_io(new()
+        StbGui.stbg_set_input(new()
         {
             mouse_position = StbGui.stbg_build_position(4, 2),
             mouse_delta = StbGui.stbg_build_position(2, 0),
@@ -639,7 +639,7 @@ public class StbGuiInputTests : StbGuiTestsBase
         ]);
 
         // Release mouse button but keep moving cursor, window should be at the last position
-        StbGui.stbg_set_io(new()
+        StbGui.stbg_set_input(new()
         {
             mouse_position = StbGui.stbg_build_position(6, 2),
             mouse_delta = StbGui.stbg_build_position(2, 0),

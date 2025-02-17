@@ -352,6 +352,8 @@ public partial class StbGui
             context.input_feedback.hovered_widget_id = STBG_WIDGET_ID_NULL;
         if (context.input_feedback.pressed_widget_id == widget.id)
             context.input_feedback.pressed_widget_id = STBG_WIDGET_ID_NULL;
+        if (context.input_feedback.active_widget_id == widget.id)
+            context.input_feedback.active_widget_id = STBG_WIDGET_ID_NULL;
     }
 
     private static bool stbg__find_widget_by_hash(widget_hash hash, out widget_id foundId)
@@ -414,9 +416,12 @@ public partial class StbGui
 
     private static void stbg__process_input()
     {
-        if (!context.io.mouse_position_valid)
+        if (context.root_widget_id == STBG_WIDGET_ID_NULL)
+            return;
+
+        if (!context.input.mouse_position_valid)
         {
-            context.io.mouse_position = stbg_build_position(-99999, -99999);
+            context.input.mouse_position = stbg_build_position(-99999, -99999);
         }
 
         if (context.input_feedback.dragged_widget_id != STBG_WIDGET_ID_NULL)
@@ -426,7 +431,9 @@ public partial class StbGui
         }
         else
         {
-            var new_hover = stbg__get_widget_id_at_position(context.io.mouse_position, context.root_widget_id);
+            var new_hover = context.input.mouse_position_valid ?
+                                stbg__get_widget_id_at_position(context.input.mouse_position, context.root_widget_id) :
+                                STBG_WIDGET_ID_NULL;
 
             if (new_hover != context.input_feedback.hovered_widget_id)
             {
@@ -435,8 +442,7 @@ public partial class StbGui
             }
         }
 
-        if (context.root_widget_id != STBG_WIDGET_ID_NULL)
-            stbg__process_widget_input(context.root_widget_id);
+        stbg__process_widget_input(context.root_widget_id);
     }
 
     private static void stbg__process_widget_input(widget_id widget_id)

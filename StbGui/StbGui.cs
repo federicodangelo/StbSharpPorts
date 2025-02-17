@@ -318,7 +318,7 @@ public partial class StbGui
         public ReadOnlyMemory<char> text;
     }
 
-    public struct stbg_io
+    public struct stbg_input
     {
         public stbg_position mouse_position;
         public stbg_position mouse_delta;
@@ -345,6 +345,7 @@ public partial class StbGui
         public widget_id hovered_widget_id;
         public widget_id pressed_widget_id;
         public widget_id dragged_widget_id;
+        public widget_id active_widget_id;
     }
 
     public struct stbg_context
@@ -384,7 +385,7 @@ public partial class StbGui
 
         public stbg_render_command[] render_commands_queue;
 
-        public stbg_io io;
+        public stbg_input input;
 
         public stbg_position next_new_window_position;
 
@@ -677,20 +678,12 @@ public partial class StbGui
     }
 
     /// <summary>
-    /// Sets the IO
+    /// Sets the input
     /// </summary>
-    public static void stbg_set_io(stbg_io io)
+    public static void stbg_set_input(stbg_input input)
     {
         stbg__assert(!context.inside_frame);
-        context.io = io;
-
-        // This prevents the default mouse position of (0,0) from triggering a hover effect when the mouse is really outside the screen
-        if (!context.io.mouse_position_valid)
-        {
-            context.io.mouse_position.x = -999999;
-            context.io.mouse_position.y = -999999; 
-            context.io.mouse_delta = new stbg_position();
-        }
+        context.input = input;
     }
 
     /// <summary>

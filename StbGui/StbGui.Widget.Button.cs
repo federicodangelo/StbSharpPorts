@@ -35,10 +35,10 @@ public partial class StbGui
         if (context.input_feedback.hovered_widget_id != button.id)
             return;
 
-        if (context.io.mouse_button_1_down)
+        if (context.input.mouse_button_1_down)
             context.input_feedback.pressed_widget_id = button.id;
 
-        if (!context.io.mouse_button_1_down && context.input_feedback.pressed_widget_id == button.id)
+        if (!context.input.mouse_button_1_down && context.input_feedback.pressed_widget_id == button.id)
         {
             button.flags |= STBG_WIDGET_FLAGS.CLICKED;
             context.input_feedback.pressed_widget_id = STBG_WIDGET_ID_NULL;

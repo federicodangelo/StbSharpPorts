@@ -50,11 +50,11 @@ public partial class StbGui
 
         float title_height_total = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP, STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT, STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_BOTTOM, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_TOP);
 
-        bool mouse_over_title = context.io.mouse_position.y < Math.Min(window.computed_bounds.global_rect.y1, window.computed_bounds.global_rect.y0 + title_height_total);
+        bool mouse_over_title = context.input.mouse_position.y < Math.Min(window.computed_bounds.global_rect.y1, window.computed_bounds.global_rect.y0 + title_height_total);
 
         if (context.input_feedback.pressed_widget_id == window.id)
         {
-            if (context.io.mouse_button_1_down)
+            if (context.input.mouse_button_1_down)
             {
                 if (mouse_over_title)
                 {
@@ -71,16 +71,17 @@ public partial class StbGui
                 }
             }
         }
-        else if (context.io.mouse_button_1_down)
+        else if (context.input.mouse_button_1_down)
         {
             context.input_feedback.pressed_widget_id = window.id;
+            context.input_feedback.active_widget_id = window.id;
             window.layout.intrinsic_sorting_index = int.MaxValue;
         }
 
         if (context.input_feedback.dragged_widget_id == window.id)
         {
-            window.layout.intrinsic_position.x += context.io.mouse_delta.x;
-            window.layout.intrinsic_position.y += context.io.mouse_delta.y;
+            window.layout.intrinsic_position.x += context.input.mouse_delta.x;
+            window.layout.intrinsic_position.y += context.input.mouse_delta.y;
         }
     }
 
@@ -88,16 +89,15 @@ public partial class StbGui
     {
         var size = window.computed_bounds.size;
 
-        bool hovered = context.input_feedback.hovered_widget_id == window.id;
-        bool pressed = context.input_feedback.pressed_widget_id == window.id;
+        bool active = context.input_feedback.hovered_widget_id == window.id || context.input_feedback.pressed_widget_id == window.id || context.input_feedback.active_widget_id == window.id;
 
-        var title_background_color = stbg_get_widget_style_color((pressed || hovered) ? STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR : STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR);
-        var title_text_color = stbg_get_widget_style_color((pressed || hovered) ? STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_TEXT_COLOR : STBG_WIDGET_STYLE.WINDOW_TITLE_TEXT_COLOR);
+        var title_background_color = stbg_get_widget_style_color(active ? STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR : STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR);
+        var title_text_color = stbg_get_widget_style_color(active ? STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_TEXT_COLOR : STBG_WIDGET_STYLE.WINDOW_TITLE_TEXT_COLOR);
 
         if (window.hash == debug_window_hash)
         {
-            title_background_color = stbg_get_widget_style_color(pressed || hovered ? STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR : STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_BACKGROUND_COLOR);
-            title_text_color = stbg_get_widget_style_color(pressed || hovered ? STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_ACTIVE_TEXT_COLOR : STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_TEXT_COLOR);
+            title_background_color = stbg_get_widget_style_color(active ? STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR : STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_BACKGROUND_COLOR);
+            title_text_color = stbg_get_widget_style_color(active ? STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_ACTIVE_TEXT_COLOR : STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_TEXT_COLOR);
         }
 
         // background and border

@@ -56,13 +56,13 @@ public class SDLApp : IDisposable
         var frames_ticks = SDL.GetTicks();
         var frames_count = 0;
 
-        var stbg_io = new StbGui.stbg_io();
+        var input = new StbGui.stbg_input();
 
         while (loop)
         {
             ulong frame_start_ns = SDL.GetTicksNS();
 
-            loop = ProcessSDLEvents(ref stbg_io);
+            loop = ProcessSDLEvents(ref input);
 
             if (!loop) break;
 
@@ -70,7 +70,7 @@ public class SDLApp : IDisposable
             //SDL.SetRenderDrawColor(renderer, 100, 149, 237, 0);
             //SDL.RenderClear(renderer);
 
-            StbGui.stbg_set_io(stbg_io);
+            StbGui.stbg_set_input(input);
 
             RenderStbGui();
 
@@ -125,11 +125,11 @@ public class SDLApp : IDisposable
         }
     }
 
-    private bool ProcessSDLEvents(ref StbGui.stbg_io stbg_io)
+    private bool ProcessSDLEvents(ref StbGui.stbg_input input)
     {
         bool loop = true;
 
-        stbg_io.mouse_delta = StbGui.stbg_build_position(0, 0);
+        input.mouse_delta = StbGui.stbg_build_position(0, 0);
 
         while (SDL.PollEvent(out var e) && loop)
         {
@@ -140,35 +140,35 @@ public class SDLApp : IDisposable
                     break;
 
                 case SDL.EventType.MouseMotion:
-                    stbg_io.mouse_position.x = e.Motion.X;
-                    stbg_io.mouse_position.y = e.Motion.Y;
-                    stbg_io.mouse_delta.x += e.Motion.XRel;
-                    stbg_io.mouse_delta.y += e.Motion.YRel;
-                    stbg_io.mouse_position_valid = true;
+                    input.mouse_position.x = e.Motion.X;
+                    input.mouse_position.y = e.Motion.Y;
+                    input.mouse_delta.x += e.Motion.XRel;
+                    input.mouse_delta.y += e.Motion.YRel;
+                    input.mouse_position_valid = true;
                     break;
 
                 case SDL.EventType.MouseButtonDown:
                     if (e.Button.Button == 1)
-                        stbg_io.mouse_button_1_down = true;
+                        input.mouse_button_1_down = true;
                     else if (e.Button.Button == 2)
-                        stbg_io.mouse_button_2_down = true;
-                    stbg_io.mouse_position.x = e.Button.X;
-                    stbg_io.mouse_position.y = e.Button.Y;
-                    stbg_io.mouse_position_valid = true;
+                        input.mouse_button_2_down = true;
+                    input.mouse_position.x = e.Button.X;
+                    input.mouse_position.y = e.Button.Y;
+                    input.mouse_position_valid = true;
                     break;
 
                 case SDL.EventType.MouseButtonUp:
                     if (e.Button.Button == 1)
-                        stbg_io.mouse_button_1_down = false;
+                        input.mouse_button_1_down = false;
                     else if (e.Button.Button == 2)
-                        stbg_io.mouse_button_2_down = false;
-                    stbg_io.mouse_position.x = e.Button.X;
-                    stbg_io.mouse_position.y = e.Button.Y;
-                    stbg_io.mouse_position_valid = true;
+                        input.mouse_button_2_down = false;
+                    input.mouse_position.x = e.Button.X;
+                    input.mouse_position.y = e.Button.Y;
+                    input.mouse_position_valid = true;
                     break;
 
                 case SDL.EventType.WindowMouseLeave:
-                    stbg_io.mouse_position_valid = false;
+                    input.mouse_position_valid = false;
                     break;
 
                 case SDL.EventType.WindowResized:
