@@ -40,7 +40,7 @@ public class SDLFont : IDisposable
         LineGap = lineGap * fontScale;
         LineHeight = (ascent - descent + lineGap) * fontScale;
 
-        Baseline = (int)(ascent * fontScale);
+        Baseline = (int)Ascent;
 
         InitFontTexture(fontBytes);
     }
@@ -53,7 +53,7 @@ public class SDLFont : IDisposable
         int rangeFrom = 0;
         int rangeTo = 255;
 
-        int rangeSize = rangeTo - rangeFrom;        
+        int rangeSize = rangeTo - rangeFrom;
 
         StbTrueType.stbtt_pack_range[] packRanges = new StbTrueType.stbtt_pack_range[1];
         packRanges[0].font_size = Size;
@@ -110,7 +110,7 @@ public class SDLFont : IDisposable
         }
     }
 
-    public StbGui.stbg_size MeasureText(ReadOnlySpan<char> text, StbGui.stbg_font_style style)
+    public StbGui.stbg_size MeasureText(ReadOnlySpan<char> text, StbGui.stbg_font_style style, bool use_baseline = false)
     {
         float scale = style.size / Size;
 
@@ -139,17 +139,50 @@ public class SDLFont : IDisposable
             ++ch;
         }
 
-        return StbGui.stbg_build_size(xpos, (Baseline + (lines - 1) * LineHeight * lines) * scale);
+        return StbGui.stbg_build_size(
+            xpos,
+            use_baseline ?
+                (Baseline + (lines - 1) * LineHeight) * scale :
+                LineHeight * lines * scale
+        );
     }
-
 
     public void DrawText(ReadOnlySpan<char> text, StbGui.stbg_font_style style, StbGui.stbg_rect bounds)
     {
         float scale = style.size / Size;
 
+        var bounds_width = (bounds.x1 - bounds.x0) * scale;
+        var bounds_height = (bounds.y1 - bounds.y0) * scale;
+
+        if (bounds_width <= 0 || bounds_height <= 0)
+            return;
+
+        var full_text_bounds = MeasureText(text, style, true);
+
+        var center_y_offset = 0; //full_text_bounds.height < bounds_height ?
+            //MathF.Floor((bounds_height - full_text_bounds.height) / 2) :
+            //0;
+
+        var center_x_offset = 0; //full_text_bounds.width < bounds_width ?
+            //MathF.Floor((bounds_width - full_text_bounds.width) / 2) :
+            //0;
+
+        var use_clipping = false;
+
+        if (full_text_bounds.height > bounds_height ||
+            full_text_bounds.width > bounds_width)
+        {
+            use_clipping = true;
+        }
+
+        if (use_clipping)
+        {
+            SDLHelper.PushClipRect(renderer, bounds);
+        }
+
         int ch = 0;
-        float xpos = bounds.x0;
-        float ypos = bounds.y0;
+        float xpos = bounds.x0 + center_x_offset;
+        float ypos = bounds.y0 + center_y_offset;
 
         SDL.SetTextureColorMod(fontTexture, style.color.r, style.color.g, style.color.b);
 
@@ -168,7 +201,10 @@ public class SDLFont : IDisposable
             if (xpos + dx > bounds.x1 && !firstLine)
             {
                 ypos += LineHeight * scale;
-                xpos = bounds.x0;
+                xpos = bounds.x0 + center_x_offset;
+
+                if (ypos + LineHeight * scale > bounds.y1)
+                    break;
             }
 
             var fromRect = new SDL.FRect() { X = charData.x0, Y = charData.y0, W = charData.x1 - charData.x0, H = charData.y1 - charData.y0 };
@@ -177,7 +213,7 @@ public class SDLFont : IDisposable
             if (!SDL.RenderTexture(renderer, fontTexture, fromRect, toRect))
             {
                 SDL.LogError(SDL.LogCategory.System, $"SDL failed to render texture: {SDL.GetError()}");
-                return;
+                break;
             }
 
             firstLine = false;
@@ -186,6 +222,12 @@ public class SDLFont : IDisposable
 
             ++ch;
         }
+
+        if (use_clipping)
+        {
+            SDLHelper.PopClipRect(renderer);
+        }
+
     }
 
     public void Dispose()

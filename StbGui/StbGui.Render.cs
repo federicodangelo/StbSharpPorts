@@ -32,10 +32,15 @@ public partial class StbGui
             if (render_commands_queue_index + 1 == render_commands_queue.Length)
                 flush_queue();
 
-
             if (command.type != STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME && command.type != STBG_RENDER_COMMAND_TYPE.END_FRAME)
             {
                 ref var bounds = ref command.bounds;
+
+                // Ensure bounds correctly formed
+                bounds.x0 = MathF.Max(bounds.x0, 0);
+                bounds.y0 = MathF.Max(bounds.y0, 0);
+                bounds.x1 = MathF.Max(bounds.x0, bounds.x1);
+                bounds.y1 = MathF.Max(bounds.y0, bounds.y1);
 
                 // Apply global rect offset
                 bounds = stbg_translate_rect(bounds, last_global_rect.x0, last_global_rect.y0);

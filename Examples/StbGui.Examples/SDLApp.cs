@@ -34,6 +34,7 @@ public class SDLApp : IDisposable
 
         SDL.SetWindowResizable(window, true);
         SDL.SetWindowBordered(window, true);
+        SDL.SetWindowMinimumSize(window, 320, 100);
         if (!SDL.SetWindowSurfaceVSync(window, 1))
         {
             SDL.LogError(SDL.LogCategory.Application, $"Failed to enable window v-sync: {SDL.GetError()}, using fake v-sync");
@@ -303,7 +304,7 @@ public class SDLApp : IDisposable
             }
             StbGui.stbg_end_window();
 
-            StbGui.stbg_begin_window("Window 2");
+            StbGui.stbg_begin_window("Window 2 with a REALLY REALLY REALLY REALLY REALLY REALLY REALLY REALLY REALLY long title");
             {
                 if (StbGui.stbg_get_last_widget_is_new())
                     StbGui.stbg_move_window(StbGui.stbg_get_last_widget_id(), 200, 150);
