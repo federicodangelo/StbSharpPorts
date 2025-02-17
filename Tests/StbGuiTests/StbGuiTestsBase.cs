@@ -45,16 +45,6 @@ public class StbGuiTestsBase : IDisposable
         }
     }
 
-    static protected readonly int COLOR_RED = (int)StbGui.stbg_color_to_uint(StbGui.STBG_COLOR_RED);
-    static protected readonly int COLOR_GREEN = (int)StbGui.stbg_color_to_uint(StbGui.STBG_COLOR_GREEN);
-    static protected readonly int COLOR_BLUE = (int)StbGui.stbg_color_to_uint(StbGui.STBG_COLOR_BLUE);
-    static protected readonly int COLOR_YELLOW = (int)StbGui.stbg_color_to_uint(StbGui.STBG_COLOR_YELLOW);
-    static protected readonly int COLOR_CYAN = (int)StbGui.stbg_color_to_uint(StbGui.STBG_COLOR_CYAN);
-    static protected readonly int COLOR_MAGENTA = (int)StbGui.stbg_color_to_uint(StbGui.STBG_COLOR_MAGENTA);
-    static protected readonly int COLOR_WHITE = (int)StbGui.stbg_color_to_uint(StbGui.STBG_COLOR_WHITE);
-    static protected readonly int COLOR_BLACK = (int)StbGui.stbg_color_to_uint(StbGui.STBG_COLOR_BLACK);
-    static protected readonly int COLOR_TRANSPARENT = (int)StbGui.stbg_color_to_uint(StbGui.STBG_COLOR_TRANSPARENT);
-
     static private TestRenderScreenPixel[][] ConvertExpectedLinesAndColorsToExpectedPixels(string[][] expectedLinesAndColors)
     {
         TestRenderScreenPixel[][] expectedPixels = new TestRenderScreenPixel[expectedLinesAndColors.Length][];
@@ -313,8 +303,10 @@ public class StbGuiTestsBase : IDisposable
             font_id, font_style
         );
 
+        // ROOT
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.ROOT_BACKGROUND_COLOR, StbGui.STBG_COLOR_CYAN);
 
+        // BUTTON
         var buttonBorder = 1.0f;
         var buttonPaddingTopBottom = MathF.Ceiling(font_style.size / 2);
         var buttonPaddingLeftRight = MathF.Ceiling(font_style.size / 2);
@@ -329,6 +321,15 @@ public class StbGuiTestsBase : IDisposable
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.BUTTON_BACKGROUND_COLOR, StbGui.STBG_COLOR_CYAN);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.BUTTON_TEXT_COLOR, StbGui.STBG_COLOR_WHITE);
 
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.BUTTON_HOVERED_BORDER_COLOR, StbGui.STBG_COLOR_WHITE);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.BUTTON_HOVERED_BACKGROUND_COLOR, StbGui.STBG_COLOR_BLUE);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.BUTTON_HOVERED_TEXT_COLOR, StbGui.STBG_COLOR_BLACK);
+        
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.BUTTON_PRESSED_BORDER_COLOR, StbGui.STBG_COLOR_WHITE);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.BUTTON_PRESSED_BACKGROUND_COLOR, StbGui.STBG_COLOR_GREEN);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.BUTTON_PRESSED_TEXT_COLOR, StbGui.STBG_COLOR_BLACK);
+
+        // WINDOW
         var windowBorder = 1.0f;
         var windowTitleHeight = MathF.Ceiling(font_style.size);
         var windowTitlePadding = MathF.Ceiling(font_style.size / 4);
@@ -352,15 +353,22 @@ public class StbGuiTestsBase : IDisposable
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, windowDefaultHeight);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_BORDER_COLOR, StbGui.STBG_COLOR_WHITE);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_BACKGROUND_COLOR, StbGui.STBG_COLOR_BLUE);
+        
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_TEXT_COLOR, StbGui.STBG_COLOR_WHITE);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR, StbGui.STBG_COLOR_MAGENTA);
-        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_TEXT_COLOR, StbGui.STBG_COLOR_WHITE);
-        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR, StbGui.STBG_COLOR_MAGENTA);
 
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_TEXT_COLOR, StbGui.STBG_COLOR_MAGENTA);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR, StbGui.STBG_COLOR_WHITE);
+
+        // DEBUG WINDOW
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_TEXT_COLOR, StbGui.STBG_COLOR_WHITE);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_BACKGROUND_COLOR, StbGui.STBG_COLOR_RED);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_ACTIVE_TEXT_COLOR, StbGui.STBG_COLOR_WHITE);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR, StbGui.STBG_COLOR_RED);
+
+        // LABEL
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.LABEL_TEXT_COLOR, StbGui.STBG_COLOR_WHITE);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.LABEL_BACKGROUND_COLOR, StbGui.STBG_COLOR_CYAN);
     }
 
     static protected void DestroyGui()

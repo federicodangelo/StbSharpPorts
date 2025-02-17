@@ -89,7 +89,7 @@ public partial class StbGui
     private static ref stbg_widget stbg__get_or_create_debug_window()
     {
         ref var debug_window = ref stbg__add_widget(debug_window_hash, STBG_WIDGET_TYPE.WINDOW, context.root_widget_id, out var is_new, true);
-        
+
         stbg__window_init(ref debug_window, is_new, DEBUG_WINDOW_TITLE);
 
         return ref debug_window;
@@ -97,7 +97,7 @@ public partial class StbGui
 
     private static ref stbg_widget stbg__add_widget(STBG_WIDGET_TYPE type, string identifier, out bool is_new)
     {
-        ref var widget = ref stbg__add_widget(stbg__calculate_hash(type, identifier), type,  context.current_widget_id, out is_new);
+        ref var widget = ref stbg__add_widget(stbg__calculate_hash(type, identifier), type, context.current_widget_id, out is_new);
         context.last_widget_id = widget.id;
         context.last_widget_is_new = is_new;
 
@@ -159,7 +159,7 @@ public partial class StbGui
             is_already_created_in_same_frame = widget.last_used_in_frame == context.current_frame;
             if (!is_already_created_in_same_frame)
                 context.frame_stats.reused_widgets++;
-        }        
+        }
 
         // Update last used
         if (is_already_created_in_same_frame && !ignore_duplicated)
@@ -414,6 +414,11 @@ public partial class StbGui
 
     private static void stbg__process_input()
     {
+        if (!context.io.mouse_position_valid)
+        {
+            context.io.mouse_position = stbg_build_position(-99999, -99999);
+        }
+
         if (context.input_feedback.dragged_widget_id != STBG_WIDGET_ID_NULL)
         {
             context.input_feedback.hovered_widget_id = context.input_feedback.dragged_widget_id;

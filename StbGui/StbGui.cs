@@ -117,6 +117,9 @@ public partial class StbGui
         DEBUG_WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR,
 
         // Window styles
+        WINDOW_DEFAULT_WIDTH,
+        WINDOW_DEFAULT_HEIGHT,
+        WINDOW_SPACING_BETWEEN_NEW_WINDOWS,
         WINDOW_BORDER_SIZE,
         WINDOW_TITLE_HEIGHT,
         WINDOW_TITLE_PADDING_TOP,
@@ -128,8 +131,6 @@ public partial class StbGui
         WINDOW_CHILDREN_PADDING_LEFT,
         WINDOW_CHILDREN_PADDING_RIGHT,
         WINDOW_CHILDREN_SPACING,
-        WINDOW_DEFAULT_WIDTH,
-        WINDOW_DEFAULT_HEIGHT,
         WINDOW_BORDER_COLOR,
         WINDOW_BACKGROUND_COLOR,
         WINDOW_TITLE_TEXT_COLOR,
@@ -584,6 +585,7 @@ public partial class StbGui
         var windowDefaultWidth = MathF.Ceiling(font_style.size * 30);
         var windowDefaultHeight = MathF.Ceiling(font_style.size * 15);
         var windowChidlrenSpacing = MathF.Ceiling(font_style.size / 4);
+        var windowSpacingBetweenNewWindows = MathF.Ceiling(context.theme.default_font_style.size / 2);
 
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, windowBorder);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT, windowTitleHeight);
@@ -601,6 +603,8 @@ public partial class StbGui
 
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, windowDefaultWidth);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, windowDefaultHeight);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_SPACING_BETWEEN_NEW_WINDOWS, windowSpacingBetweenNewWindows);
+         
 
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_COLOR, stbg_build_color(41, 128, 185));
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BACKGROUND_COLOR, stbg_build_color(189, 195, 199));

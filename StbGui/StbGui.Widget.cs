@@ -18,10 +18,10 @@ public partial class StbGui
         { STBG_WIDGET_TYPE.LABEL, stbg__label_render },
     };
 
-    static private Dictionary<STBG_WIDGET_TYPE, stbg__widget_update_input_delegate> STBG__WIDGET_UPDATE_INPUT_DICTIONARY = new() {
+    static private Dictionary<STBG_WIDGET_TYPE, stbg__widget_update_input_delegate?> STBG__WIDGET_UPDATE_INPUT_DICTIONARY = new() {
         { STBG_WIDGET_TYPE.WINDOW, stbg__window_update_input },
         { STBG_WIDGET_TYPE.BUTTON, stbg__button_update_input },
-        { STBG_WIDGET_TYPE.LABEL, stbg__label_update_input },
+        { STBG_WIDGET_TYPE.LABEL, null }, // Labels don't handle any input
     };
 
     static private stbg__widget_render_delegate?[] STBG__WIDGET_RENDER_MAP = new stbg__widget_render_delegate[(int)STBG_WIDGET_TYPE.COUNT];

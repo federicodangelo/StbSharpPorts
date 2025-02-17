@@ -31,11 +31,6 @@ public partial class StbGui
         return ref label;
     }
 
-    private static void stbg__label_update_input(ref stbg_widget label)
-    {
-        // No input handling
-    }
-
     private static void stbg__label_render(ref stbg_widget label, ref stbg_render_context render_context)
     {
         var size = label.computed_bounds.size;

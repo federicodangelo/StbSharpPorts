@@ -38,7 +38,7 @@ public partial class StbGui
         if (is_new)
         {
             window.layout.intrinsic_position = context.next_new_window_position;
-            context.next_new_window_position = stbg_offset_position(context.next_new_window_position, MathF.Ceiling(context.theme.default_font_style.size / 2), MathF.Ceiling(context.theme.default_font_style.size / 2));
+            context.next_new_window_position = stbg_offset_position(context.next_new_window_position, stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_SPACING_BETWEEN_NEW_WINDOWS), stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_SPACING_BETWEEN_NEW_WINDOWS));
             window.layout.intrinsic_size = stbg__build_intrinsic_size_pixels(stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH), stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT));
         }
     }
@@ -56,8 +56,6 @@ public partial class StbGui
         {
             if (context.io.mouse_button_1_down)
             {
-                window.layout.intrinsic_sorting_index = int.MaxValue;
-
                 if (mouse_over_title)
                 {
                     context.input_feedback.pressed_widget_id = window.id;
@@ -76,6 +74,7 @@ public partial class StbGui
         else if (context.io.mouse_button_1_down)
         {
             context.input_feedback.pressed_widget_id = window.id;
+            window.layout.intrinsic_sorting_index = int.MaxValue;
         }
 
         if (context.input_feedback.dragged_widget_id == window.id)
@@ -92,8 +91,8 @@ public partial class StbGui
         bool hovered = context.input_feedback.hovered_widget_id == window.id;
         bool pressed = context.input_feedback.pressed_widget_id == window.id;
 
-        var title_background_color = stbg_get_widget_style_color(pressed || hovered ? STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR : STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR);
-        var title_text_color = stbg_get_widget_style_color(pressed || hovered ? STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_TEXT_COLOR : STBG_WIDGET_STYLE.WINDOW_TITLE_TEXT_COLOR);
+        var title_background_color = stbg_get_widget_style_color((pressed || hovered) ? STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR : STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR);
+        var title_text_color = stbg_get_widget_style_color((pressed || hovered) ? STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_TEXT_COLOR : STBG_WIDGET_STYLE.WINDOW_TITLE_TEXT_COLOR);
 
         if (window.hash == debug_window_hash)
         {
