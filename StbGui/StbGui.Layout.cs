@@ -178,6 +178,12 @@ public partial class StbGui
 
                 child_index++;
             } while (children_id != STBG_WIDGET_ID_NULL);
+
+            widget.properties.computed_bounds.children_size = accumulated_children_size;
+        }
+        else
+        {
+            widget.properties.computed_bounds.children_size = stbg_build_size_zero();
         }
 
         accumulated_children_size = stbg_size_add_padding(accumulated_children_size, widget_inner_padding);

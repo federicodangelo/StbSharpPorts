@@ -192,6 +192,10 @@ public partial class StbGui
 
     [ExcludeFromCodeCoverage]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static public stbg_position stbg_build_position_zero() => new stbg_position();
+
+    [ExcludeFromCodeCoverage]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static public stbg_position stbg_offset_position(stbg_position position, float ox, float oy) => new stbg_position() { x = position.x + ox, y = position.y + oy };
 
     [ExcludeFromCodeCoverage]

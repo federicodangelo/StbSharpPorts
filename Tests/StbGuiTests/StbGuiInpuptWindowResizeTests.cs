@@ -2,24 +2,128 @@ namespace StbSharp.Tests;
 
 public class StbGuiInpuptWindowResizeTests : StbGuiTestsBase
 {
-    const float window_top = 5;
-    const float window_left = 5;
-    const float window_width = 10;
-    const float window_height = 8;
+    const float window_top = 15;
+    const float window_left = 15;
+    const float window_width = 20;
+    const float window_height = 16;
     const float window_right = window_left + window_width;
     const float window_bottom = window_top + window_height;
 
 
     [Theory, CombinatorialData]
-
     public void TestWindowResize(
-        [CombinatorialValues(-2, 0, 2)] float dx, 
+        [CombinatorialValues(-1, 0, 1)] int direction_x,
+        [CombinatorialValues(-1, 0, 1)] int direction_y,
+        [CombinatorialValues(-2, 0, 2)] float dx,
         [CombinatorialValues(-2, 0, 2)] float dy)
     {
+        int window_id = RunResizeTest(direction_x, direction_y, dx, dy);
+
+        // Assert final bounds
+        var bounds = StbGui.stbg_get_widget_by_id(window_id).properties.computed_bounds.global_rect;
+
+        if (direction_x < 0)
+        {
+            Assert.Equal(window_left + dx, bounds.x0);
+            Assert.Equal(window_right, bounds.x1);
+        }
+        else if (direction_x > 0)
+        {
+            Assert.Equal(window_left, bounds.x0);
+            Assert.Equal(window_right + dx, bounds.x1);
+        }
+        else
+        {
+            Assert.Equal(window_left, bounds.x0);
+            Assert.Equal(window_right, bounds.x1);
+        }
+
+        if (direction_y < 0)
+        {
+            Assert.Equal(window_top + dy, bounds.y0);
+            Assert.Equal(window_bottom, bounds.y1);
+        }
+        else if (direction_y > 0)
+        {
+            Assert.Equal(window_top, bounds.y0);
+            Assert.Equal(window_bottom + dy, bounds.y1);
+        }
+        else
+        {
+            Assert.Equal(window_top, bounds.y0);
+            Assert.Equal(window_bottom, bounds.y1);
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void TestWindowWithButtonInsideResize(
+        [CombinatorialValues(-1, 0, 1)] int direction_x,
+        [CombinatorialValues(-1, 0, 1)] int direction_y,
+        [CombinatorialValues(-20, 0, 20)] float dx,
+        [CombinatorialValues(-20, 0, 20)] float dy)
+    {
+        // This is the minimum size of the window with a button inside:
+        // /------------\
+        // |Window 1    |
+        // \------------/
+        // |            |
+        // |            |
+        // | /--------\ |
+        // | |        | |
+        // | | Button | |
+        // | |        | |
+        // | \--------/ |
+        // |            |
+        // \------------/
+        float min_window_width = 14;
+        float min_window_height = 12;
+
+        int window_id = RunResizeTest(direction_x, direction_y, dx, dy, () => StbGui.stbg_button("Button"));
+
+        // Assert final bounds always fits the button inside
+        var bounds = StbGui.stbg_get_widget_by_id(window_id).properties.computed_bounds.global_rect;
+
+        if (direction_x < 0)
+        {
+            Assert.True((bounds.x1 - bounds.x0) >= min_window_width);
+            Assert.Equal(window_right, bounds.x1);
+        }
+        else if (direction_x > 0)
+        {
+            Assert.Equal(window_left, bounds.x0);
+            Assert.True((bounds.x1 - bounds.x0) >= min_window_width);
+        }
+        else
+        {
+            Assert.Equal(window_left, bounds.x0);
+            Assert.Equal(window_right, bounds.x1);
+        }
+
+        if (direction_y < 0)
+        {
+            Assert.True((bounds.y1 - bounds.y0) >= min_window_height);
+            Assert.Equal(window_bottom, bounds.y1);
+        }
+        else if (direction_y > 0)
+        {
+            Assert.Equal(window_top, bounds.y0);
+            Assert.True((bounds.y1 - bounds.y0) >= min_window_height);
+        }
+        else
+        {
+            Assert.Equal(window_top, bounds.y0);
+            Assert.Equal(window_bottom, bounds.y1);
+        }
+    }
+
+    private static int RunResizeTest(int direction_x, int direction_y, float dx, float dy, Action? create_other_children = null)
+    {
+        create_other_children ??= () => { };
+
         InitGUI();
 
-        int window_id;
         StbGui.stbg_rect bounds;
+        int window_id;
 
         // Initial setup
         StbGui.stbg_begin_frame();
@@ -30,10 +134,16 @@ public class StbGuiInpuptWindowResizeTests : StbGuiTestsBase
                 StbGui.stbg_move_window(window_id, window_top, window_left);
                 StbGui.stbg_resize_window(window_id, window_width, window_height);
 
+                create_other_children();
+
             }
             StbGui.stbg_end_window();
         }
         StbGui.stbg_end_frame();
+
+        StbGui.stbg_render();
+
+        RenderCommandsToTestScreen();
 
         bounds = StbGui.stbg_get_widget_by_id(window_id).properties.computed_bounds.global_rect;
 
@@ -45,16 +155,16 @@ public class StbGuiInpuptWindowResizeTests : StbGuiTestsBase
         float start_mouse_position_x;
         float start_mouse_position_y;
 
-        if (dx < 0)
+        if (direction_x < 0)
             start_mouse_position_x = window_left;
-        else if (dx > 0)
+        else if (direction_x > 0)
             start_mouse_position_x = window_right;
         else
             start_mouse_position_x = window_left + (window_right - window_left) / 2;
 
-        if (dy < 0)
+        if (direction_y < 0)
             start_mouse_position_y = window_top;
-        else if (dy > 0)
+        else if (direction_y > 0)
             start_mouse_position_y = window_bottom;
         else
             start_mouse_position_y = window_top + (window_bottom - window_top) / 2;
@@ -72,12 +182,14 @@ public class StbGuiInpuptWindowResizeTests : StbGuiTestsBase
             StbGui.stbg_begin_window("Window 1");
             {
                 window_id = StbGui.stbg_get_last_widget_id();
+
+                create_other_children();
             }
             StbGui.stbg_end_window();
         }
         StbGui.stbg_end_frame();
 
-        if (dx != 0 || dy != 0)
+        if (direction_x != 0 || direction_y != 0)
         {
             // Cursor should NOT be the default (it should be one of the RESIZE_* ones)
             Assert.NotEqual(StbGui.STBG_ACTIVE_CURSOR_TYPE.DEFAULT, StbGui.stbg_get_cursor());
@@ -95,6 +207,8 @@ public class StbGuiInpuptWindowResizeTests : StbGuiTestsBase
             StbGui.stbg_begin_window("Window 1");
             {
                 window_id = StbGui.stbg_get_last_widget_id();
+
+                create_other_children();
             }
             StbGui.stbg_end_window();
         }
@@ -112,6 +226,8 @@ public class StbGuiInpuptWindowResizeTests : StbGuiTestsBase
             StbGui.stbg_begin_window("Window 1");
             {
                 window_id = StbGui.stbg_get_last_widget_id();
+
+                create_other_children();
             }
             StbGui.stbg_end_window();
         }
@@ -129,6 +245,8 @@ public class StbGuiInpuptWindowResizeTests : StbGuiTestsBase
             StbGui.stbg_begin_window("Window 1");
             {
                 window_id = StbGui.stbg_get_last_widget_id();
+
+                create_other_children();
             }
             StbGui.stbg_end_window();
         }
@@ -148,45 +266,13 @@ public class StbGuiInpuptWindowResizeTests : StbGuiTestsBase
             StbGui.stbg_begin_window("Window 1");
             {
                 window_id = StbGui.stbg_get_last_widget_id();
+
+                create_other_children();
             }
             StbGui.stbg_end_window();
         }
         StbGui.stbg_end_frame();
 
-        // Assert final bounds
-        bounds = StbGui.stbg_get_widget_by_id(window_id).properties.computed_bounds.global_rect;
-
-        if (dx < 0)
-        {
-            Assert.Equal(window_left + dx, bounds.x0);
-            Assert.Equal(window_right, bounds.x1);
-        }
-        else if (dx > 0)
-        {
-            Assert.Equal(window_left, bounds.x0);
-            Assert.Equal(window_right + dx, bounds.x1);
-        }
-        else
-        {
-            Assert.Equal(window_left, bounds.x0);
-            Assert.Equal(window_right, bounds.x1);
-        }
-
-        if (dy < 0)
-        {
-            Assert.Equal(window_top + dy, bounds.y0);
-            Assert.Equal(window_bottom, bounds.y1);
-        }
-        else if (dy > 0)
-        {
-            Assert.Equal(window_top, bounds.y0);
-            Assert.Equal(window_bottom + dy, bounds.y1);
-        }
-        else
-        {
-            Assert.Equal(window_top, bounds.y0);
-            Assert.Equal(window_bottom, bounds.y1);
-        }
-
+        return window_id;
     }
 }

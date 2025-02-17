@@ -257,14 +257,21 @@ public partial class StbGui
         /// Position relative to parent
         /// </summary>
         public stbg_position position;
+
         /// <summary>
         /// Size
         /// </summary>
         public stbg_size size;
+
         /// <summary>
         /// Global rect bounds
         /// </summary>
         public stbg_rect global_rect;
+
+        /// <summary>
+        /// Children size
+        /// </summary>
+        public stbg_size children_size;
     }
 
     public enum STBG_WIDGET_TYPE

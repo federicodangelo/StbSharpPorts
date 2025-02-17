@@ -124,6 +124,14 @@ public partial class StbGui
                     var x = intrinsic_position.x;
                     intrinsic_position.x = MathF.Max(mouse_position.x - parent_bounds.x0, 0);
                     intrinsic_size.width = (bounds.x1 - bounds.x0) - parent_bounds.x0 + (x - intrinsic_position.x);
+
+                    var min_width = window.properties.computed_bounds.children_size.width + window.properties.layout.inner_padding.left + window.properties.layout.inner_padding.right;
+                    if (intrinsic_size.width < min_width)
+                    {
+                        var delta = min_width - intrinsic_size.width;
+                        intrinsic_size.width = min_width;
+                        intrinsic_position.x -= delta;
+                    }
                 }
                 else if (resize_x > 0)
                 {
@@ -135,6 +143,14 @@ public partial class StbGui
                     var y = intrinsic_position.y;
                     intrinsic_position.y = MathF.Max(mouse_position.y - parent_bounds.y0, 0);
                     intrinsic_size.height = (bounds.y1 - bounds.y0) - parent_bounds.y0 + (y - intrinsic_position.y);
+
+                    var min_height = window.properties.computed_bounds.children_size.height + window.properties.layout.inner_padding.top + window.properties.layout.inner_padding.bottom;
+                    if (intrinsic_size.height < min_height)
+                    {
+                        var delta = min_height - intrinsic_size.height;
+                        intrinsic_size.height = min_height;
+                        intrinsic_position.y -= delta;
+                    }
                 }
                 else if (resize_y > 0)
                 {
