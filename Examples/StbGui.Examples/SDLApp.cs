@@ -32,14 +32,15 @@ public class SDLApp : IDisposable
             throw new Exception(SDL.GetError());
         }
 
+        if (!SDL.SetRenderVSync(renderer, 1))
+        {
+            SDL.LogError(SDL.LogCategory.Application, $"Failed to enable renderer v-sync: {SDL.GetError()}, using fake v-sync");
+            use_fake_vsync = true;
+        }
+
         SDL.SetWindowResizable(window, true);
         SDL.SetWindowBordered(window, true);
         SDL.SetWindowMinimumSize(window, 320, 100);
-        if (!SDL.SetWindowSurfaceVSync(window, 1))
-        {
-            SDL.LogError(SDL.LogCategory.Application, $"Failed to enable window v-sync: {SDL.GetError()}, using fake v-sync");
-            use_fake_vsync = true;
-        }
 
         mainFont = new SDLFont("ProggyClean", "Fonts/ProggyClean.ttf", 13, renderer);
 
@@ -93,18 +94,21 @@ public class SDLApp : IDisposable
 
             if (use_fake_vsync || background_window)
             {
-                var display = SDL.GetDisplayForWindow(window);
-
-                var displayMode = SDL.GetCurrentDisplayMode(display);
-
                 var refresh_rate = 60;
 
-                if (displayMode.HasValue)
+                if (!background_window)
                 {
-                    refresh_rate = (int)Math.Round(displayMode.Value.RefreshRate);
-                }
+                    var display = SDL.GetDisplayForWindow(window);
 
-                refresh_rate = Math.Clamp(refresh_rate, 1, MAX_FPS);
+                    var displayMode = SDL.GetCurrentDisplayMode(display);
+
+                    if (displayMode.HasValue)
+                    {
+                        refresh_rate = (int)Math.Round(displayMode.Value.RefreshRate);
+                    }
+
+                    refresh_rate = Math.Clamp(refresh_rate, 1, MAX_FPS);
+                }
 
                 if (background_window)
                     refresh_rate = Math.Min(refresh_rate, BACKGROUND_FPS);
