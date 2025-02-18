@@ -995,7 +995,10 @@ public partial class StbGui
     {
         stbg__assert(context.inside_frame);
         stbg__assert(widget_id != context.root_widget_id);
+
         ref var widget = ref stbg_get_widget_by_id(widget_id);
+
+        stbg__warning(stbg_get_widget_by_id(widget.hierarchy.parent_id).properties.layout.children_layout_direction == STBG_CHILDREN_LAYOUT_DIRECTION.FREE, "Position of widgets inside non-free parents is ignored");
 
         widget.properties.layout.intrinsic_position.x = Math.Max(x, 0);
         widget.properties.layout.intrinsic_position.y = Math.Max(y, 0);
