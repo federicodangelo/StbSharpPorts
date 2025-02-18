@@ -27,7 +27,7 @@ public class StbGuiInputTests : StbGuiTestsBase
         ]);
 
         // Hover
-        StbGui.stbg_set_input(new()
+        StbGui.stbg_set_user_input(new()
         {
             mouse_position = StbGui.stbg_build_position(2, 2),
             mouse_position_valid = true
@@ -77,7 +77,7 @@ public class StbGuiInputTests : StbGuiTestsBase
         ]);
 
         // Hover
-        StbGui.stbg_set_input(new()
+        StbGui.stbg_set_user_input(new()
         {
             mouse_position = StbGui.stbg_build_position(2, 2),
             mouse_position_valid = true
@@ -102,7 +102,7 @@ public class StbGuiInputTests : StbGuiTestsBase
         ]);
 
         // Hover off
-        StbGui.stbg_set_input(new()
+        StbGui.stbg_set_user_input(new()
         {
             mouse_position_valid = false
         });
@@ -151,11 +151,11 @@ public class StbGuiInputTests : StbGuiTestsBase
         ]);
 
         // Press
-        StbGui.stbg_set_input(new()
+        StbGui.stbg_set_user_input(new()
         {
             mouse_position = StbGui.stbg_build_position(2, 2),
             mouse_position_valid = true,
-            mouse_button_1_down = true,
+            mouse_button_1 = true,
         });
 
         StbGui.stbg_begin_frame();
@@ -202,12 +202,11 @@ public class StbGuiInputTests : StbGuiTestsBase
         ]);
 
         // Press
-        StbGui.stbg_set_input(new()
+        StbGui.stbg_set_user_input(new()
         {
             mouse_position = StbGui.stbg_build_position(2, 2),
             mouse_position_valid = true,
-            mouse_button_1_down = true,
-            mouse_button_1_pressed = true,
+            mouse_button_1 = true,
         });
 
         StbGui.stbg_begin_frame();
@@ -229,12 +228,10 @@ public class StbGuiInputTests : StbGuiTestsBase
         ]);
 
         // Release (triggers click)
-        StbGui.stbg_set_input(new()
+        StbGui.stbg_set_user_input(new()
         {
             mouse_position = StbGui.stbg_build_position(2, 2),
             mouse_position_valid = true,
-            mouse_button_1_released = true,
-            mouse_button_1_down = false,
         });
 
         StbGui.stbg_begin_frame();
@@ -257,11 +254,10 @@ public class StbGuiInputTests : StbGuiTestsBase
 
 
         // Frame after click (should not triggers click anymore)
-        StbGui.stbg_set_input(new()
+        StbGui.stbg_set_user_input(new()
         {
             mouse_position = StbGui.stbg_build_position(2, 2),
             mouse_position_valid = true,
-            mouse_button_1_down = false,
         });
 
         StbGui.stbg_begin_frame();
@@ -321,11 +317,10 @@ public class StbGuiInputTests : StbGuiTestsBase
         ]);
 
         // Hover middle of window
-        StbGui.stbg_set_input(new()
+        StbGui.stbg_set_user_input(new()
         {
             mouse_position = StbGui.stbg_build_position(8, 10),
             mouse_position_valid = true,
-            mouse_button_1_down = false,
         });
 
         StbGui.stbg_begin_frame();
@@ -406,11 +401,11 @@ public class StbGuiInputTests : StbGuiTestsBase
         ]);
 
         // Hover near Window 1 and press mouse button, Window 1 should be on top
-        StbGui.stbg_set_input(new()
+        StbGui.stbg_set_user_input(new()
         {
             mouse_position = StbGui.stbg_build_position(2, 2),
             mouse_position_valid = true,
-            mouse_button_1_down = true,
+            mouse_button_1 = true,
         });
 
         StbGui.stbg_begin_frame();
@@ -452,11 +447,10 @@ public class StbGuiInputTests : StbGuiTestsBase
         ]);
 
         // Hover near Window 1 and release mouse button, Window 1 should still be on top
-        StbGui.stbg_set_input(new()
+        StbGui.stbg_set_user_input(new()
         {
             mouse_position = StbGui.stbg_build_position(2, 2),
             mouse_position_valid = true,
-            mouse_button_1_down = false,
         });
 
         StbGui.stbg_begin_frame();
@@ -547,12 +541,11 @@ public class StbGuiInputTests : StbGuiTestsBase
         ]);
 
         // Hover near Window 1 and press mouse button, Window 1 should be on top
-        StbGui.stbg_set_input(new()
+        StbGui.stbg_set_user_input(new()
         {
             mouse_position = StbGui.stbg_build_position(2, 2),
             mouse_position_valid = true,
-            mouse_button_1_down = true,
-            mouse_button_1_pressed = true,
+            mouse_button_1 = true,
         });
 
         StbGui.stbg_begin_frame();
@@ -594,11 +587,11 @@ public class StbGuiInputTests : StbGuiTestsBase
         ]);
 
         // Hover near Window 1 and drag mouse, window should be moved
-        StbGui.stbg_set_input(new()
+        StbGui.stbg_set_user_input(new()
         {
             mouse_position = StbGui.stbg_build_position(4, 2),
             mouse_position_valid = true,
-            mouse_button_1_pressed = true,
+            mouse_button_1 = true,
         });
 
         StbGui.stbg_begin_frame();
@@ -640,12 +633,10 @@ public class StbGuiInputTests : StbGuiTestsBase
         ]);
 
         // Release mouse button but keep moving cursor, window should be at the last position
-        StbGui.stbg_set_input(new()
+        StbGui.stbg_set_user_input(new()
         {
             mouse_position = StbGui.stbg_build_position(6, 2),
             mouse_position_valid = true,
-            mouse_button_1_released = true,
-            mouse_button_1_down = false,
         });
 
         StbGui.stbg_begin_frame();

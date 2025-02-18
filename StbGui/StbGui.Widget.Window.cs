@@ -9,6 +9,57 @@ using font_id = int;
 
 public partial class StbGui
 {
+    private static void stbg__window_init_default_theme()
+    {
+        var font_style = context.theme.default_font_style;
+
+        // WINDOW
+        var windowBorder = 1.0f;
+        var windowTitleHeight = MathF.Ceiling(font_style.size);
+        var windowTitlePadding = MathF.Ceiling(font_style.size / 4);
+        var windowChildrenPadding = MathF.Ceiling(font_style.size / 2);
+        var windowDefaultWidth = MathF.Ceiling(font_style.size * 30);
+        var windowDefaultHeight = MathF.Ceiling(font_style.size * 15);
+        var windowChidlrenSpacing = MathF.Ceiling(font_style.size / 4);
+        var windowSpacingBetweenNewWindows = MathF.Ceiling(font_style.size / 2);
+        var windowBorderResizeTolerance = MathF.Ceiling(font_style.size / 4);
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, windowBorder);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT, windowTitleHeight);
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP, windowTitlePadding);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_BOTTOM, windowTitlePadding);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_LEFT, windowTitlePadding);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_RIGHT, windowTitlePadding);
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_TOP, windowChildrenPadding);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_BOTTOM, windowChildrenPadding);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_LEFT, windowChildrenPadding);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_RIGHT, windowChildrenPadding);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING, windowChidlrenSpacing);
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, windowDefaultWidth);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, windowDefaultHeight);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_SPACING_BETWEEN_NEW_WINDOWS, windowSpacingBetweenNewWindows);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_RESIZE_TOLERANCE, windowBorderResizeTolerance);
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_COLOR, stbg_build_color(41, 128, 185));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BACKGROUND_COLOR, stbg_build_color(189, 195, 199));
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_TEXT_COLOR, stbg_build_color(236, 240, 241));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR, stbg_build_color(44, 62, 80));
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_TEXT_COLOR, stbg_build_color(236, 240, 241));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR, stbg_build_color(52, 73, 94));
+
+        // DEBUG WINDOW
+        stbg_set_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_TEXT_COLOR, stbg_build_color(236, 240, 241));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_BACKGROUND_COLOR, stbg_build_color(192, 57, 43));
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_ACTIVE_TEXT_COLOR, stbg_build_color(236, 240, 241));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR, stbg_build_color(231, 76, 60));
+    }
+
     private static ref stbg_widget stbg__window_create(string title)
     {
         ref var window = ref stbg__add_widget(STBG_WIDGET_TYPE.WINDOW, title, out var is_new);
@@ -34,7 +85,7 @@ public partial class StbGui
             right = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_RIGHT),
         };
         layout.constrains = stbg_build_constrains_unconstrained();
-        layout.children_layout_direction = STBG_CHILDREN_LAYOUT_DIRECTION.VERTICAL;
+        layout.children_layout_direction = STBG_CHILDREN_LAYOUT.VERTICAL;
         layout.children_spacing = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING);
 
         if (is_new)
@@ -64,7 +115,7 @@ public partial class StbGui
             resize_x = context.input_feedback.drag_resize_x;
             resize_y = context.input_feedback.drag_resize_y;
         }
-        else if (parent.properties.layout.children_layout_direction == STBG_CHILDREN_LAYOUT_DIRECTION.FREE) 
+        else if (parent.properties.layout.children_layout_direction == STBG_CHILDREN_LAYOUT.FREE)
         {
             stbg__window_get_corner_resize(context.input.mouse_position, bounds, out resize_x, out resize_y);
         }
@@ -81,7 +132,7 @@ public partial class StbGui
 
         if (context.input_feedback.pressed_widget_id == window.id)
         {
-            if (context.input.mouse_button_1_pressed)
+            if (context.input.mouse_button_1)
             {
                 if (mouse_over_title || resize_x != 0 || resize_y != 0)
                 {

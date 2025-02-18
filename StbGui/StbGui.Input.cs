@@ -15,6 +15,8 @@ public partial class StbGui
         if (context.root_widget_id == STBG_WIDGET_ID_NULL)
             return;
 
+        stbg__derive_new_input_from_user_input();
+
         if (!context.input.mouse_position_valid)
         {
             context.input.mouse_position = stbg_build_position(-99999, -99999);
@@ -39,6 +41,49 @@ public partial class StbGui
         }
 
         stbg__process_widget_input(context.root_widget_id);
+    }
+
+    private static void stbg__derive_new_input_from_user_input()
+    {
+        var user_input = context.user_input;
+
+        ref var input = ref context.input;
+
+        input.mouse_position = user_input.mouse_position;
+        input.mouse_position_valid = user_input.mouse_position_valid;
+
+        stgb_update_input_button(user_input.mouse_button_1, ref input.mouse_button_1, ref input.mouse_button_1_down, ref input.mouse_button_1_up);
+        stgb_update_input_button(user_input.mouse_button_2, ref input.mouse_button_2, ref input.mouse_button_2_down, ref input.mouse_button_2_up); 
+    }
+
+    private static void stgb_update_input_button(bool user_pressed, ref bool pressed, ref bool down, ref bool up)
+    {
+        if (user_pressed)
+        {
+            up = false;
+            if (!pressed)
+            {
+                pressed = true;
+                down = true;
+            }
+            else
+            {
+                down = false;
+            }
+        }
+        else
+        {
+            down = false;
+            if (pressed)
+            {
+                pressed = false;
+                up = true;
+            }
+            else
+            {
+                up = false;
+            }
+        }
     }
 
     private static void stbg__process_widget_input(widget_id widget_id)

@@ -11,6 +11,7 @@ public partial class StbGui
 {
     private delegate void stbg__widget_render_delegate(ref stbg_widget widget, ref stbg_render_context render_context);
     private delegate void stbg__widget_update_input_delegate(ref stbg_widget widget);
+    private delegate void stbg__widget_init_default_theme_delegate();
 
     static private Dictionary<STBG_WIDGET_TYPE, stbg__widget_render_delegate> STBG__WIDGET_RENDER_DICTIONARY = new() {
         { STBG_WIDGET_TYPE.WINDOW, stbg__window_render },
@@ -24,6 +25,12 @@ public partial class StbGui
         { STBG_WIDGET_TYPE.LABEL, null }, // Labels don't handle any input
     };
 
+    static private stbg__widget_init_default_theme_delegate[] STBG__WIDGET_INIT_DEFAULT_THEME_LIST = [
+        stbg__button_init_default_theme,
+        stbg__window_init_default_theme,
+        stbg__label_init_default_theme,
+    ];
+
     static private stbg__widget_render_delegate?[] STBG__WIDGET_RENDER_MAP = new stbg__widget_render_delegate[(int)STBG_WIDGET_TYPE.COUNT];
     static private stbg__widget_update_input_delegate?[] STBG__WIDGET_UPDATE_INPUT_MAP = new stbg__widget_update_input_delegate[(int)STBG_WIDGET_TYPE.COUNT];
 
@@ -35,8 +42,8 @@ public partial class StbGui
             var render = STBG__WIDGET_RENDER_DICTIONARY.GetValueOrDefault(type);
             var update_input = STBG__WIDGET_UPDATE_INPUT_DICTIONARY.GetValueOrDefault(type);
 
-            STBG__WIDGET_RENDER_MAP[(int) type] = render;
-            STBG__WIDGET_UPDATE_INPUT_MAP[(int) type] = update_input;
+            STBG__WIDGET_RENDER_MAP[(int)type] = render;
+            STBG__WIDGET_UPDATE_INPUT_MAP[(int)type] = update_input;
         }
     }
 }

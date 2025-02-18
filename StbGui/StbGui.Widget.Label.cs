@@ -9,6 +9,21 @@ using font_id = int;
 
 public partial class StbGui
 {
+    private static void stbg__label_init_default_theme()
+    {
+        // LABEL
+        var labelPaddingTopBottom = 0;
+        var labelPaddingLeftRight = 0;
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.LABEL_PADDING_TOP, labelPaddingTopBottom);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.LABEL_PADDING_BOTTOM, labelPaddingTopBottom);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.LABEL_PADDING_LEFT, labelPaddingLeftRight);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.LABEL_PADDING_RIGHT, labelPaddingLeftRight);
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.LABEL_BACKGROUND_COLOR, STBG_COLOR_TRANSPARENT);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.LABEL_TEXT_COLOR, stbg_build_color(44, 62, 80));
+    }
+
     private static ref stbg_widget stbg__label_create(string text)
     {
         ref var label = ref stbg__add_widget(STBG_WIDGET_TYPE.LABEL, text, out _);
@@ -42,7 +57,7 @@ public partial class StbGui
             stbg_build_rect(0, 0, size.width, size.height),
             background_color
         );
-        
+
         render_context.draw_text(
             stbg_build_rect(
                 stbg__sum_styles(STBG_WIDGET_STYLE.LABEL_PADDING_LEFT),

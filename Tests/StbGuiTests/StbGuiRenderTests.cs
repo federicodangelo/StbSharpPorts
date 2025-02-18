@@ -346,7 +346,7 @@ public class StbGuiRenderTests : StbGuiTestsBase
         {
             StbGui.stbg_begin_window("Window 1");
             {
-                StbGui.stbg_begin_container("Container 1", StbGui.STBG_CHILDREN_LAYOUT_DIRECTION.HORIZONTAL);
+                StbGui.stbg_begin_container("Container 1", StbGui.STBG_CHILDREN_LAYOUT.HORIZONTAL);
                 {
                     StbGui.stbg_button("Button 1");
                     StbGui.stbg_button("Button 2");
@@ -394,7 +394,7 @@ public class StbGuiRenderTests : StbGuiTestsBase
         {
             StbGui.stbg_begin_window("Window 1");
             {
-                StbGui.stbg_begin_container("Container 1", StbGui.STBG_CHILDREN_LAYOUT_DIRECTION.HORIZONTAL);
+                StbGui.stbg_begin_container("Container 1", StbGui.STBG_CHILDREN_LAYOUT.HORIZONTAL);
                 {
                     StbGui.stbg_button("Button 1");
                     StbGui.stbg_button("Button 2");

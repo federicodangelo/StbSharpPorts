@@ -63,7 +63,7 @@ public class SDLAppBase : IDisposable
         var frames_ticks = SDL.GetTicks();
         var frames_count = 0;
 
-        var input = new StbGui.stbg_input();
+        var input = new StbGui.stbg_user_input();
 
         while (true)
         {
@@ -75,7 +75,7 @@ public class SDLAppBase : IDisposable
 
             // Screen clearing is handled by STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME
 
-            StbGui.stbg_set_input(input);
+            StbGui.stbg_set_user_input(input);
 
             StbGui.stbg_begin_frame();
             {
@@ -195,14 +195,9 @@ public class SDLAppBase : IDisposable
         }
     }
 
-    private bool ProcessSDLEvents(ref StbGui.stbg_input input)
+    private bool ProcessSDLEvents(ref StbGui.stbg_user_input input)
     {
         bool quit = false;
-
-        input.mouse_button_1_down = false;
-        input.mouse_button_2_down = false;
-        input.mouse_button_1_released = false;
-        input.mouse_button_2_released = false;
 
         while (SDL.PollEvent(out var e) && !quit)
         {
@@ -220,15 +215,9 @@ public class SDLAppBase : IDisposable
 
                 case SDL.EventType.MouseButtonDown:
                     if (e.Button.Button == 1)
-                    {
-                        input.mouse_button_1_down = true;
-                        input.mouse_button_1_pressed = true;
-                    }
+                        input.mouse_button_1 = true;
                     else if (e.Button.Button == 2)
-                    {
-                        input.mouse_button_2_down = true;
-                        input.mouse_button_2_pressed = true;
-                    }
+                        input.mouse_button_2 = true;
                     input.mouse_position.x = e.Button.X;
                     input.mouse_position.y = e.Button.Y;
                     input.mouse_position_valid = true;
@@ -236,15 +225,9 @@ public class SDLAppBase : IDisposable
 
                 case SDL.EventType.MouseButtonUp:
                     if (e.Button.Button == 1)
-                    {
-                        input.mouse_button_1_pressed = false;
-                        input.mouse_button_1_released = true;
-                    }
+                        input.mouse_button_1 = false;
                     else if (e.Button.Button == 2)
-                    {
-                        input.mouse_button_2_pressed = false;
-                        input.mouse_button_2_released = true;
-                    }
+                        input.mouse_button_2 = false;
                     input.mouse_position.x = e.Button.X;
                     input.mouse_position.y = e.Button.Y;
                     input.mouse_position_valid = true;

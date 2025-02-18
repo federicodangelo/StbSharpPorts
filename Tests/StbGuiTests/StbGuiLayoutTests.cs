@@ -363,7 +363,7 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         int containerId;
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_begin_container("Container 1", StbGui.STBG_CHILDREN_LAYOUT_DIRECTION.HORIZONTAL);
+            StbGui.stbg_begin_container("Container 1", StbGui.STBG_CHILDREN_LAYOUT.HORIZONTAL);
             {
                 containerId = StbGui.stbg_get_last_widget_id();
             }
@@ -383,7 +383,7 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         int buttonId, containerId;
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_begin_container("Container 1", StbGui.STBG_CHILDREN_LAYOUT_DIRECTION.HORIZONTAL);
+            StbGui.stbg_begin_container("Container 1", StbGui.STBG_CHILDREN_LAYOUT.HORIZONTAL);
             {
                 containerId = StbGui.stbg_get_last_widget_id();
 
@@ -406,7 +406,7 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         int button1Id, button2Id, containerId;
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_begin_container("Container 1", StbGui.STBG_CHILDREN_LAYOUT_DIRECTION.HORIZONTAL);
+            StbGui.stbg_begin_container("Container 1", StbGui.STBG_CHILDREN_LAYOUT.HORIZONTAL);
             {
                 containerId = StbGui.stbg_get_last_widget_id();
 
@@ -439,7 +439,7 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         int button1Id, button2Id, containerId;
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_begin_container("Container 1", StbGui.STBG_CHILDREN_LAYOUT_DIRECTION.HORIZONTAL, 1);
+            StbGui.stbg_begin_container("Container 1", StbGui.STBG_CHILDREN_LAYOUT.HORIZONTAL, 1);
             {
                 containerId = StbGui.stbg_get_last_widget_id();
 
@@ -472,7 +472,7 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         int button1Id, button2Id, containerId;
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_begin_container("Container 1", StbGui.STBG_CHILDREN_LAYOUT_DIRECTION.VERTICAL);
+            StbGui.stbg_begin_container("Container 1", StbGui.STBG_CHILDREN_LAYOUT.VERTICAL);
             {
                 containerId = StbGui.stbg_get_last_widget_id();
 
@@ -505,7 +505,7 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         int button1Id, button2Id, containerId;
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_begin_container("Container 1", StbGui.STBG_CHILDREN_LAYOUT_DIRECTION.VERTICAL, 1);
+            StbGui.stbg_begin_container("Container 1", StbGui.STBG_CHILDREN_LAYOUT.VERTICAL, 1);
             {
                 containerId = StbGui.stbg_get_last_widget_id();
 
@@ -540,7 +540,7 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         {
             StbGui.stbg_begin_window("Hello World");
             {
-                StbGui.stbg_begin_container("Container 1", StbGui.STBG_CHILDREN_LAYOUT_DIRECTION.HORIZONTAL);
+                StbGui.stbg_begin_container("Container 1", StbGui.STBG_CHILDREN_LAYOUT.HORIZONTAL);
                 {
                     containerId = StbGui.stbg_get_last_widget_id();
 

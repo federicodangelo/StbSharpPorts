@@ -9,6 +9,34 @@ using font_id = int;
 
 public partial class StbGui
 {
+    private static void stbg__button_init_default_theme()
+    {
+        var font_style = context.theme.default_font_style;
+
+        // BUTTON
+        var buttonBorder = 1.0f;
+        var buttonPaddingTopBottom = MathF.Ceiling(font_style.size / 2);
+        var buttonPaddingLeftRight = MathF.Ceiling(font_style.size / 2);
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, buttonBorder);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PADDING_TOP, buttonPaddingTopBottom);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PADDING_BOTTOM, buttonPaddingTopBottom);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PADDING_LEFT, buttonPaddingLeftRight);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PADDING_RIGHT, buttonPaddingLeftRight);
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_BORDER_COLOR, stbg_build_color(41, 128, 185));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_BACKGROUND_COLOR, stbg_build_color(41, 128, 185));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_TEXT_COLOR, stbg_build_color(236, 240, 241));
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_HOVERED_BORDER_COLOR, stbg_build_color(41, 128, 185));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_HOVERED_BACKGROUND_COLOR, stbg_build_color(52, 152, 219));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_HOVERED_TEXT_COLOR, stbg_build_color(236, 240, 241));
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PRESSED_BORDER_COLOR, stbg_build_color(41, 128, 185));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PRESSED_BACKGROUND_COLOR, stbg_build_color(46, 204, 113));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PRESSED_TEXT_COLOR, stbg_build_color(236, 240, 241));        
+    }
+
     private static ref stbg_widget stbg__button_create(string label)
     {
         ref var button = ref stbg__add_widget(STBG_WIDGET_TYPE.BUTTON, label, out _);
@@ -38,7 +66,7 @@ public partial class StbGui
         if (context.input.mouse_button_1_down)
             context.input_feedback.pressed_widget_id = button.id;
 
-        if (context.input.mouse_button_1_released && context.input_feedback.pressed_widget_id == button.id)
+        if (context.input.mouse_button_1_up && context.input_feedback.pressed_widget_id == button.id)
         {
             button.properties.input_flags |= STBG_WIDGET_INPUT_FLAGS.CLICKED;
             context.input_feedback.pressed_widget_id = STBG_WIDGET_ID_NULL;
