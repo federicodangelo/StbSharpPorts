@@ -65,6 +65,14 @@ public partial class StbGui
         else
         {
             stbg__window_get_corner_resize(context.input.mouse_position, bounds, out resize_x, out resize_y);
+
+            if (stbg_get_widget_by_id(window.hierarchy.parent_id).properties.layout.children_layout_direction != STBG_CHILDREN_LAYOUT_DIRECTION.FREE)
+            {
+                if (resize_x < 0)
+                    resize_x = 0;
+                if (resize_y < 0)
+                    resize_y = 0;
+            }
         }
 
         stbg__window_set_resize_cursor(resize_x, resize_y);
@@ -121,7 +129,7 @@ public partial class StbGui
             {
                 if (resize_x < 0)
                 {
-                    var x = intrinsic_position.x;
+                    var x = window.properties.computed_bounds.position.x;
                     intrinsic_position.x = MathF.Max(mouse_position.x - parent_bounds.x0, 0);
                     intrinsic_size.width = (bounds.x1 - bounds.x0) - parent_bounds.x0 + (x - intrinsic_position.x);
 

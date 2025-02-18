@@ -40,7 +40,7 @@ public partial class StbGui
 
         if (context.input.mouse_button_1_released && context.input_feedback.pressed_widget_id == button.id)
         {
-            button.flags |= STBG_WIDGET_FLAGS.CLICKED;
+            button.properties.input_flags |= STBG_WIDGET_INPUT_FLAGS.CLICKED;
             context.input_feedback.pressed_widget_id = STBG_WIDGET_ID_NULL;
         }
     }

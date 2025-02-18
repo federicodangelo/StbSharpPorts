@@ -289,10 +289,16 @@ public partial class StbGui
     public enum STBG_WIDGET_FLAGS
     {
         NONE = 0,
-        USED = 1 << 0,
-        CLICKED = 1 << 1,
+        USED = 1 << 0
     }
 
+    [Flags]
+    public enum STBG_WIDGET_INPUT_FLAGS
+    {
+        NONE = 0,
+        CLICKED = 1 << 0,
+    }
+    
     public struct stbg_widget_hash_chain
     {
         public widget_id next_same_bucket;
@@ -308,6 +314,8 @@ public partial class StbGui
         public ReadOnlyMemory<char> text;
 
         public float mouse_tolerance;
+
+        public STBG_WIDGET_INPUT_FLAGS input_flags;
     }
 
     public struct stbg_widget
@@ -1013,7 +1021,7 @@ public partial class StbGui
     /// <param name="layout_direction">Layout direction</param>
     public static void stbg_begin_container(string identifier, STBG_CHILDREN_LAYOUT_DIRECTION layout_direction)
     {
-        stbg_begin_container(identifier, layout_direction, 0);
+        stbg_begin_container(identifier, layout_direction, stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING));
     }
 
     /// <summary>
@@ -1058,11 +1066,11 @@ public partial class StbGui
     {
         ref var button = ref stbg__button_create(label);
 
-        bool clicked = (button.flags & STBG_WIDGET_FLAGS.CLICKED) != 0;
+        bool clicked = (button.properties.input_flags & STBG_WIDGET_INPUT_FLAGS.CLICKED) != 0;
 
         if (clicked)
         {
-            button.flags &= ~STBG_WIDGET_FLAGS.CLICKED;
+            button.properties.input_flags &= ~STBG_WIDGET_INPUT_FLAGS.CLICKED;
         }
 
         return clicked;
