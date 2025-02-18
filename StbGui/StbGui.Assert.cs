@@ -65,6 +65,6 @@ public partial class StbGui
     private static void stbg__warning(bool condition, [CallerArgumentExpression(nameof(condition))] string? message = null)
     {
         if (!condition)
-            Console.Error.WriteLine($"WARNING: {message}");
+            Console.WriteLine($"WARNING: {message}");
     }
 }
