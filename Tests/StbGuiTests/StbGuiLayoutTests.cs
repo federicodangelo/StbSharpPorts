@@ -209,7 +209,7 @@ public class StbGuiLayoutTests : StbGuiTestsBase
             StbGui.stbg_begin_window("Hello World");
             {
                 windowId = StbGui.stbg_get_last_widget_id();
-                StbGui.stbg_move_window(windowId, 30, 40);
+                StbGui.stbg_set_widget_position(windowId, 30, 40);
             }
             StbGui.stbg_end_window();
         }
@@ -254,14 +254,14 @@ public class StbGuiLayoutTests : StbGuiTestsBase
             StbGui.stbg_begin_window("Window 1");
             {
                 window1Id = StbGui.stbg_get_last_widget_id();
-                StbGui.stbg_move_window(window1Id, 10, 20);
+                StbGui.stbg_set_widget_position(window1Id, 10, 20);
             }
             StbGui.stbg_end_window();
 
             StbGui.stbg_begin_window("Window 2");
             {
                 window2Id = StbGui.stbg_get_last_widget_id();
-                StbGui.stbg_move_window(window2Id, 30, 40);
+                StbGui.stbg_set_widget_position(window2Id, 30, 40);
             }
             StbGui.stbg_end_window();
         }
@@ -300,7 +300,7 @@ public class StbGuiLayoutTests : StbGuiTestsBase
             StbGui.stbg_begin_window("Hello World");
             {
                 windowId = StbGui.stbg_get_last_widget_id();
-                StbGui.stbg_resize_window(windowId, 70, 60);
+                StbGui.stbg_set_widget_size(windowId, 70, 60);
             }
             StbGui.stbg_end_window();
         }

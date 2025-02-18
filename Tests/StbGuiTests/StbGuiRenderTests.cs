@@ -208,7 +208,7 @@ public class StbGuiRenderTests : StbGuiTestsBase
             }
             StbGui.stbg_end_window();
 
-            StbGui.stbg_move_window(StbGui.stbg_get_last_widget_id(), 20, 5);
+            StbGui.stbg_set_widget_position(StbGui.stbg_get_last_widget_id(), 20, 5);
 
         }
         StbGui.stbg_end_frame();

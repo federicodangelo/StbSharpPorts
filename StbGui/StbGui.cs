@@ -298,7 +298,7 @@ public partial class StbGui
         NONE = 0,
         CLICKED = 1 << 0,
     }
-    
+
     public struct stbg_widget_hash_chain
     {
         public widget_id next_same_bucket;
@@ -989,29 +989,29 @@ public partial class StbGui
     }
 
     /// <summary>
-    /// Change existing window position
+    /// Change existing widget intrinsic position
     /// </summary>
-    public static void stbg_move_window(widget_id window_id, float x, float y)
+    public static void stbg_set_widget_position(widget_id widget_id, float x, float y)
     {
         stbg__assert(context.inside_frame);
-        ref var window = ref stbg_get_widget_by_id(window_id);
-        stbg__assert(window.type == STBG_WIDGET_TYPE.WINDOW);
+        stbg__assert(widget_id != context.root_widget_id);
+        ref var widget = ref stbg_get_widget_by_id(widget_id);
 
-        window.properties.layout.intrinsic_position.x = x;
-        window.properties.layout.intrinsic_position.y = y;
+        widget.properties.layout.intrinsic_position.x = Math.Max(x, 0);
+        widget.properties.layout.intrinsic_position.y = Math.Max(y, 0);
     }
 
     /// <summary>
-    /// Resize existing window
+    /// Changes existing widget instrinsic size
     /// </summary>
-    public static void stbg_resize_window(widget_id window_id, float width, float height)
+    public static void stbg_set_widget_size(widget_id widget_id, float width, float height)
     {
         stbg__assert(context.inside_frame);
-        ref var window = ref stbg_get_widget_by_id(window_id);
-        stbg__assert(window.type == STBG_WIDGET_TYPE.WINDOW);
+        stbg__assert(widget_id != context.root_widget_id);
+        ref var widget = ref stbg_get_widget_by_id(widget_id);
 
-        window.properties.layout.intrinsic_size.size.width = Math.Max(width, 0);
-        window.properties.layout.intrinsic_size.size.height = Math.Max(height, 0);
+        widget.properties.layout.intrinsic_size.size.width = Math.Max(width, 0);
+        widget.properties.layout.intrinsic_size.size.height = Math.Max(height, 0);
     }
 
     /// <summary>

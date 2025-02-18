@@ -1,3 +1,5 @@
+using System.Net;
+
 namespace StbSharp.Tests;
 
 public class StbGuiInpuptWindowResizeTests : StbGuiTestsBase
@@ -116,9 +118,40 @@ public class StbGuiInpuptWindowResizeTests : StbGuiTestsBase
         }
     }
 
-    private static int RunResizeTest(int direction_x, int direction_y, float dx, float dy, Action? create_other_children = null)
+    [Theory, CombinatorialData]
+    public void TestWindowInsideContainerIsNotResizable(
+        [CombinatorialValues(-1, 0, 1)] int direction_x,
+        [CombinatorialValues(-1, 0, 1)] int direction_y,
+        [CombinatorialValues(-20, 0, 20)] float dx,
+        [CombinatorialValues(-20, 0, 20)] float dy)
+    {
+        int window_id = RunResizeTest(direction_x, direction_y, dx, dy,
+            null,
+            () =>
+            {
+                StbGui.stbg_begin_container("MyContainer", StbGui.STBG_CHILDREN_LAYOUT_DIRECTION.HORIZONTAL);
+                StbGui.stbg_set_widget_position(StbGui.stbg_get_last_widget_id(), window_left, window_top);
+            },
+            () =>
+            {
+                StbGui.stbg_end_container();
+            }
+        );
+
+        // Assert final bounds always fits the button inside
+        var bounds = StbGui.stbg_get_widget_by_id(window_id).properties.computed_bounds.global_rect;
+
+        Assert.Equal(window_left, bounds.x0);
+        Assert.Equal(window_right, bounds.x1);
+        Assert.Equal(window_top, bounds.y0);
+        Assert.Equal(window_bottom, bounds.y1);
+    }
+
+    private static int RunResizeTest(int direction_x, int direction_y, float dx, float dy, Action? create_other_children = null, Action? create_parent = null, Action? end_parent = null)
     {
         create_other_children ??= () => { };
+        create_parent ??= () => { };
+        end_parent ??= () => { };
 
         InitGUI();
 
@@ -128,16 +161,20 @@ public class StbGuiInpuptWindowResizeTests : StbGuiTestsBase
         // Initial setup
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_begin_window("Window 1");
+            create_parent();
             {
-                window_id = StbGui.stbg_get_last_widget_id();
-                StbGui.stbg_move_window(window_id, window_top, window_left);
-                StbGui.stbg_resize_window(window_id, window_width, window_height);
+                StbGui.stbg_begin_window("Window 1");
+                {
+                    window_id = StbGui.stbg_get_last_widget_id();
+                    StbGui.stbg_set_widget_position(window_id, window_top, window_left);
+                    StbGui.stbg_set_widget_size(window_id, window_width, window_height);
 
-                create_other_children();
+                    create_other_children();
 
+                }
+                StbGui.stbg_end_window();
             }
-            StbGui.stbg_end_window();
+            end_parent();
         }
         StbGui.stbg_end_frame();
 
@@ -179,20 +216,28 @@ public class StbGuiInpuptWindowResizeTests : StbGuiTestsBase
         });
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_begin_window("Window 1");
+            create_parent();
             {
-                window_id = StbGui.stbg_get_last_widget_id();
+                StbGui.stbg_begin_window("Window 1");
+                {
+                    window_id = StbGui.stbg_get_last_widget_id();
 
-                create_other_children();
+                    create_other_children();
+                }
+                StbGui.stbg_end_window();
             }
-            StbGui.stbg_end_window();
+            end_parent();
         }
         StbGui.stbg_end_frame();
 
-        if (direction_x != 0 || direction_y != 0)
+        if ((direction_x != 0 || direction_y != 0) && StbGui.stbg_get_widget_by_id(StbGui.stbg_get_widget_by_id(window_id).hierarchy.parent_id).properties.layout.children_layout_direction == StbGui.STBG_CHILDREN_LAYOUT_DIRECTION.FREE)
         {
             // Cursor should NOT be the default (it should be one of the RESIZE_* ones)
             Assert.NotEqual(StbGui.STBG_ACTIVE_CURSOR_TYPE.DEFAULT, StbGui.stbg_get_cursor());
+        }
+        else
+        {
+            Assert.Equal(StbGui.STBG_ACTIVE_CURSOR_TYPE.DEFAULT, StbGui.stbg_get_cursor());
         }
 
         // Wait another frame so the dragging operations starts
@@ -204,13 +249,17 @@ public class StbGuiInpuptWindowResizeTests : StbGuiTestsBase
         });
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_begin_window("Window 1");
+            create_parent();
             {
-                window_id = StbGui.stbg_get_last_widget_id();
+                StbGui.stbg_begin_window("Window 1");
+                {
+                    window_id = StbGui.stbg_get_last_widget_id();
 
-                create_other_children();
+                    create_other_children();
+                }
+                StbGui.stbg_end_window();
             }
-            StbGui.stbg_end_window();
+            end_parent();
         }
         StbGui.stbg_end_frame();
 
@@ -223,13 +272,17 @@ public class StbGuiInpuptWindowResizeTests : StbGuiTestsBase
         });
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_begin_window("Window 1");
+            create_parent();
             {
-                window_id = StbGui.stbg_get_last_widget_id();
+                StbGui.stbg_begin_window("Window 1");
+                {
+                    window_id = StbGui.stbg_get_last_widget_id();
 
-                create_other_children();
+                    create_other_children();
+                }
+                StbGui.stbg_end_window();
             }
-            StbGui.stbg_end_window();
+            end_parent();
         }
         StbGui.stbg_end_frame();
 
@@ -242,13 +295,17 @@ public class StbGuiInpuptWindowResizeTests : StbGuiTestsBase
         });
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_begin_window("Window 1");
+            create_parent();
             {
-                window_id = StbGui.stbg_get_last_widget_id();
+                StbGui.stbg_begin_window("Window 1");
+                {
+                    window_id = StbGui.stbg_get_last_widget_id();
 
-                create_other_children();
+                    create_other_children();
+                }
+                StbGui.stbg_end_window();
             }
-            StbGui.stbg_end_window();
+            end_parent();
         }
         StbGui.stbg_end_frame();
 
@@ -263,13 +320,17 @@ public class StbGuiInpuptWindowResizeTests : StbGuiTestsBase
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_begin_window("Window 1");
+            create_parent();
             {
-                window_id = StbGui.stbg_get_last_widget_id();
+                StbGui.stbg_begin_window("Window 1");
+                {
+                    window_id = StbGui.stbg_get_last_widget_id();
 
-                create_other_children();
+                    create_other_children();
+                }
+                StbGui.stbg_end_window();
             }
-            StbGui.stbg_end_window();
+            end_parent();
         }
         StbGui.stbg_end_frame();
 

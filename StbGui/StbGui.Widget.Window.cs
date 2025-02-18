@@ -51,6 +51,8 @@ public partial class StbGui
         if (context.input_feedback.hovered_widget_id != window.id)
             return;
 
+        var parent = stbg_get_widget_by_id(window.hierarchy.parent_id);
+
         var mouse_position = context.input.mouse_position;
 
         var bounds = window.properties.computed_bounds.global_rect;
@@ -62,17 +64,13 @@ public partial class StbGui
             resize_x = context.input_feedback.drag_resize_x;
             resize_y = context.input_feedback.drag_resize_y;
         }
-        else
+        else if (parent.properties.layout.children_layout_direction == STBG_CHILDREN_LAYOUT_DIRECTION.FREE) 
         {
             stbg__window_get_corner_resize(context.input.mouse_position, bounds, out resize_x, out resize_y);
-
-            if (stbg_get_widget_by_id(window.hierarchy.parent_id).properties.layout.children_layout_direction != STBG_CHILDREN_LAYOUT_DIRECTION.FREE)
-            {
-                if (resize_x < 0)
-                    resize_x = 0;
-                if (resize_y < 0)
-                    resize_y = 0;
-            }
+        }
+        else
+        {
+            resize_x = resize_y = 0;
         }
 
         stbg__window_set_resize_cursor(resize_x, resize_y);
@@ -114,7 +112,6 @@ public partial class StbGui
 
         if (context.input_feedback.dragged_widget_id == window.id)
         {
-            var parent = stbg_get_widget_by_id(window.hierarchy.parent_id);
             var parent_bounds = parent.properties.computed_bounds.global_rect;
 
             ref var intrinsic_size = ref window.properties.layout.intrinsic_size.size;
