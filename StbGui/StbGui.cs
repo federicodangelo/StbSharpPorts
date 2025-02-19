@@ -362,6 +362,18 @@ public partial class StbGui
     /// <param name="identifier">Container identifier (must be unique inside the parent widget)</param>
     /// <param name="layout_direction">Layout direction</param>
     /// <param name="spacing">Spacing between children</param>
+    public static void stbg_begin_container(string identifier, STBG_CHILDREN_LAYOUT layout_direction, float spacing)
+    {
+        stbg_begin_container(identifier, layout_direction, stbg_build_constrains_unconstrained(), spacing);
+    }
+
+    /// <summary>
+    /// Begins a new container with the specified layout direction, spacing between children and size constrains
+    /// </summary>
+    /// <param name="identifier">Container identifier (must be unique inside the parent widget)</param>
+    /// <param name="layout_direction">Layout direction</param>
+    /// <param name="constrains">Size constrains</param>
+    /// <param name="spacing">Spacing between children</param>
     public static void stbg_begin_container(string identifier, STBG_CHILDREN_LAYOUT layout_direction, stbg_widget_constrains constrains, float spacing)
     {
         ref var container = ref stbg__add_widget(STBG_WIDGET_TYPE.CONTAINER, identifier, out _);
