@@ -39,6 +39,7 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING, windowChidlrenSpacing);
 
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_EXPAND_TO_FIT_CHILDREN, false);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_SCROLL_LINES_AMOUNT, 3);
 
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, windowDefaultWidth);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, windowDefaultHeight);
@@ -100,12 +101,95 @@ public partial class StbGui
 
             context.next_new_window_position = stbg_offset_position(context.next_new_window_position, stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_SPACING_BETWEEN_NEW_WINDOWS), stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_SPACING_BETWEEN_NEW_WINDOWS));
         }
+
+        // Add scrollbars if required
+        if ((layout.flags & STBG_WIDGET_LAYOUT_FLAGS.ALLOW_CHILDREN_OVERFLOW) != 0 && !is_new)
+        {
+            var children_size_with_padding = stbg_size_add_padding(window.properties.computed_bounds.children_size, window.properties.layout.inner_padding);
+
+            var scrollbar_size = stbg__sum_styles(STBG_WIDGET_STYLE.SCROLLBAR_SIZE);
+
+            var needs_horizontal_bar = children_size_with_padding.width > window.properties.computed_bounds.size.width;
+            var needs_vertical_bar = children_size_with_padding.height > window.properties.computed_bounds.size.height;
+
+            if (needs_horizontal_bar)
+            {
+                layout.inner_padding.bottom += scrollbar_size;
+                children_size_with_padding.height += scrollbar_size;
+
+                // Re-evaluate vertical bar
+                needs_vertical_bar = children_size_with_padding.height > window.properties.computed_bounds.size.height;
+            }
+
+            if (needs_vertical_bar)
+            {
+                layout.inner_padding.right += scrollbar_size;
+                children_size_with_padding.width += scrollbar_size;
+
+                // Re-evaluate horizontal bar
+                needs_horizontal_bar = children_size_with_padding.width > window.properties.computed_bounds.size.width;
+            }
+
+            if (needs_horizontal_bar || needs_vertical_bar)
+            {
+                // TODO: We need a better way to save / restore these values..
+                var saved_last_widget_id = context.last_widget_id;
+                var saved_last_widget_is_new = context.last_widget_is_new;
+                var saved_current_widget_id = context.current_widget_id;
+
+                context.current_widget_id = window.id;
+
+                var border_size = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE);
+
+                bool corner_busy = needs_vertical_bar && needs_horizontal_bar;
+
+                var scroll_lines_amount = stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_SCROLL_LINES_AMOUNT);
+
+                if (needs_horizontal_bar)
+                {
+                    var size = children_size_with_padding.width - window.properties.computed_bounds.size.width;
+                    var ox = -stbg_clamp(window.properties.layout.children_offset.x, -size, 0);
+                    stbg__scrollbar_create("$$$$_window_scrollbar_horizontal", STBG_SCROLLBAR_DIRECTION.HORIZONTAL, ref ox, 0, size, context.theme.default_font_style.size * scroll_lines_amount, true);
+                    window.properties.layout.children_offset.x = -ox;
+                    ref var scrollbar = ref stbg_get_last_widget();
+                    scrollbar.properties.layout.flags |= STBG_WIDGET_LAYOUT_FLAGS.PARENT_CONTROLLED;
+                    var offset = border_size;
+                    var corner_size = corner_busy ? scrollbar_size : 0;
+                    scrollbar.properties.layout.constrains.min.width = window.properties.computed_bounds.size.width - offset - border_size - corner_size;
+                    scrollbar.properties.layout.intrinsic_position = stbg_build_position(offset, window.properties.computed_bounds.size.height - scrollbar_size - border_size);
+                }
+
+                if (needs_vertical_bar)
+                {
+                    var size = children_size_with_padding.height - window.properties.computed_bounds.size.height;
+                    var oy = -stbg_clamp(window.properties.layout.children_offset.y, -size, 0); 
+                    stbg__scrollbar_create("$$$$_window_scrollbar_vertical", STBG_SCROLLBAR_DIRECTION.VERTICAL, ref oy, 0, size, context.theme.default_font_style.size * scroll_lines_amount, true);
+                    window.properties.layout.children_offset.y = -oy;
+                    ref var scrollbar = ref stbg_get_last_widget();
+                    scrollbar.properties.layout.flags |= STBG_WIDGET_LAYOUT_FLAGS.PARENT_CONTROLLED;
+                    var offset = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP, STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT, STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_BOTTOM);
+                    scrollbar.properties.layout.constrains.min.height = window.properties.computed_bounds.size.height - offset - border_size;
+                    scrollbar.properties.layout.intrinsic_position = stbg_build_position(window.properties.computed_bounds.size.width - scrollbar_size - border_size, offset);
+                }
+
+                context.last_widget_id = saved_last_widget_id;
+                context.last_widget_is_new = saved_last_widget_is_new;
+                context.current_widget_id = saved_current_widget_id;
+            }
+            else
+            {
+                window.properties.layout.children_offset.x = 0;
+                window.properties.layout.children_offset.y = 0;
+            }
+        }
     }
 
-    private static void stbg__window_update_input(ref stbg_widget window)
+    
+
+    private static bool stbg__window_update_input(ref stbg_widget window)
     {
         if (context.input_feedback.hovered_widget_id != window.id)
-            return;
+            return false;
 
         var parent = stbg_get_widget_by_id(window.hierarchy.parent_id);
 
@@ -163,7 +247,7 @@ public partial class StbGui
             context.input_feedback.drag_resize_y = resize_y;
             context.input_feedback.drag_from_widget_x = mouse_position.x - bounds.x0;
             context.input_feedback.drag_from_widget_y = mouse_position.y - bounds.y0;
-            window.properties.layout.intrinsic_sorting_index = int.MaxValue;
+            // Bringing the window to the top is handled by StbGui.Input
         }
 
         if (context.input_feedback.dragged_widget_id == window.id)
@@ -175,8 +259,8 @@ public partial class StbGui
 
             if (resize_x == 0 && resize_y == 0)
             {
-                intrinsic_position.x = Math.Clamp(mouse_position.x - parent_bounds.x0 - context.input_feedback.drag_from_widget_x, 0, parent_bounds.x1 - (bounds.x1 - bounds.x0));
-                intrinsic_position.y = Math.Clamp(mouse_position.y - parent_bounds.y0 - context.input_feedback.drag_from_widget_y, 0, parent_bounds.y1 - (bounds.y1 - bounds.y0));
+                intrinsic_position.x = stbg_clamp(mouse_position.x - parent_bounds.x0 - context.input_feedback.drag_from_widget_x, 0, parent_bounds.x1 - (bounds.x1 - bounds.x0));
+                intrinsic_position.y = stbg_clamp(mouse_position.y - parent_bounds.y0 - context.input_feedback.drag_from_widget_y, 0, parent_bounds.y1 - (bounds.y1 - bounds.y0));
             }
             else
             {
@@ -196,7 +280,7 @@ public partial class StbGui
                 }
                 else if (resize_x > 0)
                 {
-                    intrinsic_size.width = Math.Clamp(mouse_position.x - bounds.x0, 0, parent_bounds.x1 - bounds.x0);
+                    intrinsic_size.width = stbg_clamp(mouse_position.x - bounds.x0, 0, parent_bounds.x1 - bounds.x0);
                 }
 
                 if (resize_y < 0)
@@ -215,10 +299,25 @@ public partial class StbGui
                 }
                 else if (resize_y > 0)
                 {
-                    intrinsic_size.height = Math.Clamp(mouse_position.y - bounds.y0, 0, parent_bounds.y1 - bounds.y0);
+                    intrinsic_size.height = stbg_clamp(mouse_position.y - bounds.y0, 0, parent_bounds.y1 - bounds.y0);
                 }
             }
         }
+
+        if (context.input.mouse_wheel_scroll_amount.x != 0 || context.input.mouse_wheel_scroll_amount.y != 0)
+        {
+            //var delta = -(context.input.mouse_wheel_scroll_amount.y != 0 ? context.input.mouse_wheel_scroll_amount.y : context.input.mouse_wheel_scroll_amount.x);
+
+            //stbg__scrollbar_update_value(ref scrollbar, parameters, scrollbar.properties.value.f + delta * parameters.step_size, true);
+        }
+
+
+        return 
+            context.input.mouse_button_1_down || 
+            context.input.mouse_button_1_up || 
+            context.input.mouse_button_1 || 
+            context.input.mouse_wheel_scroll_amount.x != 0 || 
+            context.input.mouse_wheel_scroll_amount.y != 0;
     }
 
     private static void stbg__window_set_resize_cursor(float resize_x, float resize_y)

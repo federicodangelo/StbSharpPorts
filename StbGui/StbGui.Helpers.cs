@@ -172,12 +172,28 @@ public partial class StbGui
 
     [ExcludeFromCodeCoverage]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static public stbg_rect stbg_build_rect_zero() => new stbg_rect();
+
+    [ExcludeFromCodeCoverage]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static public stbg_rect stbg_translate_rect(stbg_rect rect, float dx, float dy)
     {
         rect.x0 += dx;
         rect.y0 += dy;
         rect.x1 += dx;
         rect.y1 += dy;
+
+        return rect;
+    }
+
+    [ExcludeFromCodeCoverage]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static public stbg_rect stbg_translate_rect(stbg_rect rect, stbg_position d)
+    {
+        rect.x0 += d.x;
+        rect.y0 += d.y;
+        rect.x1 += d.x;
+        rect.y1 += d.y;
 
         return rect;
     }
@@ -205,10 +221,10 @@ public partial class StbGui
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static public stbg_rect stbg_clamp_rect(stbg_rect rect, stbg_rect must_be_inside_of_rect)
     {
-        rect.x0 = Math.Clamp(rect.x0, must_be_inside_of_rect.x0, must_be_inside_of_rect.x1);
-        rect.y0 = Math.Clamp(rect.y0, must_be_inside_of_rect.y0, must_be_inside_of_rect.y1);
-        rect.x1 = Math.Clamp(rect.x1, must_be_inside_of_rect.x0, must_be_inside_of_rect.x1);
-        rect.y1 = Math.Clamp(rect.y1, must_be_inside_of_rect.y0, must_be_inside_of_rect.y1);
+        rect.x0 = stbg_clamp(rect.x0, must_be_inside_of_rect.x0, must_be_inside_of_rect.x1);
+        rect.y0 = stbg_clamp(rect.y0, must_be_inside_of_rect.y0, must_be_inside_of_rect.y1);
+        rect.x1 = stbg_clamp(rect.x1, must_be_inside_of_rect.x0, must_be_inside_of_rect.x1);
+        rect.y1 = stbg_clamp(rect.y1, must_be_inside_of_rect.y0, must_be_inside_of_rect.y1);
 
         return rect;
     }
@@ -284,6 +300,23 @@ public partial class StbGui
     private static stbg_color stbg_get_widget_style_color_normal_hovered_pressed(STBG_WIDGET_STYLE style_normal, STBG_WIDGET_STYLE style_hovered, STBG_WIDGET_STYLE style_pressed, bool hovered, bool pressed)
     {
         return stbg_get_widget_style_color(pressed ? style_pressed : hovered ? style_hovered : style_normal);
+    }
+
+    /// <summary>
+    /// Safe version of Math.Clamp() that doesn't throws exceptions on max < min, it just inverts the values
+    /// </summary>
+    [ExcludeFromCodeCoverage]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float stbg_clamp(float value, float min, float max)
+    {
+        if (max < min)
+        {
+            var tmp = max;
+            max = min;
+            min = max;
+        }
+
+        return value < min ? min : value > max ? max : value;
     }
 
     static public readonly stbg_color STBG_COLOR_RED = rgb(255, 0, 0);

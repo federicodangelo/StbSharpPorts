@@ -34,7 +34,7 @@ public partial class StbGui
 
         stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PRESSED_BORDER_COLOR, rgb(41, 128, 185));
         stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PRESSED_BACKGROUND_COLOR, rgb(46, 204, 113));
-        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PRESSED_TEXT_COLOR, rgb(236, 240, 241));        
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PRESSED_TEXT_COLOR, rgb(236, 240, 241));
     }
 
     private static ref stbg_widget stbg__button_create(string label)
@@ -58,10 +58,10 @@ public partial class StbGui
         return ref button;
     }
 
-    private static void stbg__button_update_input(ref stbg_widget button)
+    private static bool stbg__button_update_input(ref stbg_widget button)
     {
         if (context.input_feedback.hovered_widget_id != button.id)
-            return;
+            return false;
 
         if (context.input.mouse_button_1_down)
             context.input_feedback.pressed_widget_id = button.id;
@@ -71,6 +71,11 @@ public partial class StbGui
             button.properties.input_flags |= STBG_WIDGET_INPUT_FLAGS.CLICKED;
             context.input_feedback.pressed_widget_id = STBG_WIDGET_ID_NULL;
         }
+
+        return 
+            context.input.mouse_button_1_down || 
+            context.input.mouse_button_1_up || 
+            context.input.mouse_button_1;
     }
 
     private static void stbg__button_render(ref stbg_widget button, ref stbg_render_context render_context)

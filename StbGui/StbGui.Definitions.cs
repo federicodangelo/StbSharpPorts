@@ -154,6 +154,7 @@ public partial class StbGui
         WINDOW_SPACING_BETWEEN_NEW_WINDOWS,
         WINDOW_BORDER_RESIZE_TOLERANCE,
         WINDOW_EXPAND_TO_FIT_CHILDREN,
+        WINDOW_SCROLL_LINES_AMOUNT,
         WINDOW_BORDER_SIZE,
         WINDOW_TITLE_HEIGHT,
         WINDOW_TITLE_PADDING_TOP,
@@ -252,6 +253,7 @@ public partial class StbGui
     {
         NONE = 0,
         ALLOW_CHILDREN_OVERFLOW = 1 << 0,
+        PARENT_CONTROLLED = 1 << 1,
     }
 
     public struct stbg_widget_layout
@@ -292,9 +294,19 @@ public partial class StbGui
         public STBG_CHILDREN_LAYOUT children_layout_direction;
 
         /// <summary>
+        /// Children offset, doesn't include padding
+        /// </summary>
+        public stbg_position children_offset;
+
+        /// <summary>
         /// Widget layout flags
         /// </summary>
         public STBG_WIDGET_LAYOUT_FLAGS flags;
+
+        /// <summary>
+        /// Last frame in which the widget was layout
+        /// </summary>
+        public int last_layout_in_frame;
     }
 
     public struct stbg_widget_hierarchy
@@ -370,19 +382,27 @@ public partial class StbGui
     public struct stbg_widget_value
     {
         public float f;
+        public bool b;
+    }
+
+    public struct stbg_widget_parameters
+    {
+        public int sub_type;
+        public stbg_widget_value parameter1;
+        public stbg_widget_value parameter2;
+        public stbg_widget_value min_value;
+        public stbg_widget_value max_value;       
     }
 
     public struct stbg_widget_properties
     {
+        public stbg_widget_parameters parameters;
+
         public stbg_widget_layout layout;
 
         public stbg_widget_computed_bounds computed_bounds;
 
         public ReadOnlyMemory<char> text;
-
-        public stbg_widget_value min_value;
-
-        public stbg_widget_value max_value;
 
         public stbg_widget_value value;
 

@@ -23,8 +23,8 @@ public class SDLAppBase : IDisposable
         public string WindowName = "StbGui SDL App";
         public int DefaultWindowWidth = 800;
         public int DefaultWindowHeight = 600;
-        public int MinWindowWidth = 5;
-        public int MinWindowHeight = 5;
+        public int MinWindowWidth = 320;
+        public int MinWindowHeight = 100;
         public string DefaultFontPath = "Fonts/ProggyClean.ttf";
         public string DefaultFontName = "ProggyClean";
         public float DefaultFontSize = 13;

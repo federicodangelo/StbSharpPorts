@@ -282,6 +282,17 @@ public partial class StbGui
     /// <returns>Widget reference</returns>
     public static ref stbg_widget stbg_get_widget_by_id(widget_id id)
     {
+        stbg__assert(id != STBG_WIDGET_ID_NULL);
+        return ref context.widgets[id];
+    }
+
+    /// <summary>
+    /// Returns a reference to the last widget
+    /// </summary>
+    public static ref stbg_widget stbg_get_last_widget()
+    {
+        var id = stbg_get_last_widget_id();
+        stbg__assert(id != STBG_WIDGET_ID_NULL);
         return ref context.widgets[id];
     }
 
@@ -358,8 +369,9 @@ public partial class StbGui
         stbg__assert(widget_id != context.root_widget_id);
         ref var widget = ref stbg_get_widget_by_id(widget_id);
 
-        stbg__warning(widget.properties.layout.intrinsic_size.type == STBG_INTRINSIC_SIZE_TYPE.FIXED_PIXELS, "Size of widgets without FIXED_PIXELS size is ignored");
+        //stbg__warning(widget.properties.layout.intrinsic_size.type == STBG_INTRINSIC_SIZE_TYPE.FIXED_PIXELS, "Size of widgets without FIXED_PIXELS size is ignored");
 
+        widget.properties.layout.intrinsic_size.type = STBG_INTRINSIC_SIZE_TYPE.FIXED_PIXELS;
         widget.properties.layout.intrinsic_size.size.width = Math.Max(width, 0);
         widget.properties.layout.intrinsic_size.size.height = Math.Max(height, 0);
     }
@@ -367,9 +379,9 @@ public partial class StbGui
     /// <summary>
     /// Changes existing widget instrinsic size
     /// </summary>
-    public static void stbg_set_last_widget_size(widget_id widget_id, float width, float height)
+    public static void stbg_set_last_widget_size(float width, float height)
     {
-        stbg_set_last_widget_size(stbg_get_last_widget_id(), width, height);
+        stbg_set_widget_size(stbg_get_last_widget_id(), width, height);
     }
 
 
@@ -472,7 +484,7 @@ public partial class StbGui
     /// </summary>
     public static void stbg_scrollbar(string identifier, STBG_SCROLLBAR_DIRECTION direction, ref float value, float min_value, float max_value)
     {
-        stbg__scrollbar_create(identifier, direction, ref value, min_value, max_value);
+        stbg__scrollbar_create(identifier, direction, ref value, min_value, max_value, (max_value - min_value) / 10.0f, false);
     }
 
     /// <summary>
@@ -481,7 +493,7 @@ public partial class StbGui
     public static void stbg_scrollbar(string identifier, STBG_SCROLLBAR_DIRECTION direction, ref int value, int min_value, int max_value)
     {
         float f = value;
-        stbg__scrollbar_create(identifier, direction, ref f, min_value, max_value);
+        stbg__scrollbar_create(identifier, direction, ref f, min_value, max_value, (max_value - min_value) / 10.0f, true);
         value = (int) f;
     }
 }

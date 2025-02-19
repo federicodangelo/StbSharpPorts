@@ -31,8 +31,6 @@ public class SDLApp : SDLAppBase
         }
         StbGui.stbg_end_window();
 
-        /*
-
         StbGui.stbg_begin_window("Window 2 with a REALLY REALLY REALLY REALLY REALLY REALLY REALLY REALLY REALLY REALLY long title");
         {
             if (StbGui.stbg_get_last_widget_is_new())
@@ -40,22 +38,17 @@ public class SDLApp : SDLAppBase
 
             StbGui.stbg_begin_container("concon", StbGui.STBG_CHILDREN_LAYOUT.HORIZONTAL, StbGui.stbg_build_constrains(0, 0, 400, float.MaxValue));
             {
-                StbGui.stbg_begin_container("con", StbGui.STBG_CHILDREN_LAYOUT.HORIZONTAL, StbGui.stbg_build_constrains(0, 0, 200, float.MaxValue));
-                {
-                    StbGui.stbg_scrollbar("horizontal-sb", StbGui.STBG_SCROLLBAR_DIRECTION.HORIZONTAL, ref scrollbar_value, 0, 100);
-                }
-                StbGui.stbg_end_container();
-                StbGui.stbg_begin_container("con2", StbGui.STBG_CHILDREN_LAYOUT.HORIZONTAL, StbGui.stbg_build_constrains(0, 0, 200, float.MaxValue));
-                {
-                    StbGui.stbg_scrollbar("horizontal-sb2", StbGui.STBG_SCROLLBAR_DIRECTION.HORIZONTAL, ref scrollbar_value, 0, 100);
-                }
-                StbGui.stbg_end_container();
+                StbGui.stbg_scrollbar("horizontal-sb", StbGui.STBG_SCROLLBAR_DIRECTION.HORIZONTAL, ref scrollbar_value, 0, 100);
+                StbGui.stbg_set_last_widget_size(200, 0);
+                StbGui.stbg_scrollbar("horizontal-sb2", StbGui.STBG_SCROLLBAR_DIRECTION.HORIZONTAL, ref scrollbar_value, 0, 100);
+                StbGui.stbg_set_last_widget_size(200, 0);
             }
             StbGui.stbg_end_container();
 
             StbGui.stbg_begin_container("con3332", StbGui.STBG_CHILDREN_LAYOUT.HORIZONTAL, StbGui.stbg_build_constrains(0, 0, float.MaxValue, 200));
             {
                 StbGui.stbg_scrollbar("vertical-sb", StbGui.STBG_SCROLLBAR_DIRECTION.VERTICAL, ref scrollbar_value_int, 0, 100);
+                StbGui.stbg_set_last_widget_size(0, 200);
 
                 StbGui.stbg_begin_container("con3332", StbGui.STBG_CHILDREN_LAYOUT.VERTICAL);
                 {
@@ -78,9 +71,10 @@ public class SDLApp : SDLAppBase
             {
                 StbGui.stbg_button("Test Button " + i);
             }
+
+            StbGui.stbg_button("Test Button XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
         }
         StbGui.stbg_end_window();
-        */
 
         StbGui.stbg_label("This is the debug window!");
     }

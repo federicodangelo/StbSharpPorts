@@ -90,7 +90,8 @@ public partial class StbGui
     {
         ref var debug_window = ref stbg__add_widget(debug_window_hash, STBG_WIDGET_TYPE.WINDOW, context.root_widget_id, out var is_new, true);
 
-        stbg__window_init(ref debug_window, is_new, DEBUG_WINDOW_TITLE);
+        if (is_new)
+            stbg__window_init(ref debug_window, is_new, DEBUG_WINDOW_TITLE);
 
         return ref debug_window;
     }
@@ -191,6 +192,16 @@ public partial class StbGui
         return ref widget;
     }
 
+    private static void stbg__set_widget_last_in_parent(ref stbg_widget widget)
+    {
+        if (widget.hierarchy.next_sibling_id != STBG_WIDGET_ID_NULL)
+        {
+            var parent_id = widget.hierarchy.parent_id;
+            stbg__remove_widget_from_parent(ref widget);
+            stbg__add_widget_to_parent_last(ref widget, parent_id);
+        }
+    }
+
     private static void stbg__remove_widget_from_parent(ref stbg_widget widget)
     {
         stbg__assert_internal(widget.hierarchy.parent_id != STBG_WIDGET_ID_NULL);
@@ -247,7 +258,6 @@ public partial class StbGui
             parent.hierarchy.first_children_id = parent.hierarchy.last_children_id = widget.id;
         }
     }
-
 
     private static void stbg__add_widget_to_parent_after_sibling_or_first(ref stbg_widget widget, widget_id prev_sibling_id, widget_id parent_id)
     {
@@ -344,27 +354,46 @@ public partial class StbGui
             context.input_feedback.active_widget_id = STBG_WIDGET_ID_NULL;
     }
 
-    private static bool stbg__find_widget_by_hash(widget_hash hash, out widget_id foundId)
+    private static bool stbg__find_widget_parent_by_type(widget_id widget_id, STBG_WIDGET_TYPE type, out widget_id found_id)
+    {
+        while (widget_id != STBG_WIDGET_ID_NULL)
+        {
+            ref var widget = ref stbg_get_widget_by_id(widget_id);
+
+            if (widget.type == type)
+            {
+                found_id = widget.id;
+                return true;
+            }
+
+            widget_id = widget.hierarchy.parent_id;
+        }
+
+        found_id = STBG_WIDGET_ID_NULL;
+        return false;
+    }
+
+    private static bool stbg__find_widget_by_hash(widget_hash hash, out widget_id found_id)
     {
         ref var bucket = ref stbg__get_hash_entry_by_hash(hash);
 
         if (bucket.first_widget_in_bucket != STBG_WIDGET_ID_NULL)
         {
-            foundId = bucket.first_widget_in_bucket;
+            found_id = bucket.first_widget_in_bucket;
 
             do
             {
-                ref var widget = ref stbg_get_widget_by_id(foundId);
+                ref var widget = ref stbg_get_widget_by_id(found_id);
 
                 if (widget.hash == hash)
                     return true;
 
-                foundId = widget.hash_chain.next_same_bucket;
+                found_id = widget.hash_chain.next_same_bucket;
 
-            } while (foundId != STBG_WIDGET_ID_NULL);
+            } while (found_id != STBG_WIDGET_ID_NULL);
         }
 
-        foundId = STBG_WIDGET_ID_NULL;
+        found_id = STBG_WIDGET_ID_NULL;
         return false;
     }
 
@@ -375,6 +404,11 @@ public partial class StbGui
     }
 
     private static widget_hash stbg__calculate_hash(STBG_WIDGET_TYPE type, string identifier, bool ignore_parent = false)
+    {
+        return stbg__calculate_hash(type, MemoryMarshal.Cast<char, byte>(identifier.AsSpan()), ignore_parent);
+    }
+
+    private static widget_hash stbg__calculate_hash(STBG_WIDGET_TYPE type, ReadOnlySpan<byte> identifier, bool ignore_parent = false)
     {
         Span<byte> key = stackalloc byte[sizeof(long)];
         Span<byte> output = stackalloc byte[sizeof(widget_hash)];
@@ -393,13 +427,10 @@ public partial class StbGui
 
         key[0] += (byte)type; //Include the type of as part of the key, so changing the type produces a different hash
 
-        var identifierAsBytes = MemoryMarshal.Cast<char, byte>(identifier.AsSpan());
-
-        StbHash.stbh_halfsiphash(identifierAsBytes, key, output);
+        StbHash.stbh_halfsiphash(identifier, key, output);
 
         widget_hash outputHash = BitConverter.ToInt32(output);
 
         return outputHash;
     }
-
 }

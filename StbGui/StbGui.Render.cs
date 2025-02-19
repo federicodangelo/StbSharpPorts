@@ -55,15 +55,6 @@ public partial class StbGui
 
                 // Apply global rect offset
                 bounds = stbg_translate_rect(bounds, last_global_rect.x0, last_global_rect.y0);
-
-                // Ensure bounds correctly formed
-                bounds.x0 = MathF.Max(bounds.x0, 0);
-                bounds.y0 = MathF.Max(bounds.y0, 0);
-                bounds.x1 = MathF.Max(bounds.x0, bounds.x1);
-                bounds.y1 = MathF.Max(bounds.y0, bounds.y1);
-
-                // Clamp to global rect bounds
-                //bounds = stbg_clamp_rect(bounds, last_global_rect);
             }
 
             render_commands_queue[render_commands_queue_index] = command;
@@ -92,19 +83,26 @@ public partial class StbGui
 
         ref var root = ref stbg_get_widget_by_id(context.root_widget_id);
 
-        stbg__render_widget(ref root, ref render_context);
+        stbg__render_widget(ref root, ref render_context, stbg_build_rect_infinite());
 
         enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.END_FRAME });
 
         flush_queue();
     }
 
-    private static void stbg__render_widget(ref stbg_widget widget, ref stbg_render_context render_context)
+    private static void stbg__render_widget(ref stbg_widget widget, ref stbg_render_context render_context, stbg_rect parent_clip_bounds)
     {
-        if (widget.properties.computed_bounds.size.width == 0 || widget.properties.computed_bounds.size.height == 0)
-            return;
+        var global_rect = widget.properties.computed_bounds.global_rect;
 
-        render_context.set_global_rect(widget.properties.computed_bounds.global_rect);
+        var clip_bounds = stbg_clamp_rect(global_rect, parent_clip_bounds);
+
+        if (clip_bounds.x1 == clip_bounds.x0 || clip_bounds.y1 == clip_bounds.y0)
+        {
+            // Don't draw widgets that are completly outisde parent clipping bounds
+            return;
+        }
+
+        render_context.set_global_rect(global_rect);
 
         var widget_render = STBG__WIDGET_RENDER_MAP[(int)widget.type];
 
@@ -118,15 +116,14 @@ public partial class StbGui
                 ((widget.properties.layout.flags & STBG_WIDGET_LAYOUT_FLAGS.ALLOW_CHILDREN_OVERFLOW) != 0) &&
                  !stbg_size_is_smaller_than(stbg_size_add_padding(widget.properties.computed_bounds.children_size, widget.properties.layout.inner_padding), widget.properties.computed_bounds.size);
 
-            if (needs_clipping)
-            {
-                render_context.push_clipping_rect(stbg_build_rect(
+            var clipping_rect = needs_clipping ? stbg_build_rect(
                     widget.properties.layout.inner_padding.left,
                     widget.properties.layout.inner_padding.top,
                     widget.properties.computed_bounds.size.width - widget.properties.layout.inner_padding.right,
                     widget.properties.computed_bounds.size.height - widget.properties.layout.inner_padding.bottom
-                ));
-            }
+                ) : stbg_build_rect_zero();
+
+            var clipping_enabled = false;
 
             var children_id = widget.hierarchy.first_children_id;
 
@@ -134,13 +131,28 @@ public partial class StbGui
             {
                 ref var children = ref stbg_get_widget_by_id(children_id);
 
-                stbg__render_widget(ref children, ref render_context);
+                if ((children.properties.layout.flags & STBG_WIDGET_LAYOUT_FLAGS.PARENT_CONTROLLED) != 0)
+                {
+                    if (clipping_enabled)
+                    {
+                        clipping_enabled = false;
+                        render_context.pop_clipping_rect();
+                    }
+                }
+                else if (needs_clipping && !clipping_enabled)
+                {
+                    clipping_enabled = true;
+                    render_context.set_global_rect(widget.properties.computed_bounds.global_rect);
+                    render_context.push_clipping_rect(clipping_rect);
+                }
+                
+                stbg__render_widget(ref children, ref render_context, clip_bounds);
 
                 children_id = children.hierarchy.next_sibling_id;
 
             } while (children_id != STBG_WIDGET_ID_NULL);
 
-            if (needs_clipping)
+            if (clipping_enabled)
             {
                 render_context.pop_clipping_rect();
             }
