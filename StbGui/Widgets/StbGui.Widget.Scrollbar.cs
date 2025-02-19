@@ -147,7 +147,7 @@ public partial class StbGui
                 context.input_feedback.dragged_widget_id = STBG_WIDGET_ID_NULL;
             }
 
-            var delta = -(context.input.mouse_wheel_scroll_amount.y != 0 ? context.input.mouse_wheel_scroll_amount.y : context.input.mouse_wheel_scroll_amount.x);
+            var delta = (context.input.mouse_wheel_scroll_amount.y != 0 ? -context.input.mouse_wheel_scroll_amount.y : context.input.mouse_wheel_scroll_amount.x);
 
             stbg__scrollbar_update_value(ref scrollbar, parameters, scrollbar.properties.value.f + delta * parameters.step_size, true);
         }
