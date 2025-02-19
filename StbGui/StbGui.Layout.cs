@@ -190,7 +190,12 @@ public partial class StbGui
         if (!intrinsic_size_includes_padding)
             intrinsic_size = stbg_size_add_padding(intrinsic_size, widget_inner_padding);
 
-        stbg_size widget_size = stbg_size_max(intrinsic_size, accumulated_children_size);
+        var allow_children_overflow = (widget_layout.flags & STBG_WIDGET_LAYOUT_FLAGS.ALLOW_CHILDREN_OVERFLOW) != 0;
+
+        stbg_size widget_size = allow_children_overflow ? 
+                stbg_size_max(intrinsic_size, stbg_size_add_padding(stbg_build_size_zero(), widget_inner_padding)) :
+                stbg_size_max(intrinsic_size, accumulated_children_size);
+
         widget_size = stbg_size_constrain(widget_size, constrains);
 
         return widget_size;

@@ -38,6 +38,8 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_RIGHT, windowChildrenPadding);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING, windowChidlrenSpacing);
 
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_EXPAND_TO_FIT_CHILDREN, false);
+
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, windowDefaultWidth);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, windowDefaultHeight);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_SPACING_BETWEEN_NEW_WINDOWS, windowSpacingBetweenNewWindows);
@@ -87,6 +89,9 @@ public partial class StbGui
         layout.constrains = stbg_build_constrains_unconstrained();
         layout.children_layout_direction = STBG_CHILDREN_LAYOUT.VERTICAL;
         layout.children_spacing = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING);
+
+        if (!stbg_get_widget_style_boolean(STBG_WIDGET_STYLE.WINDOW_EXPAND_TO_FIT_CHILDREN))
+            layout.flags |= STBG_WIDGET_LAYOUT_FLAGS.ALLOW_CHILDREN_OVERFLOW;
 
         if (is_new)
         {
@@ -328,7 +333,8 @@ public partial class StbGui
                 stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP, STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT)
             ),
             stbg__build_text(window.properties.text, title_text_color),
-            -1, 0 // center vertically
+            -1, 0, // center vertically
+            STBG_RENDER_TEXT_OPTIONS.SINGLE_LINE
         );
     }
 }

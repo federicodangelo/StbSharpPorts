@@ -1,6 +1,7 @@
 namespace StbSharp.Examples;
 
 using System;
+using System.Diagnostics;
 using SDL3;
 using StbSharp;
 
@@ -22,8 +23,8 @@ public class SDLAppBase : IDisposable
         public string WindowName = "StbGui SDL App";
         public int DefaultWindowWidth = 800;
         public int DefaultWindowHeight = 600;
-        public int MinWindowWidth = 320;
-        public int MinWindowHeight = 100;
+        public int MinWindowWidth = 5;
+        public int MinWindowHeight = 5;
         public string DefaultFontPath = "Fonts/ProggyClean.ttf";
         public string DefaultFontName = "ProggyClean";
         public float DefaultFontSize = 13;
@@ -300,6 +301,7 @@ public class SDLAppBase : IDisposable
                 }
 
             case StbGui.STBG_RENDER_COMMAND_TYPE.END_FRAME:
+                Debug.Assert(SDLHelper.HasClipping() == false);
                 SDL.RenderPresent(renderer);
                 break;
 
@@ -340,6 +342,14 @@ public class SDLAppBase : IDisposable
                     DrawText(text, StbGui.stbg_get_font_by_id(cmd.text.font_id), cmd.text.style, bounds, ha, va, options);
                     break;
                 }
+
+            case StbGui.STBG_RENDER_COMMAND_TYPE.PUSH_CLIPPING_RECT:
+                SDLHelper.PushClipRect(renderer, cmd.bounds);
+                break;
+
+            case StbGui.STBG_RENDER_COMMAND_TYPE.POP_CLIPPING_RECT:
+                SDLHelper.PopClipRect(renderer);
+                break;
         }
     }
 

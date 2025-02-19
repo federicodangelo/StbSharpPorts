@@ -10,6 +10,7 @@ public partial class StbGui
         NONE,
         IGNORE_BASELINE = 1 << 0,
         IGNORE_METRICS = 1 << 1,
+        SINGLE_LINE = 1 << 2,
     }
 
     private struct stbg_render_context
@@ -25,6 +26,12 @@ public partial class StbGui
 
         public delegate void draw_text_delegate(stbg_rect rect, stbg_text text, float horizontal_alignment = -1, float vertical_alignment = -1, STBG_RENDER_TEXT_OPTIONS options = STBG_RENDER_TEXT_OPTIONS.NONE);
         public draw_text_delegate draw_text;
+
+        public delegate void push_clipping_rect_delegate(stbg_rect rect);
+        public push_clipping_rect_delegate push_clipping_rect;
+
+        public delegate void pop_clipping_rect_delegate();
+        public pop_clipping_rect_delegate pop_clipping_rect;
     }
 
     static private void stbg__render()
@@ -40,9 +47,14 @@ public partial class StbGui
             if (render_commands_queue_index + 1 == render_commands_queue.Length)
                 flush_queue();
 
-            if (command.type != STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME && command.type != STBG_RENDER_COMMAND_TYPE.END_FRAME)
+            if (command.type != STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME &&
+                command.type != STBG_RENDER_COMMAND_TYPE.END_FRAME &&
+                command.type != STBG_RENDER_COMMAND_TYPE.POP_CLIPPING_RECT)
             {
                 ref var bounds = ref command.bounds;
+
+                // Apply global rect offset
+                bounds = stbg_translate_rect(bounds, last_global_rect.x0, last_global_rect.y0);
 
                 // Ensure bounds correctly formed
                 bounds.x0 = MathF.Max(bounds.x0, 0);
@@ -50,11 +62,8 @@ public partial class StbGui
                 bounds.x1 = MathF.Max(bounds.x0, bounds.x1);
                 bounds.y1 = MathF.Max(bounds.y0, bounds.y1);
 
-                // Apply global rect offset
-                bounds = stbg_translate_rect(bounds, last_global_rect.x0, last_global_rect.y0);
-
                 // Clamp to global rect bounds
-                bounds = stbg_clamp_rect(bounds, last_global_rect);
+                //bounds = stbg_clamp_rect(bounds, last_global_rect);
             }
 
             render_commands_queue[render_commands_queue_index] = command;
@@ -75,6 +84,8 @@ public partial class StbGui
             draw_rectangle = (rect, color) => enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.RECTANGLE, bounds = rect, background_color = color }),
             draw_border = (rect, border_size, border_color, background_color) => enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.BORDER, bounds = rect, size = border_size, color = border_color, background_color = background_color }),
             draw_text = (rect, text, ha, va, options) => enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.TEXT, bounds = rect, text = text, text_horizontal_alignment = ha, text_vertical_alignment = va, text_options = options }),
+            push_clipping_rect = (rect) => enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.PUSH_CLIPPING_RECT, bounds = rect }),
+            pop_clipping_rect = () => enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.POP_CLIPPING_RECT }),
         };
 
         enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME, bounds = { x1 = context.screen_size.width, y1 = context.screen_size.height }, background_color = stbg_get_widget_style_color(STBG_WIDGET_STYLE.ROOT_BACKGROUND_COLOR) });
@@ -90,6 +101,9 @@ public partial class StbGui
 
     private static void stbg__render_widget(ref stbg_widget widget, ref stbg_render_context render_context)
     {
+        if (widget.properties.computed_bounds.size.width == 0 || widget.properties.computed_bounds.size.height == 0)
+            return;
+
         render_context.set_global_rect(widget.properties.computed_bounds.global_rect);
 
         var widget_render = STBG__WIDGET_RENDER_MAP[(int)widget.type];
@@ -100,6 +114,20 @@ public partial class StbGui
         // Render children
         if (widget.hierarchy.first_children_id != STBG_WIDGET_ID_NULL)
         {
+            var needs_clipping =
+                ((widget.properties.layout.flags & STBG_WIDGET_LAYOUT_FLAGS.ALLOW_CHILDREN_OVERFLOW) != 0) &&
+                 !stbg_size_is_smaller_than(stbg_size_add_padding(widget.properties.computed_bounds.children_size, widget.properties.layout.inner_padding), widget.properties.computed_bounds.size);
+
+            if (needs_clipping)
+            {
+                render_context.push_clipping_rect(stbg_build_rect(
+                    widget.properties.layout.inner_padding.left,
+                    widget.properties.layout.inner_padding.top,
+                    widget.properties.computed_bounds.size.width - widget.properties.layout.inner_padding.right,
+                    widget.properties.computed_bounds.size.height - widget.properties.layout.inner_padding.bottom
+                ));
+            }
+
             var children_id = widget.hierarchy.first_children_id;
 
             do
@@ -111,6 +139,11 @@ public partial class StbGui
                 children_id = children.hierarchy.next_sibling_id;
 
             } while (children_id != STBG_WIDGET_ID_NULL);
+
+            if (needs_clipping)
+            {
+                render_context.pop_clipping_rect();
+            }
         }
     }
 }

@@ -168,6 +168,10 @@ public partial class StbGui
 
     [ExcludeFromCodeCoverage]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static public stbg_rect stbg_build_rect_infinite() => new stbg_rect() { x0 = float.MinValue, y0 = float.MinValue, x1 = float.MaxValue, y1 = float.MaxValue };
+
+    [ExcludeFromCodeCoverage]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static public stbg_rect stbg_translate_rect(stbg_rect rect, float dx, float dy)
     {
         rect.x0 += dx;
@@ -186,6 +190,16 @@ public partial class StbGui
             position.x >= rect.x0 && position.x < rect.x1 &&
             position.y >= rect.y0 && position.y < rect.y1;
     }
+
+    [ExcludeFromCodeCoverage]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static public bool stbg_rect_is_position_inside(stbg_rect rect, float x, float y)
+    {
+        return
+            x >= rect.x0 && x < rect.x1 &&
+            y >= rect.y0 && y < rect.y1;
+    }
+
 
     [ExcludeFromCodeCoverage]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -227,6 +241,13 @@ public partial class StbGui
         size.height += padding.top + padding.bottom;
 
         return size;
+    }
+
+    [ExcludeFromCodeCoverage]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static public bool stbg_size_is_smaller_than(stbg_size size, stbg_size other_size)
+    {
+        return size.width <= other_size.width && size.height <= other_size.height;
     }
 
     [ExcludeFromCodeCoverage]

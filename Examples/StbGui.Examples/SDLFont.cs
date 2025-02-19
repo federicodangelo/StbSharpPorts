@@ -176,6 +176,7 @@ public class SDLFont : IDisposable
         var full_text_bounds = MeasureText(text, style, options | StbGui.STBG_RENDER_TEXT_OPTIONS.IGNORE_BASELINE);
 
         bool ignore_metrics = (options & StbGui.STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS) != 0;
+        bool single_line = (options & StbGui.STBG_RENDER_TEXT_OPTIONS.SINGLE_LINE) != 0;
 
         var center_y_offset = full_text_bounds.height < bounds_height ?
             MathF.Floor(((bounds_height - full_text_bounds.height) / 2) * (1 + vertical_alignment)) :
@@ -227,7 +228,7 @@ public class SDLFont : IDisposable
                     dx += fontScale * StbTrueType.stbtt_GetCodepointKernAdvance(ref font, text[ch], text[ch + 1]) * scale;
             }
 
-            if (xpos + dx > bounds.x1 && !first_line)
+            if (xpos + dx > bounds.x1 && !first_line && !single_line)
             {
                 ypos += LineHeight * scale;
                 xpos = bounds.x0 + center_x_offset;

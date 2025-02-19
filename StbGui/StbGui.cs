@@ -82,6 +82,15 @@ public partial class StbGui
     }
 
     /// <summary>
+    /// Set widget style value
+    /// </summary>
+    public static void stbg_set_widget_style(STBG_WIDGET_STYLE style, bool value)
+    {
+        stbg__assert(!context.inside_frame);
+        context.theme.styles[(int)style] = value ? 1 : 0;
+    }
+
+    /// <summary>
     /// Get widget style value
     /// </summary>
     public static float stbg_get_widget_style(STBG_WIDGET_STYLE style)
@@ -95,6 +104,14 @@ public partial class StbGui
     public static stbg_color stbg_get_widget_style_color(STBG_WIDGET_STYLE style)
     {
         return stbg_uint_to_color((uint)context.theme.styles[(int)style]);
+    }
+
+    /// <summary>
+    /// Get widget style value
+    /// </summary>
+    public static bool stbg_get_widget_style_boolean(STBG_WIDGET_STYLE style)
+    {
+        return context.theme.styles[(int)style] != 0;
     }
 
     /// <summary>
@@ -325,6 +342,14 @@ public partial class StbGui
     }
 
     /// <summary>
+    /// Change existing widget intrinsic position
+    /// </summary>
+    public static void stbg_set_last_widget_position(float x, float y)
+    {
+        stbg_set_widget_position(stbg_get_last_widget_id(), x, y);
+    }
+
+    /// <summary>
     /// Changes existing widget instrinsic size
     /// </summary>
     public static void stbg_set_widget_size(widget_id widget_id, float width, float height)
@@ -338,6 +363,15 @@ public partial class StbGui
         widget.properties.layout.intrinsic_size.size.width = Math.Max(width, 0);
         widget.properties.layout.intrinsic_size.size.height = Math.Max(height, 0);
     }
+
+    /// <summary>
+    /// Changes existing widget instrinsic size
+    /// </summary>
+    public static void stbg_set_last_widget_size(widget_id widget_id, float width, float height)
+    {
+        stbg_set_last_widget_size(stbg_get_last_widget_id(), width, height);
+    }
+
 
     /// <summary>
     /// Begins a new container with the specified layout direction
@@ -439,5 +473,15 @@ public partial class StbGui
     public static void stbg_scrollbar(string identifier, STBG_SCROLLBAR_DIRECTION direction, ref float value, float min_value, float max_value)
     {
         stbg__scrollbar_create(identifier, direction, ref value, min_value, max_value);
+    }
+
+    /// <summary>
+    /// Shows a scrollbar.
+    /// </summary>
+    public static void stbg_scrollbar(string identifier, STBG_SCROLLBAR_DIRECTION direction, ref int value, int min_value, int max_value)
+    {
+        float f = value;
+        stbg__scrollbar_create(identifier, direction, ref f, min_value, max_value);
+        value = (int) f;
     }
 }

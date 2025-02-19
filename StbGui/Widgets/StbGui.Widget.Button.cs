@@ -97,7 +97,8 @@ public partial class StbGui
                 size.width - stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_PADDING_RIGHT),
                 size.height - stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_PADDING_BOTTOM)
             ),
-            stbg__build_text(button.properties.text, text_color)
+            stbg__build_text(button.properties.text, text_color),
+            0, 0, STBG_RENDER_TEXT_OPTIONS.SINGLE_LINE
         );
     }
 }

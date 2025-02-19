@@ -324,7 +324,7 @@ public class StbGuiTestsBase : IDisposable
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.BUTTON_HOVERED_BORDER_COLOR, StbGui.STBG_COLOR_WHITE);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.BUTTON_HOVERED_BACKGROUND_COLOR, StbGui.STBG_COLOR_BLUE);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.BUTTON_HOVERED_TEXT_COLOR, StbGui.STBG_COLOR_BLACK);
-        
+
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.BUTTON_PRESSED_BORDER_COLOR, StbGui.STBG_COLOR_WHITE);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.BUTTON_PRESSED_BACKGROUND_COLOR, StbGui.STBG_COLOR_GREEN);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.BUTTON_PRESSED_TEXT_COLOR, StbGui.STBG_COLOR_BLACK);
@@ -350,13 +350,14 @@ public class StbGuiTestsBase : IDisposable
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_RIGHT, windowChildrenPadding);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_BORDER_COLOR, StbGui.STBG_COLOR_WHITE);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_BACKGROUND_COLOR, StbGui.STBG_COLOR_BLUE);
-        
+
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_TEXT_COLOR, StbGui.STBG_COLOR_WHITE);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR, StbGui.STBG_COLOR_MAGENTA);
 
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_TEXT_COLOR, StbGui.STBG_COLOR_MAGENTA);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR, StbGui.STBG_COLOR_WHITE);
 
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_EXPAND_TO_FIT_CHILDREN, true);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING, windowChidlrenSpacing);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, windowDefaultWidth);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, windowDefaultHeight);

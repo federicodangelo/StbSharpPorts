@@ -153,6 +153,7 @@ public partial class StbGui
         WINDOW_DEFAULT_HEIGHT,
         WINDOW_SPACING_BETWEEN_NEW_WINDOWS,
         WINDOW_BORDER_RESIZE_TOLERANCE,
+        WINDOW_EXPAND_TO_FIT_CHILDREN,
         WINDOW_BORDER_SIZE,
         WINDOW_TITLE_HEIGHT,
         WINDOW_TITLE_PADDING_TOP,
@@ -246,6 +247,13 @@ public partial class StbGui
         HORIZONTAL,
     }
 
+    [Flags]
+    public enum STBG_WIDGET_LAYOUT_FLAGS
+    {
+        NONE = 0,
+        ALLOW_CHILDREN_OVERFLOW = 1 << 0,
+    }
+
     public struct stbg_widget_layout
     {
         /// <summary>
@@ -282,6 +290,11 @@ public partial class StbGui
         /// Children layout direction
         /// </summary>
         public STBG_CHILDREN_LAYOUT children_layout_direction;
+
+        /// <summary>
+        /// Widget layout flags
+        /// </summary>
+        public STBG_WIDGET_LAYOUT_FLAGS flags;
     }
 
     public struct stbg_widget_hierarchy
@@ -563,6 +576,16 @@ public partial class StbGui
         /// Render text using bounds, color, text, font and font_style
         /// </summary>
         TEXT,
+
+        /// <summary>
+        /// Push clipping rect using bounds
+        /// </summary>
+        PUSH_CLIPPING_RECT,
+
+        /// <summary>
+        /// Pops clipping rect
+        /// </summary>
+        POP_CLIPPING_RECT,
     }
 
     public record struct stbg_render_command

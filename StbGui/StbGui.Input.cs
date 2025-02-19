@@ -30,8 +30,8 @@ public partial class StbGui
         else
         {
             var new_hover = context.input.mouse_position_valid ?
-                                stbg__get_widget_id_at_position(context.input.mouse_position, context.root_widget_id) :
-                                STBG_WIDGET_ID_NULL;
+                    stbg__get_widget_id_at_position(ref stbg_get_widget_by_id(context.root_widget_id), context.input.mouse_position, stbg_build_rect_infinite()) :
+                    STBG_WIDGET_ID_NULL;
 
             if (new_hover != context.input_feedback.hovered_widget_id)
             {
@@ -106,12 +106,11 @@ public partial class StbGui
             widget_update_input(ref widget);
     }
 
-    private static widget_id stbg__get_widget_id_at_position(stbg_position position, widget_id widget_id)
+    private static widget_id stbg__get_widget_id_at_position(ref stbg_widget widget, stbg_position position, stbg_rect parent_bounds)
     {
-        ref var widget = ref stbg_get_widget_by_id(widget_id);
         var mouse_tolerance = widget.properties.mouse_tolerance;
 
-        var global_rect = widget.properties.computed_bounds.global_rect;
+        var global_rect = stbg_clamp_rect(widget.properties.computed_bounds.global_rect, parent_bounds);
 
         if (position.x < global_rect.x0 - mouse_tolerance ||
             position.y < global_rect.y0 - mouse_tolerance ||
@@ -125,14 +124,15 @@ public partial class StbGui
 
         while (children_id != STBG_WIDGET_ID_NULL)
         {
-            var childrean_at_position = stbg__get_widget_id_at_position(position, children_id);
+            ref var children = ref stbg_get_widget_by_id(children_id);
+            var childrean_at_position = stbg__get_widget_id_at_position(ref children, position, global_rect);
 
             if (childrean_at_position != STBG_WIDGET_ID_NULL)
                 return childrean_at_position;
 
-            children_id = stbg_get_widget_by_id(children_id).hierarchy.prev_sibling_id;
+            children_id = children.hierarchy.prev_sibling_id;
         }
 
-        return widget_id;
+        return widget.id;
     }
 }
