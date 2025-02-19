@@ -24,12 +24,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Drawing.Common" Version="9.0.1" />
+    <PackageReference Include="System.Drawing.Common" Version="9.0.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\StbCommon\StbCommon.csproj" />
-    <ProjectReference Include="..\..\StbImage\StbImage.csproj"/>
+    <ProjectReference Include="..\..\StbImage\StbImage.csproj" />
   </ItemGroup>
 
 </Project>
