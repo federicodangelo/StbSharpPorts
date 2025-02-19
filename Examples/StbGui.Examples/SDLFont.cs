@@ -110,22 +110,36 @@ public class SDLFont : IDisposable
         }
     }
 
-    public StbGui.stbg_size MeasureText(ReadOnlySpan<char> text, StbGui.stbg_font_style style, bool use_baseline = false)
+    public StbGui.stbg_size MeasureText(ReadOnlySpan<char> text, StbGui.stbg_font_style style, StbGui.STBG_RENDER_TEXT_OPTIONS options = StbGui.STBG_RENDER_TEXT_OPTIONS.IGNORE_BASELINE)
     {
         float scale = style.size / Size;
 
         int ch = 0;
         float xpos = 0;
+        float line_height = 0;
         int lines = 1;
+        var ignore_metrics = (options & StbGui.STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS) != 0;
+        var ignore_baseline = (options & StbGui.STBG_RENDER_TEXT_OPTIONS.IGNORE_BASELINE) != 0;
+
         while (ch < text.Length)
         {
             char c = text[ch];
 
             var charData = fontCharData[c];
 
-            float dx = charData.xadvance * scale;
-            if (ch + 1 < text.Length)
-                dx += fontScale * StbTrueType.stbtt_GetCodepointKernAdvance(ref font, text[ch], text[ch + 1]) * scale;
+            float dx;
+
+            if (ignore_metrics)
+            {
+                line_height = Math.Max(line_height, (charData.y1 - charData.y0) * scale);
+                dx = ((charData.x1 - charData.x0) + 1) * scale;
+            }
+            else
+            {
+                dx = charData.xadvance * scale;
+                if (ch + 1 < text.Length)
+                    dx += fontScale * StbTrueType.stbtt_GetCodepointKernAdvance(ref font, text[ch], text[ch + 1]) * scale;
+            }
 
             /*if (xpos + dx > bounds.x1)
             {
@@ -141,13 +155,15 @@ public class SDLFont : IDisposable
 
         return StbGui.stbg_build_size(
             xpos,
-            use_baseline ?
-                (Baseline + (lines - 1) * LineHeight) * scale :
-                LineHeight * lines * scale
+            ignore_metrics ?
+                line_height :
+            ignore_baseline ?
+                LineHeight * lines * scale :
+                (Baseline + (lines - 1) * LineHeight) * scale
         );
     }
 
-    public void DrawText(ReadOnlySpan<char> text, StbGui.stbg_font_style style, StbGui.stbg_rect bounds, float horizontal_alignment, float vertical_alignment)
+    public void DrawText(ReadOnlySpan<char> text, StbGui.stbg_font_style style, StbGui.stbg_rect bounds, float horizontal_alignment, float vertical_alignment, StbGui.STBG_RENDER_TEXT_OPTIONS options)
     {
         float scale = style.size / Size;
 
@@ -157,7 +173,9 @@ public class SDLFont : IDisposable
         if (bounds_width <= 0 || bounds_height <= 0)
             return;
 
-        var full_text_bounds = MeasureText(text, style, true);
+        var full_text_bounds = MeasureText(text, style, options | StbGui.STBG_RENDER_TEXT_OPTIONS.IGNORE_BASELINE);
+
+        bool ignore_metrics = (options & StbGui.STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS) != 0;
 
         var center_y_offset = full_text_bounds.height < bounds_height ?
             MathF.Floor(((bounds_height - full_text_bounds.height) / 2) * (1 + vertical_alignment)) :
@@ -186,7 +204,8 @@ public class SDLFont : IDisposable
 
         SDL.SetTextureColorMod(fontTexture, style.color.r, style.color.g, style.color.b);
 
-        bool firstLine = true;
+        bool first_line = true;
+        var line_height = ignore_metrics ? 0 : LineHeight;
 
         while (ch < text.Length)
         {
@@ -194,11 +213,21 @@ public class SDLFont : IDisposable
 
             var charData = fontCharData[c];
 
-            float dx = charData.xadvance * scale;
-            if (ch + 1 < text.Length)
-                dx += fontScale * StbTrueType.stbtt_GetCodepointKernAdvance(ref font, text[ch], text[ch + 1]) * scale;
+            float dx;
 
-            if (xpos + dx > bounds.x1 && !firstLine)
+            if (ignore_metrics)
+            {
+                dx = ((charData.x1 - charData.x0) + 1) * scale;
+                line_height = Math.Max(line_height, (charData.y1 - charData.y0) * scale);
+            }
+            else
+            {
+                dx = charData.xadvance * scale;
+                if (ch + 1 < text.Length)
+                    dx += fontScale * StbTrueType.stbtt_GetCodepointKernAdvance(ref font, text[ch], text[ch + 1]) * scale;
+            }
+
+            if (xpos + dx > bounds.x1 && !first_line)
             {
                 ypos += LineHeight * scale;
                 xpos = bounds.x0 + center_x_offset;
@@ -207,8 +236,11 @@ public class SDLFont : IDisposable
                     break;
             }
 
+            var metricsX = (ignore_metrics ? 0 : charData.xoff) * scale;
+            var metricsY = (ignore_metrics ? 0 : (Baseline + charData.yoff)) * scale;
+            
             var fromRect = new SDL.FRect() { X = charData.x0, Y = charData.y0, W = charData.x1 - charData.x0, H = charData.y1 - charData.y0 };
-            var toRect = new SDL.FRect() { X = xpos + charData.xoff * scale, Y = ypos + (Baseline + charData.yoff) * scale, W = (charData.x1 - charData.x0) * scale, H = (charData.y1 - charData.y0) * scale };
+            var toRect = new SDL.FRect() { X = xpos + metricsX, Y = ypos + metricsY, W = (charData.x1 - charData.x0) * scale, H = (charData.y1 - charData.y0) * scale };
 
             if (!SDL.RenderTexture(renderer, fontTexture, fromRect, toRect))
             {
@@ -216,7 +248,7 @@ public class SDLFont : IDisposable
                 break;
             }
 
-            firstLine = false;
+            first_line = false;
 
             xpos += dx;
 

@@ -410,6 +410,8 @@ public partial class StbGui
         public stbg_position mouse_position;
         public bool mouse_position_valid;
 
+        public stbg_position mouse_wheel_scroll_amount;
+
         /// <summary>
         /// True only the first frame that is down
         /// </summary>
@@ -573,6 +575,7 @@ public partial class StbGui
         public stbg_text text;
         public float text_horizontal_alignment;
         public float text_vertical_alignment;
+        public STBG_RENDER_TEXT_OPTIONS text_options;
     }
 
     public delegate void stbg_render_delegate(Span<stbg_render_command> commands);

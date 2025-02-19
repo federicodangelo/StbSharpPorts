@@ -103,6 +103,21 @@ public partial class StbGui
                 SUB_WIDGET_PART_THUMB_BUTTON :
             SUB_WIDGET_PART_NONE;
 
+        if (context.input.mouse_wheel_scroll_amount.x != 0 || context.input.mouse_wheel_scroll_amount.y != 0)
+        {
+            if (context.input_feedback.dragged_widget_id == scrollbar.id)
+            {
+                // Cancel any dragging operation realted to this widget
+                context.input_feedback.dragged_widget_id = STBG_WIDGET_ID_NULL;
+            }
+
+            var delta = -(context.input.mouse_wheel_scroll_amount.y != 0 ? context.input.mouse_wheel_scroll_amount.y : context.input.mouse_wheel_scroll_amount.x);
+
+            var range = scrollbar.properties.max_value.f - scrollbar.properties.min_value.f;
+
+            stbg__scrollbar_update_value(ref scrollbar, scrollbar.properties.value.f + delta * range / 10);
+        }
+
         if (context.input.mouse_button_1_down)
         {
             context.input_feedback.pressed_widget_id = scrollbar.id;
@@ -127,14 +142,7 @@ public partial class StbGui
                     context.input.mouse_position.y - bounds.y0 - context.input_feedback.drag_from_widget_y
              );
 
-            var old_value = scrollbar.properties.value.f;
-            new_value = Math.Clamp(new_value, scrollbar.properties.min_value.f, scrollbar.properties.max_value.f);
-
-            if (new_value != old_value)
-            {
-                scrollbar.properties.value.f = new_value;
-                scrollbar.properties.input_flags |= STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED;
-            }
+            stbg__scrollbar_update_value(ref scrollbar, new_value);
 
             if (context.input.mouse_button_1_up)
             {
@@ -157,8 +165,6 @@ public partial class StbGui
 
             switch (sub_widget_part)
             {
-                case SUB_WIDGET_PART_THUMB_BUTTON:
-                    break;
                 case SUB_WIDGET_PART_MIN_BUTTON:
                     delta = range * -0.1f;
                     break;
@@ -167,16 +173,21 @@ public partial class StbGui
                     break;
             }
 
-            var old_value = scrollbar.properties.value.f;
-            var new_value = Math.Clamp(old_value + delta, scrollbar.properties.min_value.f, scrollbar.properties.max_value.f);
-
-            if (new_value != old_value)
-            {
-                scrollbar.properties.value.f = new_value;
-                scrollbar.properties.input_flags |= STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED;
-            }
+            stbg__scrollbar_update_value(ref scrollbar, scrollbar.properties.value.f + delta);
 
             context.input_feedback.pressed_widget_id = STBG_WIDGET_ID_NULL;
+        }
+    }
+
+    private static void stbg__scrollbar_update_value(ref stbg_widget scrollbar, float new_value)
+    {
+        var old_value = scrollbar.properties.value.f;
+        new_value = Math.Clamp(new_value, scrollbar.properties.min_value.f, scrollbar.properties.max_value.f);
+
+        if (new_value != old_value)
+        {
+            scrollbar.properties.value.f = new_value;
+            scrollbar.properties.input_flags |= STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED;
         }
     }
 
@@ -188,7 +199,7 @@ public partial class StbGui
 
         var bounds = stbg_build_rect(0, 0, scrollbar.properties.computed_bounds.size.width, scrollbar.properties.computed_bounds.size.height);
 
-        stbg__scrollbar_get_parts(scrollbar, bounds, out stbg_rect min_button_rect, out stbg_rect max_button_rect, out stbg_rect thumb_rect, out _);
+        stbg__scrollbar_get_parts(scrollbar, bounds, out stbg_rect min_button_rect, out stbg_rect max_button_rect, out stbg_rect thumb_rect, out var direction);
 
         render_context.draw_rectangle(bounds, stbg_get_widget_style_color(STBG_WIDGET_STYLE.SCROLLBAR_BACKGROUND_COLOR));
 
@@ -214,11 +225,17 @@ public partial class StbGui
 
             if (p == SUB_WIDGET_PART_MIN_BUTTON)
             {
-                render_context.draw_text(rect, stbg__build_text("X".AsMemory(), color), 0, 0);
+                if (direction == STBG_SCROLLBAR_DIRECTION.HORIZONTAL)
+                    render_context.draw_text(rect, stbg__build_text("<".AsMemory(), color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
+                else
+                    render_context.draw_text(rect, stbg__build_text("^".AsMemory(), color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
             }
             else if (p == SUB_WIDGET_PART_MAX_BUTTON)
             {
-                render_context.draw_text(rect, stbg__build_text("X".AsMemory(), color), 0, 0);
+                if (direction == STBG_SCROLLBAR_DIRECTION.HORIZONTAL)
+                    render_context.draw_text(rect, stbg__build_text(">".AsMemory(), color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
+                else
+                    render_context.draw_text(rect, stbg__build_text("v".AsMemory(), color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
             }
         }
     }

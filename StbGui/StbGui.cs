@@ -120,6 +120,10 @@ public partial class StbGui
         /// </summary>
         public stbg_position mouse_position;
         /// <summary>
+        /// Mouse wheel scroll amount
+        /// </summary>
+        public stbg_position mouse_wheel_scroll_amount;
+        /// <summary>
         /// Mouse position valid or not (set to false when the mouse is outside the window)
         /// </summary>
         public bool mouse_position_valid;
@@ -355,7 +359,7 @@ public partial class StbGui
     {
         stbg_begin_container(identifier, layout_direction, constrains, stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING));
     }
-    
+
     /// <summary>
     /// Begins a new container with the specified layout direction and spacing between children
     /// </summary>

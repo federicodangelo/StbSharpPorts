@@ -199,6 +199,9 @@ public class SDLAppBase : IDisposable
     {
         bool quit = false;
 
+        input.mouse_wheel_scroll_amount.x = 0;
+        input.mouse_wheel_scroll_amount.y = 0;
+
         while (SDL.PollEvent(out var e) && !quit)
         {
             switch ((SDL.EventType)e.Type)
@@ -230,6 +233,14 @@ public class SDLAppBase : IDisposable
                         input.mouse_button_2 = false;
                     input.mouse_position.x = e.Button.X;
                     input.mouse_position.y = e.Button.Y;
+                    input.mouse_position_valid = true;
+                    break;
+
+                case SDL.EventType.MouseWheel:
+                    input.mouse_wheel_scroll_amount.x += e.Wheel.X;
+                    input.mouse_wheel_scroll_amount.y += e.Wheel.Y;
+                    input.mouse_position.x = e.Wheel.MouseX;
+                    input.mouse_position.y = e.Wheel.MouseY;
                     input.mouse_position_valid = true;
                     break;
 
@@ -324,8 +335,9 @@ public class SDLAppBase : IDisposable
                     var text = cmd.text.text.Span;
                     var ha = cmd.text_horizontal_alignment;
                     var va = cmd.text_vertical_alignment;
+                    var options = cmd.text_options;
 
-                    DrawText(text, StbGui.stbg_get_font_by_id(cmd.text.font_id), cmd.text.style, bounds, ha, va);
+                    DrawText(text, StbGui.stbg_get_font_by_id(cmd.text.font_id), cmd.text.style, bounds, ha, va, options);
                     break;
                 }
         }
@@ -336,9 +348,9 @@ public class SDLAppBase : IDisposable
         return mainFont.MeasureText(text, style);
     }
 
-    private void DrawText(ReadOnlySpan<char> text, StbGui.stbg_font _font, StbGui.stbg_font_style style, StbGui.stbg_rect bounds, float horizontal_alignment, float vertical_alignment)
+    private void DrawText(ReadOnlySpan<char> text, StbGui.stbg_font _font, StbGui.stbg_font_style style, StbGui.stbg_rect bounds, float horizontal_alignment, float vertical_alignment, StbGui.STBG_RENDER_TEXT_OPTIONS options)
     {
-        mainFont.DrawText(text, style, bounds, horizontal_alignment, vertical_alignment);
+        mainFont.DrawText(text, style, bounds, horizontal_alignment, vertical_alignment, options);
     }
 
     private void InitStbGui()

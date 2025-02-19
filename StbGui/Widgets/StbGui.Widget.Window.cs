@@ -327,7 +327,8 @@ public partial class StbGui
                 size.width - stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_RIGHT),
                 stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP, STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT)
             ),
-            stbg__build_text(window.properties.text, title_text_color)
+            stbg__build_text(window.properties.text, title_text_color),
+            -1, 0 // center vertically
         );
     }
 }

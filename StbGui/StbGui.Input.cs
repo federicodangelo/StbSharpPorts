@@ -51,6 +51,7 @@ public partial class StbGui
 
         input.mouse_position = user_input.mouse_position;
         input.mouse_position_valid = user_input.mouse_position_valid;
+        input.mouse_wheel_scroll_amount = user_input.mouse_wheel_scroll_amount;
 
         stgb_update_input_button(user_input.mouse_button_1, ref input.mouse_button_1, ref input.mouse_button_1_down, ref input.mouse_button_1_up);
         stgb_update_input_button(user_input.mouse_button_2, ref input.mouse_button_2, ref input.mouse_button_2_down, ref input.mouse_button_2_up); 
