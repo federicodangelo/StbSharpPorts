@@ -15,7 +15,7 @@ public partial class StbGui
         public delegate void draw_border_delegate(stbg_rect rect, float border_size, stbg_color border_color, stbg_color background_color);
         public draw_border_delegate draw_border;
 
-        public delegate void draw_text_delegate(stbg_rect rect, stbg_text text);
+        public delegate void draw_text_delegate(stbg_rect rect, stbg_text text, float horizontal_alignment = -1, float vertical_alignment = -1);
         public draw_text_delegate draw_text;
     }
 
@@ -66,7 +66,7 @@ public partial class StbGui
             set_global_rect = (rect) => last_global_rect = rect,
             draw_rectangle = (rect, color) => enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.RECTANGLE, bounds = rect, background_color = color }),
             draw_border = (rect, border_size, border_color, background_color) => enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.BORDER, bounds = rect, size = border_size, color = border_color, background_color = background_color }),
-            draw_text = (rect, text) => enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.TEXT, bounds = rect, text = text }),
+            draw_text = (rect, text, ha, va) => enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.TEXT, bounds = rect, text = text, text_horizontal_alignment = ha, text_vertical_alignment = va }),
         };
 
         enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME, bounds = { x1 = context.screen_size.width, y1 = context.screen_size.height }, background_color = stbg_get_widget_style_color(STBG_WIDGET_STYLE.ROOT_BACKGROUND_COLOR) });

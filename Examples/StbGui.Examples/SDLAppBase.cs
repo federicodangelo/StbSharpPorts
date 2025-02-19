@@ -322,8 +322,10 @@ public class SDLAppBase : IDisposable
                 {
                     var bounds = cmd.bounds;
                     var text = cmd.text.text.Span;
+                    var ha = cmd.text_horizontal_alignment;
+                    var va = cmd.text_vertical_alignment;
 
-                    DrawText(text, StbGui.stbg_get_font_by_id(cmd.text.font_id), cmd.text.style, bounds);
+                    DrawText(text, StbGui.stbg_get_font_by_id(cmd.text.font_id), cmd.text.style, bounds, ha, va);
                     break;
                 }
         }
@@ -334,9 +336,9 @@ public class SDLAppBase : IDisposable
         return mainFont.MeasureText(text, style);
     }
 
-    private void DrawText(ReadOnlySpan<char> text, StbGui.stbg_font _font, StbGui.stbg_font_style style, StbGui.stbg_rect bounds)
+    private void DrawText(ReadOnlySpan<char> text, StbGui.stbg_font _font, StbGui.stbg_font_style style, StbGui.stbg_rect bounds, float horizontal_alignment, float vertical_alignment)
     {
-        mainFont.DrawText(text, style, bounds);
+        mainFont.DrawText(text, style, bounds, horizontal_alignment, vertical_alignment);
     }
 
     private void InitStbGui()

@@ -57,7 +57,7 @@ public partial class StbGui
         theme.default_font_style = font_style;
 
         // ROOT
-        stbg_set_widget_style(STBG_WIDGET_STYLE.ROOT_BACKGROUND_COLOR, stbg_build_color(236, 240, 241));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.ROOT_BACKGROUND_COLOR, rgb(236, 240, 241));
 
         for (var i = 0; i < STBG__WIDGET_INIT_DEFAULT_THEME_LIST.Length; i++)
             STBG__WIDGET_INIT_DEFAULT_THEME_LIST[i]();
@@ -329,6 +329,8 @@ public partial class StbGui
         stbg__assert(widget_id != context.root_widget_id);
         ref var widget = ref stbg_get_widget_by_id(widget_id);
 
+        stbg__warning(widget.properties.layout.intrinsic_size.type == STBG_INTRINSIC_SIZE_TYPE.FIXED_PIXELS, "Size of widgets without FIXED_PIXELS size is ignored");
+
         widget.properties.layout.intrinsic_size.size.width = Math.Max(width, 0);
         widget.properties.layout.intrinsic_size.size.height = Math.Max(height, 0);
     }
@@ -340,23 +342,34 @@ public partial class StbGui
     /// <param name="layout_direction">Layout direction</param>
     public static void stbg_begin_container(string identifier, STBG_CHILDREN_LAYOUT layout_direction)
     {
-        stbg_begin_container(identifier, layout_direction, stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING));
+        stbg_begin_container(identifier, layout_direction, stbg_build_constrains_unconstrained(), stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING));
     }
 
+    /// <summary>
+    /// Begins a new container with the specified layout direction
+    /// </summary>
+    /// <param name="identifier">Container identifier (must be unique inside the parent widget)</param>
+    /// <param name="spacing">Spacing between children</param>
+    /// <param name="constrains">size constrains</param>
+    public static void stbg_begin_container(string identifier, STBG_CHILDREN_LAYOUT layout_direction, stbg_widget_constrains constrains)
+    {
+        stbg_begin_container(identifier, layout_direction, constrains, stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING));
+    }
+    
     /// <summary>
     /// Begins a new container with the specified layout direction and spacing between children
     /// </summary>
     /// <param name="identifier">Container identifier (must be unique inside the parent widget)</param>
     /// <param name="layout_direction">Layout direction</param>
     /// <param name="spacing">Spacing between children</param>
-    public static void stbg_begin_container(string identifier, STBG_CHILDREN_LAYOUT layout_direction, float spacing)
+    public static void stbg_begin_container(string identifier, STBG_CHILDREN_LAYOUT layout_direction, stbg_widget_constrains constrains, float spacing)
     {
         ref var container = ref stbg__add_widget(STBG_WIDGET_TYPE.CONTAINER, identifier, out _);
 
         ref var layout = ref container.properties.layout;
 
         layout.inner_padding = new stbg_padding();
-        layout.constrains = stbg_build_constrains_unconstrained();
+        layout.constrains = constrains;
         layout.children_layout_direction = layout_direction;
         layout.children_spacing = spacing;
 
@@ -402,5 +415,13 @@ public partial class StbGui
     public static void stbg_label(string text)
     {
         stbg__label_create(text);
+    }
+
+    /// <summary>
+    /// Shows a scrollbar.
+    /// </summary>
+    public static void stbg_scrollbar(string identifier, STBG_SCROLLBAR_DIRECTION direction, ref float value, float min_value, float max_value)
+    {
+        stbg__scrollbar_create(identifier, direction, ref value, min_value, max_value);
     }
 }

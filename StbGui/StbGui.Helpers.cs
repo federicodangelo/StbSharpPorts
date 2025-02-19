@@ -152,6 +152,10 @@ public partial class StbGui
 
     [ExcludeFromCodeCoverage]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static public stbg_color rgb(byte r, byte g, byte b, byte a = 255) => stbg_build_color(r, g, b, a);
+
+    [ExcludeFromCodeCoverage]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static public uint stbg_color_to_uint(stbg_color color) => (((uint)color.a) << 24) | (((uint)color.r) << 16) | (((uint)color.g) << 8) | (((uint)color.b) << 0);
 
     [ExcludeFromCodeCoverage]
@@ -172,6 +176,15 @@ public partial class StbGui
         rect.y1 += dy;
 
         return rect;
+    }
+
+    [ExcludeFromCodeCoverage]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static public bool stbg_rect_is_position_inside(stbg_rect rect, stbg_position position)
+    {
+        return
+            position.x >= rect.x0 && position.x < rect.x1 &&
+            position.y >= rect.y0 && position.y < rect.y1;
     }
 
     [ExcludeFromCodeCoverage]
@@ -240,18 +253,25 @@ public partial class StbGui
 
     [ExcludeFromCodeCoverage]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public bool stbg_is_value_near(float value, float near, float near_tolerance) 
+    static public bool stbg_is_value_near(float value, float near, float near_tolerance)
     {
         return value >= near - near_tolerance && value <= near + near_tolerance;
     }
 
-    static public readonly stbg_color STBG_COLOR_RED = stbg_build_color(255, 0, 0);
-    static public readonly stbg_color STBG_COLOR_GREEN = stbg_build_color(0, 255, 0);
-    static public readonly stbg_color STBG_COLOR_BLUE = stbg_build_color(0, 0, 255);
-    static public readonly stbg_color STBG_COLOR_YELLOW = stbg_build_color(255, 255, 0);
-    static public readonly stbg_color STBG_COLOR_CYAN = stbg_build_color(0, 255, 255);
-    static public readonly stbg_color STBG_COLOR_MAGENTA = stbg_build_color(255, 0, 255);
-    static public readonly stbg_color STBG_COLOR_WHITE = stbg_build_color(255, 255, 255);
-    static public readonly stbg_color STBG_COLOR_BLACK = stbg_build_color(0, 0, 0);
-    static public readonly stbg_color STBG_COLOR_TRANSPARENT = stbg_build_color(0, 0, 0, 0);
+    [ExcludeFromCodeCoverage]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static stbg_color stbg_get_widget_style_color_normal_hovered_pressed(STBG_WIDGET_STYLE style_normal, STBG_WIDGET_STYLE style_hovered, STBG_WIDGET_STYLE style_pressed, bool hovered, bool pressed)
+    {
+        return stbg_get_widget_style_color(pressed ? style_pressed : hovered ? style_hovered : style_normal);
+    }
+
+    static public readonly stbg_color STBG_COLOR_RED = rgb(255, 0, 0);
+    static public readonly stbg_color STBG_COLOR_GREEN = rgb(0, 255, 0);
+    static public readonly stbg_color STBG_COLOR_BLUE = rgb(0, 0, 255);
+    static public readonly stbg_color STBG_COLOR_YELLOW = rgb(255, 255, 0);
+    static public readonly stbg_color STBG_COLOR_CYAN = rgb(0, 255, 255);
+    static public readonly stbg_color STBG_COLOR_MAGENTA = rgb(255, 0, 255);
+    static public readonly stbg_color STBG_COLOR_WHITE = rgb(255, 255, 255);
+    static public readonly stbg_color STBG_COLOR_BLACK = rgb(0, 0, 0);
+    static public readonly stbg_color STBG_COLOR_TRANSPARENT = rgb(0, 0, 0, 0);
 }

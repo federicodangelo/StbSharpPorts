@@ -41,7 +41,7 @@ public class StbGuiLayoutTests : StbGuiTestsBase
         StbGui.stbg_begin_frame();
         {
             Assert.Throws<StbGui.StbgAssertException>(() => StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, 333.33f));
-            Assert.Throws<StbGui.StbgAssertException>(() => StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, StbGui.stbg_build_color(30, 30, 30)));
+            Assert.Throws<StbGui.StbgAssertException>(() => StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, StbGui.rgb(30, 30, 30)));
         }
         StbGui.stbg_end_frame();
 

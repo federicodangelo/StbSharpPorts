@@ -43,21 +43,21 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_SPACING_BETWEEN_NEW_WINDOWS, windowSpacingBetweenNewWindows);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_RESIZE_TOLERANCE, windowBorderResizeTolerance);
 
-        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_COLOR, stbg_build_color(41, 128, 185));
-        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BACKGROUND_COLOR, stbg_build_color(189, 195, 199));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_COLOR, rgb(41, 128, 185));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BACKGROUND_COLOR, rgb(189, 195, 199));
 
-        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_TEXT_COLOR, stbg_build_color(236, 240, 241));
-        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR, stbg_build_color(44, 62, 80));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_TEXT_COLOR, rgb(236, 240, 241));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR, rgb(44, 62, 80));
 
-        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_TEXT_COLOR, stbg_build_color(236, 240, 241));
-        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR, stbg_build_color(52, 73, 94));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_TEXT_COLOR, rgb(236, 240, 241));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR, rgb(52, 73, 94));
 
         // DEBUG WINDOW
-        stbg_set_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_TEXT_COLOR, stbg_build_color(236, 240, 241));
-        stbg_set_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_BACKGROUND_COLOR, stbg_build_color(192, 57, 43));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_TEXT_COLOR, rgb(236, 240, 241));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_BACKGROUND_COLOR, rgb(192, 57, 43));
 
-        stbg_set_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_ACTIVE_TEXT_COLOR, stbg_build_color(236, 240, 241));
-        stbg_set_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR, stbg_build_color(231, 76, 60));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_ACTIVE_TEXT_COLOR, rgb(236, 240, 241));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR, rgb(231, 76, 60));
     }
 
     private static ref stbg_widget stbg__window_create(string title)

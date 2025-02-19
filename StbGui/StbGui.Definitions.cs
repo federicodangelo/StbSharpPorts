@@ -195,6 +195,21 @@ public partial class StbGui
         LABEL_BACKGROUND_COLOR,
         LABEL_TEXT_COLOR,
 
+        // Scrollbar styles
+        SCROLLBAR_SIZE,
+        SCROLLBAR_BUTTON_SIZE,
+        SCROLLBAR_THUMB_SIZE,
+        SCROLLBAR_BACKGROUND_COLOR,
+        SCROLLBAR_THUMB_COLOR,
+        SCROLLBAR_BUTTON_BACKGROUND_COLOR,
+        SCROLLBAR_BUTTON_COLOR,
+        SCROLLBAR_THUMB_HOVERED_COLOR,
+        SCROLLBAR_BUTTON_HOVERED_BACKGROUND_COLOR,
+        SCROLLBAR_BUTTON_HOVERED_COLOR,
+        SCROLLBAR_THUMB_PRESSED_COLOR,
+        SCROLLBAR_BUTTON_PRESSED_BACKGROUND_COLOR,
+        SCROLLBAR_BUTTON_PRESSED_COLOR,
+
         // ALWAYS LAST!!
         COUNT
     }
@@ -314,6 +329,7 @@ public partial class StbGui
         CONTAINER,
         BUTTON,
         LABEL,
+        SCROLLBAR,
         COUNT, // MUST BE LAST
     }
 
@@ -329,12 +345,18 @@ public partial class StbGui
     {
         NONE = 0,
         CLICKED = 1 << 0,
+        VALUE_UPDATED = 1 << 1,
     }
 
     public struct stbg_widget_hash_chain
     {
         public widget_id next_same_bucket;
         public widget_id prev_same_bucket;
+    }
+
+    public struct stbg_widget_value
+    {
+        public float f;
     }
 
     public struct stbg_widget_properties
@@ -344,6 +366,12 @@ public partial class StbGui
         public stbg_widget_computed_bounds computed_bounds;
 
         public ReadOnlyMemory<char> text;
+
+        public stbg_widget_value min_value;
+
+        public stbg_widget_value max_value;
+
+        public stbg_widget_value value;
 
         public float mouse_tolerance;
 
@@ -429,6 +457,8 @@ public partial class StbGui
         public widget_id dragged_widget_id;
         public widget_id active_widget_id;
 
+        public int hovered_sub_widget_part;
+        public int pressed_sub_widget_part;
         public float drag_resize_x;
         public float drag_resize_y;
         public float drag_from_widget_x;
@@ -541,6 +571,8 @@ public partial class StbGui
         public stbg_color color;
         public stbg_color background_color;
         public stbg_text text;
+        public float text_horizontal_alignment;
+        public float text_vertical_alignment;
     }
 
     public delegate void stbg_render_delegate(Span<stbg_render_command> commands);
@@ -644,5 +676,11 @@ public partial class StbGui
         /// Window resize left
         /// </summary>
         RESIZE_W,
+    }
+
+    public enum STBG_SCROLLBAR_DIRECTION
+    {
+        HORIZONTAL,
+        VERTICAL
     }
 }

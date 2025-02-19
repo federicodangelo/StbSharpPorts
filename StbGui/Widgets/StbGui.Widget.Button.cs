@@ -24,17 +24,17 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PADDING_LEFT, buttonPaddingLeftRight);
         stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PADDING_RIGHT, buttonPaddingLeftRight);
 
-        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_BORDER_COLOR, stbg_build_color(41, 128, 185));
-        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_BACKGROUND_COLOR, stbg_build_color(41, 128, 185));
-        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_TEXT_COLOR, stbg_build_color(236, 240, 241));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_BORDER_COLOR, rgb(41, 128, 185));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_BACKGROUND_COLOR, rgb(41, 128, 185));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_TEXT_COLOR, rgb(236, 240, 241));
 
-        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_HOVERED_BORDER_COLOR, stbg_build_color(41, 128, 185));
-        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_HOVERED_BACKGROUND_COLOR, stbg_build_color(52, 152, 219));
-        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_HOVERED_TEXT_COLOR, stbg_build_color(236, 240, 241));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_HOVERED_BORDER_COLOR, rgb(41, 128, 185));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_HOVERED_BACKGROUND_COLOR, rgb(52, 152, 219));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_HOVERED_TEXT_COLOR, rgb(236, 240, 241));
 
-        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PRESSED_BORDER_COLOR, stbg_build_color(41, 128, 185));
-        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PRESSED_BACKGROUND_COLOR, stbg_build_color(46, 204, 113));
-        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PRESSED_TEXT_COLOR, stbg_build_color(236, 240, 241));        
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PRESSED_BORDER_COLOR, rgb(41, 128, 185));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PRESSED_BACKGROUND_COLOR, rgb(46, 204, 113));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PRESSED_TEXT_COLOR, rgb(236, 240, 241));        
     }
 
     private static ref stbg_widget stbg__button_create(string label)

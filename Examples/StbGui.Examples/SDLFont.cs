@@ -147,7 +147,7 @@ public class SDLFont : IDisposable
         );
     }
 
-    public void DrawText(ReadOnlySpan<char> text, StbGui.stbg_font_style style, StbGui.stbg_rect bounds)
+    public void DrawText(ReadOnlySpan<char> text, StbGui.stbg_font_style style, StbGui.stbg_rect bounds, float horizontal_alignment, float vertical_alignment)
     {
         float scale = style.size / Size;
 
@@ -159,13 +159,13 @@ public class SDLFont : IDisposable
 
         var full_text_bounds = MeasureText(text, style, true);
 
-        var center_y_offset = 0; //full_text_bounds.height < bounds_height ?
-            //MathF.Floor((bounds_height - full_text_bounds.height) / 2) :
-            //0;
+        var center_y_offset = full_text_bounds.height < bounds_height ?
+            MathF.Floor(((bounds_height - full_text_bounds.height) / 2) * (1 + vertical_alignment)) :
+            0;
 
-        var center_x_offset = 0; //full_text_bounds.width < bounds_width ?
-            //MathF.Floor((bounds_width - full_text_bounds.width) / 2) :
-            //0;
+        var center_x_offset = full_text_bounds.width < bounds_width ?
+            MathF.Floor(((bounds_width - full_text_bounds.width) / 2) * (1 + horizontal_alignment)) :
+            0;
 
         var use_clipping = false;
 
