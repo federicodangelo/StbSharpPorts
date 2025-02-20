@@ -8,13 +8,13 @@ public class StbImageJpgTests : StbImageTests
     [Theory, CombinatorialData]
     public void TestValid(
         [CombinatorialValues(
-            "jpg\\valid\\jpeg400jfif.jpg",
-            "jpg\\valid\\jpeg420exif.jpg",
-            "jpg\\valid\\jpeg422jfif.jpg",
-            "jpg\\valid\\sample_1280x853.jpg",
-            "jpg\\valid\\sample_1920x1280.jpg",
-            "jpg\\valid\\sample_5184x3456.jpg",
-            "jpg\\valid\\sample_640x426.jpg"
+            "jpg/valid/jpeg400jfif.jpg",
+            "jpg/valid/jpeg420exif.jpg",
+            "jpg/valid/jpeg422jfif.jpg",
+            "jpg/valid/sample_1280x853.jpg",
+            "jpg/valid/sample_1920x1280.jpg",
+            "jpg/valid/sample_5184x3456.jpg",
+            "jpg/valid/sample_640x426.jpg"
             )
         ] string imageFileName)
     {

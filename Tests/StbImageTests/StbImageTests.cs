@@ -96,21 +96,6 @@ public class StbImageTests
     {
         Assert.True(File.Exists(fileName), "Missing expected test image: " + fileName);
 
-        /*if (Path.GetExtension(fileName).ToLowerInvariant() == ".tga")
-        {
-            //If  there is a .png file with the same name in the same directory, use that file 
-
-            string potentialPngFile = Path.Combine(Path.GetDirectoryName(fileName) ?? "", Path.GetFileNameWithoutExtension(fileName) + ".png");
-
-            if (File.Exists(potentialPngFile))
-            {
-                return new MagickImage(potentialPngFile);
-            }
-
-            //Fallback to the TGA library
-            return LoadTga(fileName);
-        }*/
-
         return new MagickImage(fileName);
     }
 
