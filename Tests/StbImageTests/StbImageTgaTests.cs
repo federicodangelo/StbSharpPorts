@@ -8,14 +8,14 @@ public class StbImageTgaTests : StbImageTests
     [Theory, CombinatorialData]
     public void TestConformance(
         [CombinatorialValues(
-            "tga\\conformance\\cbw8.tga",
-            "tga\\conformance\\ccm8.tga",
-            "tga\\conformance\\ctc24.tga",
-            "tga\\conformance\\ubw8.tga",
-            "tga\\conformance\\ucm8.tga",
-            "tga\\conformance\\utc16.tga",
-            "tga\\conformance\\utc24.tga"
-            // "tga\\conformance\\utc32.tga" // file has a footer that needs to be processed to correctly decode, and the StbImage doesn't support it
+            "tga/conformance/cbw8.tga",
+            "tga/conformance/ccm8.tga",
+            "tga/conformance/ctc24.tga",
+            "tga/conformance/ubw8.tga",
+            "tga/conformance/ucm8.tga",
+            "tga/conformance/utc16.tga",
+            "tga/conformance/utc24.tga"
+            // "tga/conformance/utc32.tga" // file has a footer that needs to be processed to correctly decode, and the StbImage doesn't support it
             )
         ] string imageFileName)
     {
@@ -25,28 +25,28 @@ public class StbImageTgaTests : StbImageTests
     [Theory, CombinatorialData]
     public void TestFileFormat(
         [CombinatorialValues(
-            "tga\\fileformat\\cbw8.tga",
-            "tga\\fileformat\\ccm8.tga",
-            "tga\\fileformat\\ctc16.tga",
-            "tga\\fileformat\\ctc24.tga",
-            "tga\\fileformat\\ctc32.tga",
-            "tga\\fileformat\\flag_b16.tga",
-            "tga\\fileformat\\flag_b24.tga",
-            "tga\\fileformat\\flag_b32.tga",
-            "tga\\fileformat\\flag_t16.tga",
-            "tga\\fileformat\\flag_t32.tga",
-            "tga\\fileformat\\marbles.tga",
-            "tga\\fileformat\\ubw8.tga",
-            "tga\\fileformat\\ucm8.tga",
-            "tga\\fileformat\\utc16.tga",
-            "tga\\fileformat\\utc24.tga",
-            "tga\\fileformat\\utc32.tga",
-            "tga\\fileformat\\xing_b16.tga",
-            "tga\\fileformat\\xing_b24.tga",
-            "tga\\fileformat\\xing_b32.tga",
-            "tga\\fileformat\\xing_t16.tga",
-            "tga\\fileformat\\xing_t24.tga",
-            "tga\\fileformat\\xing_t32.tga"
+            "tga/fileformat/cbw8.tga",
+            "tga/fileformat/ccm8.tga",
+            "tga/fileformat/ctc16.tga",
+            "tga/fileformat/ctc24.tga",
+            "tga/fileformat/ctc32.tga",
+            "tga/fileformat/flag_b16.tga",
+            "tga/fileformat/flag_b24.tga",
+            "tga/fileformat/flag_b32.tga",
+            "tga/fileformat/flag_t16.tga",
+            "tga/fileformat/flag_t32.tga",
+            "tga/fileformat/marbles.tga",
+            "tga/fileformat/ubw8.tga",
+            "tga/fileformat/ucm8.tga",
+            "tga/fileformat/utc16.tga",
+            "tga/fileformat/utc24.tga",
+            "tga/fileformat/utc32.tga",
+            "tga/fileformat/xing_b16.tga",
+            "tga/fileformat/xing_b24.tga",
+            "tga/fileformat/xing_b32.tga",
+            "tga/fileformat/xing_t16.tga",
+            "tga/fileformat/xing_t24.tga",
+            "tga/fileformat/xing_t32.tga"
             )
         ] string imageFileName)
     {
