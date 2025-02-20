@@ -3,8 +3,7 @@
 using StbSharp;
 using StbSharp.StbCommon;
 using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Imaging;
+using ImageMagick;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -71,21 +70,24 @@ public class BatchBuildFontsExample
                 var outputImageFileName = $"{OutputDirectory}/{Path.GetFileNameWithoutExtension(sampleFont)}-{(int)sampleFontSize}.png";
                 var outputJsonFileName = $"{OutputDirectory}/{Path.GetFileNameWithoutExtension(sampleFont)}-{(int)sampleFontSize}.json";
 
-                using (var image = new Bitmap(output.bitmapWidth, output.bitmapHeight))
+                using (var image = new MagickImage(MagickColors.Transparent, (uint)output.bitmapWidth, (uint)output.bitmapHeight))
                 {
+                    var imagePixels = image.GetPixels();
+
                     for (int y = 0; y < output.bitmapHeight; y++)
                     {
                         for (int x = 0; x < output.bitmapWidth; x++)
                         {
-                            int pixel = output.bitmap[y * output.bitmapWidth + x];
+                            byte pixel = output.bitmap[y * output.bitmapWidth + x];
 
-                            image.SetPixel(x, y, Color.FromArgb(255, pixel, pixel, pixel));
+                            imagePixels.SetPixel(x, y, MagickColor.FromRgba(pixel, pixel, pixel, 255).ToByteArray());
                         }
                     }
 
                     Directory.CreateDirectory(OutputDirectory);
 
-                    image.Save($"OutputBitmapFonts/{Path.GetFileNameWithoutExtension(sampleFont)}-{(int)sampleFontSize}.png", ImageFormat.Png);
+                    image.Format = MagickFormat.Png;
+                    image.Write($"OutputBitmapFonts/{Path.GetFileNameWithoutExtension(sampleFont)}-{(int)sampleFontSize}.png");
                 }
 
 

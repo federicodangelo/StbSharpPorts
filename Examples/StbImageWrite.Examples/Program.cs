@@ -3,7 +3,7 @@
 
 
 using System.Diagnostics;
-using System.Drawing;
+using ImageMagick;
 using StbSharp;
 using StbSharp.StbCommon;
 
@@ -23,10 +23,10 @@ static public class Program
         File.WriteAllBytes("Generated\\Output.png", bytes.Span);
     }
 
-    static Bitmap LoadTexture(string filename)
+    static MagickImage LoadTexture(string filename)
     {
         // Works only in windows, can use StbImage in other platforms!
-        return new Bitmap(filename);
+        return new MagickImage(filename);
     }
 
     enum StbiFormat
@@ -38,9 +38,11 @@ static public class Program
         Jpeg
     }
 
-    static BytePtr SaveStbiImage(Bitmap image, StbiFormat format, int components)
+    static BytePtr SaveStbiImage(MagickImage image, StbiFormat format, int components)
     {
         byte[] pixels = new byte[image.Width * image.Height * components];
+
+        var imagePixels = image.GetPixels();
 
         int idx = 0;
 
@@ -51,8 +53,8 @@ static public class Program
                 {
                     for (int x = 0; x < image.Width; x++)
                     {
-                        var pixel = image.GetPixel(x, y);
-                        pixels[idx + 0] = (byte)((pixel.R + pixel.G + pixel.B) / 3);
+                        var pixel = imagePixels.GetPixel(x, y).ToColor();
+                        pixels[idx + 0] = (byte)((pixel!.R + pixel.G + pixel.B) / 3);
                         idx += 1;
                     }
                 }
@@ -62,8 +64,8 @@ static public class Program
                 {
                     for (int x = 0; x < image.Width; x++)
                     {
-                        var pixel = image.GetPixel(x, y);
-                        pixels[idx + 0] = (byte)((pixel.R + pixel.G + pixel.B) / 3);
+                        var pixel = imagePixels.GetPixel(x, y).ToColor();
+                        pixels[idx + 0] = (byte)((pixel!.R + pixel.G + pixel.B) / 3);
                         pixels[idx + 1] = (byte)pixel.A;
                         idx += 2;
                     }
@@ -74,8 +76,8 @@ static public class Program
                 {
                     for (int x = 0; x < image.Width; x++)
                     {
-                        var pixel = image.GetPixel(x, y);
-                        pixels[idx + 0] = (byte)pixel.R;
+                        var pixel = imagePixels.GetPixel(x, y).ToColor();
+                        pixels[idx + 0] = (byte)pixel!.R;
                         pixels[idx + 1] = (byte)pixel.G;
                         pixels[idx + 2] = (byte)pixel.B;
                         idx += 3;
@@ -87,8 +89,8 @@ static public class Program
                 {
                     for (int x = 0; x < image.Width; x++)
                     {
-                        var pixel = image.GetPixel(x, y);
-                        pixels[idx + 0] = (byte)pixel.R;
+                        var pixel = imagePixels.GetPixel(x, y).ToColor();
+                        pixels[idx + 0] = (byte)pixel!.R;
                         pixels[idx + 1] = (byte)pixel.G;
                         pixels[idx + 2] = (byte)pixel.B;
                         pixels[idx + 3] = (byte)pixel.A;
@@ -119,16 +121,16 @@ static public class Program
             case StbiFormat.Png:
                 // Setting a filter modes beforehand makes the encoding faster
                 StbImagWrite.stbi_write_force_png_filter = StbImagWrite.STBIW_PNG_FILTER.NONE;
-                StbImagWrite.stbi_write_png_to_func(write_func, image.Width, image.Height, components, pixels, 0);
+                StbImagWrite.stbi_write_png_to_func(write_func, (int) image.Width, (int) image.Height, components, pixels, 0);
                 break;
             case StbiFormat.Bmp:
-                StbImagWrite.stbi_write_bmp_to_func(write_func, image.Width, image.Height, components, pixels);
+                StbImagWrite.stbi_write_bmp_to_func(write_func, (int) image.Width, (int) image.Height, components, pixels);
                 break;
             case StbiFormat.Tga:
-                StbImagWrite.stbi_write_tga_to_func(write_func, image.Width, image.Height, components, pixels);
+                StbImagWrite.stbi_write_tga_to_func(write_func, (int) image.Width, (int) image.Height, components, pixels);
                 break;
             case StbiFormat.Jpeg:
-                StbImagWrite.stbi_write_jpg_to_func(write_func, image.Width, image.Height, components, pixels, 95);
+                StbImagWrite.stbi_write_jpg_to_func(write_func, (int) image.Width, (int) image.Height, components, pixels, 95);
                 break;
         }
 

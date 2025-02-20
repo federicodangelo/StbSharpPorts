@@ -1,9 +1,8 @@
 ﻿#pragma warning disable CA1416 // Validate platform compatibility
 
-using System.Drawing;
+using ImageMagick;
 using System.Globalization;
 using StbSharp.StbCommon;
-using tgalib_core;
 
 namespace StbSharp.Tests;
 
@@ -21,9 +20,11 @@ public class StbImageWriteTests
         Jpeg
     }
 
-    static protected BytePtr SaveStbiImage(Bitmap image, StbiFormat format, int components)
+    static protected BytePtr SaveStbiImage(MagickImage image, StbiFormat format, int components)
     {
         byte[] pixels = new byte[image.Width * image.Height * components];
+
+        var imagePixels = image.GetPixels();
 
         int idx = 0;
         switch (components)
@@ -33,8 +34,8 @@ public class StbImageWriteTests
                 {
                     for (int x = 0; x < image.Width; x++)
                     {
-                        var pixel = image.GetPixel(x, y);
-                        pixels[idx + 0] = (byte)((pixel.R + pixel.G + pixel.B) / 3);
+                        var pixel = imagePixels.GetPixel(x, y).ToColor();
+                        pixels[idx + 0] = (byte)((pixel!.R + pixel.G + pixel.B) / 3);
                         idx += 1;
                     }
                 }
@@ -44,8 +45,8 @@ public class StbImageWriteTests
                 {
                     for (int x = 0; x < image.Width; x++)
                     {
-                        var pixel = image.GetPixel(x, y);
-                        pixels[idx + 0] = (byte)((pixel.R + pixel.G + pixel.B) / 3);
+                        var pixel = imagePixels.GetPixel(x, y).ToColor();
+                        pixels[idx + 0] = (byte)((pixel!.R + pixel.G + pixel.B) / 3);
                         pixels[idx + 1] = (byte)pixel.A;
                         idx += 2;
                     }
@@ -56,8 +57,8 @@ public class StbImageWriteTests
                 {
                     for (int x = 0; x < image.Width; x++)
                     {
-                        var pixel = image.GetPixel(x, y);
-                        pixels[idx + 0] = (byte)pixel.R;
+                        var pixel = imagePixels.GetPixel(x, y).ToColor();
+                        pixels[idx + 0] = (byte)pixel!.R;
                         pixels[idx + 1] = (byte)pixel.G;
                         pixels[idx + 2] = (byte)pixel.B;
                         idx += 3;
@@ -69,8 +70,8 @@ public class StbImageWriteTests
                 {
                     for (int x = 0; x < image.Width; x++)
                     {
-                        var pixel = image.GetPixel(x, y);
-                        pixels[idx + 0] = (byte)pixel.R;
+                        var pixel = imagePixels.GetPixel(x, y).ToColor();
+                        pixels[idx + 0] = (byte)pixel!.R;
                         pixels[idx + 1] = (byte)pixel.G;
                         pixels[idx + 2] = (byte)pixel.B;
                         pixels[idx + 3] = (byte)pixel.A;
@@ -97,65 +98,37 @@ public class StbImageWriteTests
         switch (format)
         {
             case StbiFormat.Png:
-                Assert.True(StbImagWrite.stbi_write_png_to_func(write_func, image.Width, image.Height, components, pixels, 0));
+                Assert.True(StbImagWrite.stbi_write_png_to_func(write_func, (int)image.Width, (int)image.Height, components, pixels, 0));
                 break;
             case StbiFormat.Bmp:
-                Assert.True(StbImagWrite.stbi_write_bmp_to_func(write_func, image.Width, image.Height, components, pixels));
+                Assert.True(StbImagWrite.stbi_write_bmp_to_func(write_func, (int)image.Width, (int)image.Height, components, pixels));
                 break;
             case StbiFormat.Tga:
-                Assert.True(StbImagWrite.stbi_write_tga_to_func(write_func, image.Width, image.Height, components, pixels));
+                Assert.True(StbImagWrite.stbi_write_tga_to_func(write_func, (int)image.Width, (int)image.Height, components, pixels));
                 break;
             case StbiFormat.Jpeg:
-                Assert.True(StbImagWrite.stbi_write_jpg_to_func(write_func, image.Width, image.Height, components, pixels, 95));
+                Assert.True(StbImagWrite.stbi_write_jpg_to_func(write_func, (int)image.Width, (int)image.Height, components, pixels, 95));
                 break;
         }
 
         return output.ToArray();
     }
 
-    static protected Bitmap GetExpectedImage(string fileName)
+    static protected MagickImage GetExpectedImage(string fileName)
     {
         Assert.True(File.Exists(fileName), "Missing expected test image: " + fileName);
 
-        if (Path.GetExtension(fileName).ToLowerInvariant() == ".tga")
-        {
-            //Fallback to the TGA library
-            return LoadTga(fileName);
-        }
-
-        return new Bitmap(fileName);
+        return new MagickImage(fileName);
     }
 
-
-    private static Bitmap LoadTga(string fileName)
+    static protected void AssertImagesEqual(MagickImage expected, MagickImage actual, string actualFileName, float tolerance)
     {
-        return LoadTga(File.ReadAllBytes(fileName), false);
-    }
-
-    private static Bitmap LoadTga(byte[] bytes, bool flipVertically)
-    {
-        var tga = new TgaImage(new BinaryReader(new MemoryStream(bytes)));
-
-        Bitmap output = new Bitmap(tga.Width, tga.Height);
-
-        for (int y = 0; y < tga.Height; y++)
-        {
-            for (int x = 0; x < tga.Width; x++)
-            {
-                tga.GetPixelRgba(x, y, out var r, out var g, out var b, out var a);
-
-                output.SetPixel(x, flipVertically ? tga.Height - y - 1 : y, Color.FromArgb(a,r,g,b));
-            }
-        }
-
-        return output;
-    }
-
-    static protected void AssertImagesEqual(Bitmap expected, Bitmap actual, string actualFileName, float tolerance)
-    {
-        Assert.NotEqual(expected, actual);
+        //Assert.NotEqual(expected, actual);
         Assert.Equal(expected.Width, actual.Width);
         Assert.Equal(expected.Height, actual.Height);
+
+        var expectedPixels = expected.GetPixels();
+        var actualPixels = actual.GetPixels();
 
         int badPixels = 0;
 
@@ -163,16 +136,16 @@ public class StbImageWriteTests
         {
             for (int x = 0; x < expected.Width; x++)
             {
-                Color actualPixel = actual.GetPixel(x, y);
-                Color expectedPixel = expected.GetPixel(x, y);
+                var actualPixel = actualPixels.GetPixel(x, y).ToColor();
+                var expectedPixel = expectedPixels.GetPixel(x, y).ToColor();
 
-                if (actualPixel != expectedPixel &&
-                    (actualPixel.A != 0 || expectedPixel.A != 0) // ignore color difference is the alpha channel of both pixels is 0
+                if (!actualPixel!.Equals(expectedPixel) &&
+                    (actualPixel.A != 0 || expectedPixel!.A != 0) // ignore color difference is the alpha channel of both pixels is 0
                     )
                 {
                     if (tolerance != 0)
                     {
-                        int diffR = actualPixel.R - expectedPixel.R;
+                        int diffR = actualPixel.R - expectedPixel!.R;
                         int diffG = actualPixel.G - expectedPixel.G;
                         int diffB = actualPixel.B - expectedPixel.B;
 
@@ -192,27 +165,31 @@ public class StbImageWriteTests
 
                     string diffFileName = SaveImageDifference(expected, actual, actualFileName);
 
-                    Assert.True(expected.GetPixel(x, y) == actual.GetPixel(x, y), $"Pixel difference at [{x},{y}], see full diff in file \"{Path.GetFullPath(diffFileName)}\"");
+                    Assert.True(expectedPixel!.Equals(actualPixel), $"Pixel difference at [{x},{y}], see full diff in file \"{Path.GetFullPath(diffFileName)}\"");
                 }
             }
         }
     }
 
-    static private string SaveImageDifference(Bitmap expected, Bitmap actual, string actualFileName)
+    static private string SaveImageDifference(MagickImage expected, MagickImage actual, string actualFileName)
     {
-        Bitmap differenceImage = new Bitmap(expected.Width, expected.Height);
+        MagickImage differenceImage = new MagickImage(MagickColors.Transparent, expected.Width, expected.Height);
+
+        var expectedPixels = expected.GetPixels();
+        var actualPixels = actual.GetPixels();
+        var differencePixels = differenceImage.GetPixels();
 
         for (int y = 0; y < expected.Height; y++)
         {
             for (int x = 0; x < expected.Width; x++)
             {
-                if (expected.GetPixel(x, y) != actual.GetPixel(x, y))
+                if (!expectedPixels.GetPixel(x, y).Equals(actualPixels.GetPixel(x, y)))
                 {
-                    differenceImage.SetPixel(x, y, Color.Violet);
+                    differencePixels.SetPixel(x, y, MagickColors.Violet.ToByteArray());
                 }
                 else
                 {
-                    differenceImage.SetPixel(x, y, actual.GetPixel(x, y));
+                    differencePixels.SetPixel(x, y, actualPixels.GetPixel(x, y).ToArray());
                 }
             }
         }
@@ -226,14 +203,15 @@ public class StbImageWriteTests
         return differenceFileName;
     }
 
-    static protected void SaveGeneratedImage(string fileName, Image image)
+    static protected void SaveGeneratedImage(string fileName, MagickImage image)
     {
         if (!Directory.Exists(GeneratedPath))
         {
             Directory.CreateDirectory(GeneratedPath);
         }
 
-        image.Save(Path.Combine(Path.GetDirectoryName(fileName) ?? "", Path.GetFileNameWithoutExtension(fileName) + ".png"));
+        image.Format = MagickFormat.Png;
+        image.Write(Path.Combine(Path.GetDirectoryName(fileName) ?? "", Path.GetFileNameWithoutExtension(fileName) + ".png"));
     }
 
 
@@ -257,19 +235,20 @@ public class StbImageWriteTests
 
         var savedImage = SaveStbiImage(expectedImage, format, channels);
 
-        Bitmap generatedImage;
+        MagickImage generatedImage;
 
         try
         {
-            if (format == StbiFormat.Tga)
+            MagickFormat magickFormat = format switch
             {
-                // The generated TGA files are loaded flipped vertically by the TgaImage.. so we flip them on load.. :facepalm:
-                generatedImage = LoadTga(savedImage.Span.ToArray(), true);
-            }
-            else
-            {
-                generatedImage = new Bitmap(new MemoryStream(savedImage.Span.ToArray()));
-            }
+                StbiFormat.Png => MagickFormat.Png,
+                StbiFormat.Bmp => MagickFormat.Bmp,
+                StbiFormat.Tga => MagickFormat.Tga,
+                StbiFormat.Jpeg => MagickFormat.Jpeg,
+                _ => throw new NotImplementedException(),
+            };
+
+            generatedImage = new MagickImage(savedImage.Span.ToArray(), magickFormat);
         }
         catch (Exception)
         {

@@ -1,9 +1,5 @@
-﻿#pragma warning disable CA1416 // Validate platform compatibility
-
-using System.Drawing;
-using System.Globalization;
+﻿using ImageMagick;
 using StbSharp.StbCommon;
-using tgalib_core;
 
 namespace StbSharp.Tests;
 
@@ -21,7 +17,7 @@ public class StbImageTests
         return StbImage.stbi_load_from_memory(bytes, bytes.Length, out x, out y, out channels, desired_channels);
     }
 
-    static protected Bitmap LoadStbiImage(string fileName)
+    static protected MagickImage LoadStbiImage(string fileName)
     {
         var pixelsPtr = LoadStbiImage(fileName, out int width, out int height, out StbImage.STBI_CHANNELS channels, 0);
 
@@ -29,7 +25,8 @@ public class StbImageTests
 
         var pixels = pixelsPtr.Span;
 
-        var image = new Bitmap(width, height);
+        var image = new MagickImage(MagickColors.Transparent, (uint) width, (uint) height);
+        var imagePixels = image.GetPixels();
 
         int idx = 0;
 
@@ -37,14 +34,14 @@ public class StbImageTests
         {
             for (int x = 0; x < width; x++)
             {
-                Color color =
-                  channels == StbImage.STBI_CHANNELS.grey ? Color.FromArgb(255, pixels[idx], pixels[idx], pixels[idx]) :
-                  channels == StbImage.STBI_CHANNELS.grey_alpha ? Color.FromArgb(pixels[idx + 1], pixels[idx], pixels[idx], pixels[idx]) :
-                  channels == StbImage.STBI_CHANNELS.rgb ? Color.FromArgb(255, pixels[idx], pixels[idx + 1], pixels[idx + 2]) :
-                  channels == StbImage.STBI_CHANNELS.rgb_alpha ? Color.FromArgb(pixels[idx + 3], pixels[idx], pixels[idx + 1], pixels[idx + 2]) :
-                  Color.Violet;
+                MagickColor color =
+                  channels == StbImage.STBI_CHANNELS.grey ? MagickColor.FromRgba(pixels[idx], pixels[idx], pixels[idx], 255) :
+                  channels == StbImage.STBI_CHANNELS.grey_alpha ? MagickColor.FromRgba(pixels[idx], pixels[idx], pixels[idx], pixels[idx + 1]) :
+                  channels == StbImage.STBI_CHANNELS.rgb ? MagickColor.FromRgba(pixels[idx], pixels[idx + 1], pixels[idx + 2], 255) :
+                  channels == StbImage.STBI_CHANNELS.rgb_alpha ? MagickColor.FromRgba(pixels[idx], pixels[idx + 1], pixels[idx + 2], pixels[idx + 3]) :
+                  MagickColors.Violet;
 
-                image.SetPixel(x, y, color);
+                imagePixels.SetPixel(x, y, color.ToByteArray());
 
                 idx += (int)channels;
             }
@@ -62,7 +59,7 @@ public class StbImageTests
         return StbImage.stbi_load_16_from_memory(bytes, bytes.Length, out x, out y, out channels, desired_channels);
     }
 
-    static protected Bitmap LoadStbiImage16(string fileName)
+    static protected MagickImage LoadStbiImage16(string fileName)
     {
         var pixelsPtr = LoadStbiImage16(fileName, out int width, out int height, out StbImage.STBI_CHANNELS channels, 0);
 
@@ -70,7 +67,8 @@ public class StbImageTests
 
         var pixels = pixelsPtr.Span;
 
-        var image = new Bitmap(width, height);
+        var image = new MagickImage(MagickColors.Transparent, (uint) width, (uint) height);
+        var imagePixels = image.GetPixels();
 
         int idx = 0;
 
@@ -78,14 +76,14 @@ public class StbImageTests
         {
             for (int x = 0; x < width; x++)
             {
-                Color color =
-                  channels == StbImage.STBI_CHANNELS.grey ?       Color.FromArgb(255,                   pixels[idx] >> 8,     pixels[idx] >> 8,     pixels[idx] >> 8) :
-                  channels == StbImage.STBI_CHANNELS.grey_alpha ? Color.FromArgb(pixels[idx + 1] >> 8 , pixels[idx] >> 8,     pixels[idx] >> 8,     pixels[idx] >> 8) :
-                  channels == StbImage.STBI_CHANNELS.rgb ?        Color.FromArgb(255,                   pixels[idx] >> 8,     pixels[idx + 1] >> 8, pixels[idx + 2] >> 8) :
-                  channels == StbImage.STBI_CHANNELS.rgb_alpha ?  Color.FromArgb(pixels[idx + 3] >> 8 , pixels[idx] >> 8,     pixels[idx + 1] >> 8, pixels[idx + 2] >> 8) :
-                  Color.Violet;
+                MagickColor color =
+                  channels == StbImage.STBI_CHANNELS.grey ?       MagickColor.FromRgba((byte) (pixels[idx] >> 8), (byte) (pixels[idx] >> 8),     (byte) (pixels[idx] >> 8),        255) :
+                  channels == StbImage.STBI_CHANNELS.grey_alpha ? MagickColor.FromRgba((byte) (pixels[idx] >> 8), (byte) (pixels[idx] >> 8),     (byte) (pixels[idx] >> 8),        (byte) (pixels[idx + 1] >> 8)) :
+                  channels == StbImage.STBI_CHANNELS.rgb ?        MagickColor.FromRgba((byte) (pixels[idx] >> 8), (byte) (pixels[idx + 1] >> 8), (byte) (pixels[idx + 2] >> 8),    255) :
+                  channels == StbImage.STBI_CHANNELS.rgb_alpha ?  MagickColor.FromRgba((byte) (pixels[idx] >> 8), (byte) (pixels[idx + 1] >> 8), (byte) (pixels[idx + 2] >> 8),    (byte) (pixels[idx + 3] >> 8)) :
+                  MagickColors.Violet;
 
-                image.SetPixel(x, y, color);
+                imagePixels.SetPixel(x, y, color.ToByteArray());
 
                 idx += (int)channels;
             }
@@ -94,11 +92,11 @@ public class StbImageTests
         return image;
     }
 
-    static private Bitmap GetExpectedImage(string fileName)
+    static private MagickImage GetExpectedImage(string fileName)
     {
         Assert.True(File.Exists(fileName), "Missing expected test image: " + fileName);
 
-        if (Path.GetExtension(fileName).ToLowerInvariant() == ".tga")
+        /*if (Path.GetExtension(fileName).ToLowerInvariant() == ".tga")
         {
             //If  there is a .png file with the same name in the same directory, use that file 
 
@@ -106,36 +104,17 @@ public class StbImageTests
 
             if (File.Exists(potentialPngFile))
             {
-                return new Bitmap(potentialPngFile);
+                return new MagickImage(potentialPngFile);
             }
 
             //Fallback to the TGA library
             return LoadTga(fileName);
-        }
+        }*/
 
-        return new Bitmap(fileName);
+        return new MagickImage(fileName);
     }
 
-    private static Bitmap LoadTga(string fileName)
-    {
-        var tga = new TgaImage(fileName);
-
-        Bitmap output = new Bitmap(tga.Width, tga.Height);
-
-        for (int y = 0; y < tga.Height; y++)
-        {
-            for (int x = 0; x < tga.Width; x++)
-            {
-                tga.GetPixelRgba(x, y, out var r, out var g, out var b, out var a);
-
-                output.SetPixel(x, y, Color.FromArgb(a,r,g,b));
-            }
-        }
-
-        return output;
-    }
-
-    static protected void AssertImagesEqual(string expectedFileName, Bitmap actual, string actualFileName, float tolerance = 0)
+    static protected void AssertImagesEqual(string expectedFileName, MagickImage actual, string actualFileName, float tolerance = 0)
     {
         if (!File.Exists(expectedFileName))
         {
@@ -146,11 +125,14 @@ public class StbImageTests
         AssertImagesEqual(GetExpectedImage(expectedFileName), actual, actualFileName, tolerance);
     }
 
-    static protected void AssertImagesEqual(Bitmap expected, Bitmap actual, string actualFileName, float tolerance = 0)
+    static protected void AssertImagesEqual(MagickImage expected, MagickImage actual, string actualFileName, float tolerance = 0)
     {
-        Assert.NotEqual(expected, actual);
+        //Assert.NotEqual(expected, actual);
         Assert.Equal(expected.Width, actual.Width);
         Assert.Equal(expected.Height, actual.Height);
+
+        var expectedPixels = expected.GetPixels();
+        var actualPixels = actual.GetPixels();
 
         int badPixels = 0;
 
@@ -158,16 +140,16 @@ public class StbImageTests
         {
             for (int x = 0; x < expected.Width; x++)
             {
-                Color actualPixel = actual.GetPixel(x, y);
-                Color expectedPixel = expected.GetPixel(x, y);
+                var actualPixel = actualPixels.GetPixel(x, y).ToColor();
+                var expectedPixel = expectedPixels.GetPixel(x, y).ToColor();
 
-                if (actualPixel != expectedPixel &&
-                    (actualPixel.A != 0 || expectedPixel.A != 0) // ignore color difference is the alpha channel of both pixels is 0
+                if (!actualPixel!.Equals(expectedPixel) &&
+                    (actualPixel.A != 0 || expectedPixel!.A != 0) // ignore color difference is the alpha channel of both pixels is 0
                     )
                 {
                     if (tolerance != 0)
                     {
-                        int diffR = actualPixel.R - expectedPixel.R;
+                        int diffR = actualPixel.R - expectedPixel!.R;
                         int diffG = actualPixel.G - expectedPixel.G;
                         int diffB = actualPixel.B - expectedPixel.B;
 
@@ -187,31 +169,35 @@ public class StbImageTests
 
                     string diffFileName = SaveImageDifference(expected, actual, actualFileName);
 
-                    Assert.True(expected.GetPixel(x, y) == actual.GetPixel(x, y), $"Pixel difference at [{x},{y}], see full diff in file \"{Path.GetFullPath(diffFileName)}\"");
+                    Assert.True(expectedPixel!.Equals(actualPixel), $"Pixel difference at [{x},{y}], see full diff in file \"{Path.GetFullPath(diffFileName)}\"");
                 }
             }
         }
     }
 
-    static private string SaveImageDifference(Bitmap expected, Bitmap actual, string actualFileName)
+    static private string SaveImageDifference(MagickImage expected, MagickImage actual, string actualFileName)
     {
-        Bitmap differenceImage = new Bitmap(expected.Width, expected.Height);
+        MagickImage differenceImage = new MagickImage(MagickColors.Transparent, expected.Width, expected.Height);
+
+        var expectedPixels = expected.GetPixels();
+        var actualPixels = actual.GetPixels();
+        var differencePixels = differenceImage.GetPixels();
 
         for (int y = 0; y < expected.Height; y++)
         {
             for (int x = 0; x < expected.Width; x++)
             {
-                if (expected.GetPixel(x, y) != actual.GetPixel(x, y))
+                if (!expectedPixels.GetPixel(x, y).Equals(actualPixels.GetPixel(x, y)))
                 {
-                    differenceImage.SetPixel(x, y, Color.Violet);
+                    differencePixels.SetPixel(x, y, MagickColors.Violet.ToByteArray());
                 }
                 else
                 {
-                    differenceImage.SetPixel(x, y, actual.GetPixel(x, y));
+                    differencePixels.SetPixel(x, y, actualPixels.GetPixel(x, y).ToArray());
                 }
             }
         }
-
+        
         string differenceFileName = Path.Combine(Path.GetDirectoryName(actualFileName) ?? "", Path.GetFileNameWithoutExtension(actualFileName) + ".diff" + Path.GetExtension(actualFileName));
 
         SaveGeneratedImage(differenceFileName, differenceImage);
@@ -221,13 +207,13 @@ public class StbImageTests
         return differenceFileName;
     }
 
-    static private void SaveGeneratedImage(string fileName, Image image)
+    static private void SaveGeneratedImage(string fileName, MagickImage image)
     {
         if (!Directory.Exists(GeneratedPath))
         {
             Directory.CreateDirectory(GeneratedPath);
         }
 
-        image.Save(fileName);
+        image.Write(fileName);
     }
 }

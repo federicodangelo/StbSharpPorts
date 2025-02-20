@@ -1,11 +1,6 @@
-﻿#pragma warning disable CA1416 // Validate platform compatibility
-
-using System.Drawing;
-using System.Globalization;
+﻿using ImageMagick;
 
 namespace StbSharp.Tests;
-
-
 
 public class StbTrueTypeTests
 {
@@ -24,31 +19,33 @@ public class StbTrueTypeTests
         return bytes;
     }
 
-    static private Bitmap GetExpectedFontImage(string fileName)
+    static private MagickImage GetExpectedFontImage(string fileName)
     {
         Assert.True(File.Exists(fileName), "Missing expected test image: " + fileName);
 
-        return new Bitmap(fileName);
+        return new MagickImage(fileName);
     }
 
-    static protected Bitmap GenerateImageFromFontBitmap(Span<byte> bitmap, int width, int height)
+    static protected MagickImage GenerateImageFromFontBitmap(Span<byte> bitmap, int width, int height)
     {
-        var image = new Bitmap(width, height);
+        var image = new MagickImage(MagickColors.Transparent, (uint) width, (uint) height);
+
+        var pixels = image.GetPixels();
 
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
-                int pixel = bitmap[y * width + x];
+                byte pixel = bitmap[y * width + x];
 
-                image.SetPixel(x, y, Color.FromArgb(255, pixel, pixel, pixel));
+                pixels.SetPixel(x, y, MagickColor.FromRgba(pixel, pixel, pixel, 255).ToByteArray());
             }
-        }
+        }       
 
         return image;
     }
 
-    static protected void AssertImagesEqual(string expectedFileName, Bitmap actual, string actualFileName)
+    static protected void AssertImagesEqual(string expectedFileName, MagickImage actual, string actualFileName)
     {
         if (!File.Exists(expectedFileName))
         {
@@ -59,43 +56,52 @@ public class StbTrueTypeTests
         AssertImagesEqual(GetExpectedFontImage(expectedFileName), actual, actualFileName);
     }
 
-    static protected void AssertImagesEqual(Bitmap expected, Bitmap actual, string actualFileName)
+    static protected void AssertImagesEqual(MagickImage expected, MagickImage actual, string actualFileName)
     {
-        Assert.NotEqual(expected, actual);
+        //Assert.NotEqual(expected, actual);
         Assert.Equal(expected.Width, actual.Width);
         Assert.Equal(expected.Height, actual.Height);
+
+        var expectedPixels = expected.GetPixels();
+        var actualPixels = actual.GetPixels();
 
         for (int y = 0; y < expected.Height; y++)
         {
             for (int x = 0; x < expected.Width; x++)
             {
-                if (expected.GetPixel(x, y) != actual.GetPixel(x, y))
+                var p1 = expectedPixels.GetPixel(x, y);
+                var p2 = actualPixels.GetPixel(x, y);
+                if (!p1.Equals(p2))
                 {
                     SaveGeneratedImage(actualFileName, actual);
 
                     string diffFileName = SaveImageDifference(expected, actual, actualFileName);
 
-                    Assert.True(expected.GetPixel(x,y) == actual.GetPixel(x, y), $"Pixel difference at [{x},{y}], see full diff in file \"{Path.GetFullPath(diffFileName)}\"");
+                    Assert.True(p1.Equals(p2), $"Pixel difference at [{x},{y}], see full diff in file \"{Path.GetFullPath(diffFileName)}\"");
                 }
             }
         }
     }
 
-    static private string SaveImageDifference(Bitmap expected, Bitmap actual, string actualFileName)
+    static private string SaveImageDifference(MagickImage expected, MagickImage actual, string actualFileName)
     {
-        Bitmap differenceImage = new Bitmap(expected.Width, expected.Height);
+        MagickImage differenceImage = new MagickImage(MagickColors.Transparent, expected.Width, expected.Height);
+
+        var expectedPixels = expected.GetPixels();
+        var actualPixels = actual.GetPixels();
+        var differencePixels = differenceImage.GetPixels();
 
         for (int y = 0; y < expected.Height; y++)
         {
             for (int x = 0; x < expected.Width; x++)
             {
-                if (expected.GetPixel(x, y) != actual.GetPixel(x, y))
+                if (!expectedPixels.GetPixel(x, y).Equals(actualPixels.GetPixel(x, y)))
                 {
-                    differenceImage.SetPixel(x, y, Color.Violet);
+                    differencePixels.SetPixel(x, y, MagickColors.Violet.ToByteArray());
                 }
                 else
                 {
-                    differenceImage.SetPixel(x, y, actual.GetPixel(x, y));
+                    differencePixels.SetPixel(x, y, actualPixels.GetPixel(x, y).ToArray());
                 }
             }
         }
@@ -109,13 +115,14 @@ public class StbTrueTypeTests
         return differenceFileName;
     }
 
-    static private void SaveGeneratedImage(string fileName, Image image)
+    static private void SaveGeneratedImage(string fileName, MagickImage image)
     {
         if (!Directory.Exists(GeneratedPath))
         {
             Directory.CreateDirectory(GeneratedPath);
         }
 
-        image.Save(fileName);
+        image.Format = MagickFormat.Png;
+        image.Write(fileName);
     }
 }
