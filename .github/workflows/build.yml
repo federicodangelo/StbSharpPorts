@@ -39,12 +39,11 @@ jobs:
       
     - name: Build Release
       run: |
-        dotnet publish -c Release -o output
+        dotnet publish -c Release
              
-    - name: Archive build output
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-output-${{ matrix.os }}
-        path: output/*
-
-      
+# Disabled archive build output (wasn't being used, and it wastes a lot of space)
+#    - name: Archive build output
+#      uses: actions/upload-artifact@v4
+#      with:
+#        name: build-output-${{ matrix.os }}
+#        path: output/*
