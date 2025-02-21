@@ -10,10 +10,10 @@ public class StbGuiTestsBase : IDisposable
     protected const int ScreenSizeWidth = 120;
     protected const int ScreenSizeHeight = 80;
 
-    static protected TestRenderScreen test_render_screen = new TestRenderScreen(ScreenSizeWidth, ScreenSizeHeight);
-
-    static protected List<StbGui.stbg_render_command> render_commands_all = []; // All render commands
-    static protected List<StbGui.stbg_render_command> render_commands = []; // Exclude begin and end frame commands
+    protected TestRenderScreen test_render_screen = new TestRenderScreen(ScreenSizeWidth, ScreenSizeHeight);
+    protected List<StbGui.stbg_render_command> render_commands_all = []; // All render commands
+    protected List<StbGui.stbg_render_command> render_commands = []; // Exclude begin and end frame commands
+    protected StbGui.stbg_user_input user_input = new();
 
     public void Dispose()
     {
@@ -22,9 +22,10 @@ public class StbGuiTestsBase : IDisposable
         render_commands_all = [];
         render_commands = [];
         test_render_screen.Clear();
+        user_input = new();
     }
 
-    static private StbGui.stbg_external_dependencies BuildExternalDependencies()
+    private StbGui.stbg_external_dependencies BuildExternalDependencies()
     {
         return new StbGui.stbg_external_dependencies()
         {
@@ -37,7 +38,7 @@ public class StbGuiTestsBase : IDisposable
         };
     }
 
-    static protected void RenderCommandsToTestScreen()
+    protected void RenderCommandsToTestScreen()
     {
         foreach (var cmd in render_commands_all)
         {
@@ -45,7 +46,7 @@ public class StbGuiTestsBase : IDisposable
         }
     }
 
-    static private TestRenderScreenPixel[][] ConvertExpectedLinesAndColorsToExpectedPixels(string[][] expectedLinesAndColors)
+    private TestRenderScreenPixel[][] ConvertExpectedLinesAndColorsToExpectedPixels(string[][] expectedLinesAndColors)
     {
         TestRenderScreenPixel[][] expectedPixels = new TestRenderScreenPixel[expectedLinesAndColors.Length][];
         for (int y = 0; y < expectedLinesAndColors.Length; y++)
@@ -96,7 +97,7 @@ public class StbGuiTestsBase : IDisposable
         return expectedPixels;
     }
 
-    static protected TestRenderScreenPixel[][] GetUsedScreenPixels()
+    protected TestRenderScreenPixel[][] GetUsedScreenPixels()
     {
         // Find max X and Y that have characters
         int maxX = 0;
@@ -128,7 +129,7 @@ public class StbGuiTestsBase : IDisposable
         return usedScreenPixels;
     }
 
-    static protected void AssertScreenEqual(string[][] expectedLinesAndColors)
+    protected void AssertScreenEqual(string[][] expectedLinesAndColors)
     {
         var expectedPixels = ConvertExpectedLinesAndColorsToExpectedPixels(expectedLinesAndColors);
         var actualPixels = GetUsedScreenPixels();
@@ -136,7 +137,7 @@ public class StbGuiTestsBase : IDisposable
         AssertScreenEqual(expectedPixels, actualPixels);
     }
 
-    static protected void AssertScreenEqual(TestRenderScreenPixel[][] expectedPixels, TestRenderScreenPixel[][] actualPixels)
+    protected void AssertScreenEqual(TestRenderScreenPixel[][] expectedPixels, TestRenderScreenPixel[][] actualPixels)
     {
         int maxY = Math.Max(actualPixels.Length, expectedPixels.Length);
         int maxX = Math.Max(actualPixels[0].Length, expectedPixels[0].Length);
@@ -199,7 +200,7 @@ public class StbGuiTestsBase : IDisposable
         Assert.Fail($"Expected screen doesn't match actual screen\nExpected screen (without colors):\n{joinedExpectedLines}\nActual screen (without colors):\n{joinedActualLines}");
     }
 
-    private static string AddGuideLines(string[] expectedLines, string[] expectedLinesWithColor)
+    private string AddGuideLines(string[] expectedLines, string[] expectedLinesWithColor)
     {
         int height = expectedLines.Length;
         int width = expectedLines[0].Length;
@@ -224,7 +225,7 @@ public class StbGuiTestsBase : IDisposable
         return finalLines;
     }
 
-    private static string BuildAssertPixelsCode(TestRenderScreenPixel[][] actualPixels)
+    private string BuildAssertPixelsCode(TestRenderScreenPixel[][] actualPixels)
     {
         string assert_actual_colors_code = "";
         string[] actualLines = TestRenderScreen.ConvertPixelsToStrings(actualPixels, false);
@@ -282,12 +283,12 @@ public class StbGuiTestsBase : IDisposable
         return assertCode;
     }
 
-    static protected void InitGUI()
+    protected void InitGUI()
     {
         InitGUI(new() { assert_behavior = StbGui.STBG_ASSERT_BEHAVIOR.EXCEPTION, dont_nest_non_window_root_elements_into_debug_window = true });
     }
 
-    static protected void InitGUI(StbGui.stbg_init_options options)
+    protected void InitGUI(StbGui.stbg_init_options options)
     {
         StbGui.stbg_init(BuildExternalDependencies(), options);
         StbGui.stbg_set_screen_size(ScreenSizeWidth, ScreenSizeHeight);
@@ -297,7 +298,7 @@ public class StbGuiTestsBase : IDisposable
         InitTestTheme(fontId, new() { size = 1, style = StbGui.STBG_FONT_STYLE_FLAGS.NONE, color = StbGui.STBG_COLOR_WHITE });
     }
 
-    static private void InitTestTheme(int font_id, StbGui.stbg_font_style font_style)
+    void InitTestTheme(int font_id, StbGui.stbg_font_style font_style)
     {
         StbGui.stbg_init_default_theme(
             font_id, font_style
@@ -400,22 +401,53 @@ public class StbGuiTestsBase : IDisposable
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.SCROLLBAR_BUTTON_PRESSED_COLOR, StbGui.STBG_COLOR_RED);
     }
 
-    static protected void DestroyGui()
+    protected void SetMousePosition(float x, float y)
+    {
+        user_input.mouse_position = StbGui.stbg_build_position(x, y);
+        user_input.mouse_position_valid = true;
+        StbGui.stbg_set_user_input(user_input);
+    }
+
+    protected void SetMousePositionInvalid()
+    {
+        user_input.mouse_position_valid = false;
+        StbGui.stbg_set_user_input(user_input);
+    }
+
+    protected void SetMouseButton1(bool pressed)
+    {
+        user_input.mouse_button_1 = pressed;
+        StbGui.stbg_set_user_input(user_input);
+    }
+
+    protected void SetMouseScrollWheelAmount(float x, float y)
+    {
+        user_input.mouse_wheel_scroll_amount = StbGui.stbg_build_position(x, y);
+        StbGui.stbg_set_user_input(user_input);
+    } 
+
+    protected void SetMouseScrollWheelAmountZero()
+    {
+        user_input.mouse_wheel_scroll_amount = StbGui.stbg_build_position(0, 0);
+        StbGui.stbg_set_user_input(user_input);
+    } 
+
+    protected void DestroyGui()
     {
         StbGui.stbg_destroy();
     }
 
-    static protected void AssertGuiNotInitialized()
+    protected void AssertGuiNotInitialized()
     {
         Assert.Null(StbGui.stbg_get_context().widgets);
     }
 
-    static protected void AssertGuiInitialized()
+    protected void AssertGuiInitialized()
     {
         Assert.NotNull(StbGui.stbg_get_context().widgets);
     }
 
-    static protected void AssertHierarchyConsistency()
+    protected void AssertHierarchyConsistency()
     {
         var root_widget_id = StbGui.stbg_get_context().root_widget_id;
 
@@ -425,7 +457,7 @@ public class StbGuiTestsBase : IDisposable
         }
     }
 
-    static void ValidateHierarchy(int widget_id)
+    private void ValidateHierarchy(int widget_id)
     {
         var widget = StbGui.stbg_get_widget_by_id(widget_id);
 
@@ -479,7 +511,7 @@ public class StbGuiTestsBase : IDisposable
         }
     }
 
-    static protected void AssertWidgetSize(int widget_id, float width, float height)
+    protected void AssertWidgetSize(int widget_id, float width, float height)
     {
         Assert.Equal(
             new StbGui.stbg_size() { width = width, height = height },
@@ -487,7 +519,7 @@ public class StbGuiTestsBase : IDisposable
         );
     }
 
-    static protected void AssertWidgetPosition(int widget_id, float x, float y)
+    protected void AssertWidgetPosition(int widget_id, float x, float y)
     {
         Assert.Equal(
             StbGui.stbg_build_position(x, y),
@@ -495,7 +527,7 @@ public class StbGuiTestsBase : IDisposable
         );
     }
 
-    static protected void AssertWidgetGlobalRect(int widget_id, float x0, float y0, float x1, float y1)
+    protected void AssertWidgetGlobalRect(int widget_id, float x0, float y0, float x1, float y1)
     {
         Assert.Equal(
             StbGui.stbg_build_rect(x0, y0, x1, y1),

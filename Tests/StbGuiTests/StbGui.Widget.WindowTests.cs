@@ -534,22 +534,13 @@ public class StbGuiWindowTests : StbGuiTestsBase
         for (var times = 0; times < 3; times++)
         {
             // click the "scroll down" button
-            StbGui.stbg_set_user_input(new StbGui.stbg_user_input()
-            {
-                mouse_position = StbGui.stbg_build_position(28, 18),
-                mouse_position_valid = true,
-                mouse_button_1 = true,
-            });
+            SetMousePosition(28, 18);
+            SetMouseButton1(true);
 
             render();
 
             // release the "scroll down" button
-            StbGui.stbg_set_user_input(new StbGui.stbg_user_input()
-            {
-                mouse_position = StbGui.stbg_build_position(28, 18),
-                mouse_position_valid = true,
-                mouse_button_1 = false,
-            });
+            SetMouseButton1(false);
 
             render();
         }
@@ -614,20 +605,12 @@ public class StbGuiWindowTests : StbGuiTestsBase
         for (var times = 0; times < 3; times++)
         {
             // use the scroll wheel in the middle of the window
-            StbGui.stbg_set_user_input(new StbGui.stbg_user_input()
-            {
-                mouse_position = StbGui.stbg_build_position(14, 9),
-                mouse_position_valid = true,
-                mouse_wheel_scroll_amount = { y = -1 }
-            });
+            SetMousePosition(14, 9);
+            SetMouseScrollWheelAmount(0, -1);
 
             render();
 
-            StbGui.stbg_set_user_input(new StbGui.stbg_user_input()
-            {
-                mouse_position = StbGui.stbg_build_position(14, 9),
-                mouse_position_valid = true,
-            });
+            SetMouseScrollWheelAmountZero();
 
             render();
         }
@@ -656,7 +639,7 @@ public class StbGuiWindowTests : StbGuiTestsBase
             ["""|                           v|""", "BW1BT27BW2"],
             ["""\----------------------------/""", "BW30"],
         ]);
-    }    
+    }
 
     [Fact]
     public void TestScrollWindowUsingMouseWheelWithTenButtonsInsideWhileHoveringAButton()
@@ -692,20 +675,12 @@ public class StbGuiWindowTests : StbGuiTestsBase
         for (var times = 0; times < 3; times++)
         {
             // use the scroll wheel in the middle of the window
-            StbGui.stbg_set_user_input(new StbGui.stbg_user_input()
-            {
-                mouse_position = StbGui.stbg_build_position(6, 9),
-                mouse_position_valid = true,
-                mouse_wheel_scroll_amount = { y = -1 }
-            });
+            SetMousePosition(6, 9);
+            SetMouseScrollWheelAmount(0, -1);
 
             render();
 
-            StbGui.stbg_set_user_input(new StbGui.stbg_user_input()
-            {
-                mouse_position = StbGui.stbg_build_position(6, 9),
-                mouse_position_valid = true,
-            });
+            SetMouseScrollWheelAmountZero();
 
             render();
         }
@@ -734,7 +709,7 @@ public class StbGuiWindowTests : StbGuiTestsBase
             ["""|                           v|""", "BW1BT27BW2"],
             ["""\----------------------------/""", "BW30"],
         ]);
-    }        
+    }
 
     [Fact]
     public void TestRenderWindowScrollableWithTenButtonsHorizontallyInside()
@@ -830,22 +805,13 @@ public class StbGuiWindowTests : StbGuiTestsBase
         for (var times = 0; times < 3; times++)
         {
             // click the "scroll down" button
-            StbGui.stbg_set_user_input(new StbGui.stbg_user_input()
-            {
-                mouse_position = StbGui.stbg_build_position(28, 18),
-                mouse_position_valid = true,
-                mouse_button_1 = true,
-            });
+            SetMousePosition(28, 18);
+            SetMouseButton1(true);
 
             render();
 
             // release the "scroll down" button
-            StbGui.stbg_set_user_input(new StbGui.stbg_user_input()
-            {
-                mouse_position = StbGui.stbg_build_position(28, 18),
-                mouse_position_valid = true,
-                mouse_button_1 = false,
-            });
+            SetMouseButton1(false);
 
             render();
         }
@@ -914,21 +880,13 @@ public class StbGuiWindowTests : StbGuiTestsBase
         for (var times = 0; times < 3; times++)
         {
             // use the scroll wheel 
-            StbGui.stbg_set_user_input(new StbGui.stbg_user_input()
-            {
-                mouse_position = StbGui.stbg_build_position(14, 13),
-                mouse_position_valid = true,
-                mouse_wheel_scroll_amount = { x = 1 }
-            });
+            SetMousePosition(14, 13);
+            SetMouseScrollWheelAmount(1, 0);
 
             render();
 
             // release the scroll wheel
-            StbGui.stbg_set_user_input(new StbGui.stbg_user_input()
-            {
-                mouse_position = StbGui.stbg_build_position(14, 13),
-                mouse_position_valid = true,
-            });
+            SetMouseScrollWheelAmountZero();
 
             render();
         }
@@ -957,7 +915,7 @@ public class StbGuiWindowTests : StbGuiTestsBase
             ["""|<                          >|""", "BW2CT2BT2CT22BW2"],
             ["""\----------------------------/""", "BW30"],
         ]);
-    }    
+    }
 
     [Fact]
     public void TestRenderWindowScrollableWithBothScrollDirections()
@@ -976,7 +934,7 @@ public class StbGuiWindowTests : StbGuiTestsBase
                 StbGui.stbg_begin_window("Window 1");
                 {
                     for (int c = 0; c < 10; c++)
-                    {                        
+                    {
                         StbGui.stbg_begin_container("con" + c, StbGui.STBG_CHILDREN_LAYOUT.HORIZONTAL);
                         {
                             for (int b = 0; b < 10; b++)
@@ -1056,11 +1014,7 @@ public class StbGuiWindowTests : StbGuiTestsBase
         ]);
 
         // Hover middle of window
-        StbGui.stbg_set_user_input(new()
-        {
-            mouse_position = StbGui.stbg_build_position(8, 10),
-            mouse_position_valid = true,
-        });
+        SetMousePosition(8, 10);
 
         StbGui.stbg_begin_frame();
         {
@@ -1140,12 +1094,8 @@ public class StbGuiWindowTests : StbGuiTestsBase
         ]);
 
         // Hover near Window 1 and press mouse button, Window 1 should be on top
-        StbGui.stbg_set_user_input(new()
-        {
-            mouse_position = StbGui.stbg_build_position(2, 2),
-            mouse_position_valid = true,
-            mouse_button_1 = true,
-        });
+        SetMousePosition(2, 2);
+        SetMouseButton1(true);
 
         StbGui.stbg_begin_frame();
         {
@@ -1186,11 +1136,7 @@ public class StbGuiWindowTests : StbGuiTestsBase
         ]);
 
         // Hover near Window 1 and release mouse button, Window 1 should still be on top
-        StbGui.stbg_set_user_input(new()
-        {
-            mouse_position = StbGui.stbg_build_position(2, 2),
-            mouse_position_valid = true,
-        });
+        SetMouseButton1(false);
 
         StbGui.stbg_begin_frame();
         {
@@ -1280,12 +1226,8 @@ public class StbGuiWindowTests : StbGuiTestsBase
         ]);
 
         // Hover near Window 1 and press mouse button, Window 1 should be on top
-        StbGui.stbg_set_user_input(new()
-        {
-            mouse_position = StbGui.stbg_build_position(2, 2),
-            mouse_position_valid = true,
-            mouse_button_1 = true,
-        });
+        SetMousePosition(2, 2);
+        SetMouseButton1(true);
 
         StbGui.stbg_begin_frame();
         {
@@ -1326,12 +1268,7 @@ public class StbGuiWindowTests : StbGuiTestsBase
         ]);
 
         // Hover near Window 1 and drag mouse, window should be moved
-        StbGui.stbg_set_user_input(new()
-        {
-            mouse_position = StbGui.stbg_build_position(4, 2),
-            mouse_position_valid = true,
-            mouse_button_1 = true,
-        });
+        SetMousePosition(4, 2);
 
         StbGui.stbg_begin_frame();
         {
@@ -1372,11 +1309,8 @@ public class StbGuiWindowTests : StbGuiTestsBase
         ]);
 
         // Release mouse button but keep moving cursor, window should be at the last position
-        StbGui.stbg_set_user_input(new()
-        {
-            mouse_position = StbGui.stbg_build_position(6, 2),
-            mouse_position_valid = true,
-        });
+        SetMousePosition(6, 2);
+        SetMouseButton1(false);
 
         StbGui.stbg_begin_frame();
         {

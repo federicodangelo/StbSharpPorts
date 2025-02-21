@@ -52,11 +52,7 @@ public class StbGuiButtonTests : StbGuiTestsBase
         ]);
 
         // Hover
-        StbGui.stbg_set_user_input(new()
-        {
-            mouse_position = StbGui.stbg_build_position(2, 2),
-            mouse_position_valid = true
-        });
+        SetMousePosition(2, 2);
 
         StbGui.stbg_begin_frame();
         {
@@ -102,11 +98,7 @@ public class StbGuiButtonTests : StbGuiTestsBase
         ]);
 
         // Hover
-        StbGui.stbg_set_user_input(new()
-        {
-            mouse_position = StbGui.stbg_build_position(2, 2),
-            mouse_position_valid = true
-        });
+        SetMousePosition(2, 2);
 
         StbGui.stbg_begin_frame();
         {
@@ -127,10 +119,7 @@ public class StbGuiButtonTests : StbGuiTestsBase
         ]);
 
         // Hover off
-        StbGui.stbg_set_user_input(new()
-        {
-            mouse_position_valid = false
-        });
+        SetMousePositionInvalid();
 
         StbGui.stbg_begin_frame();
         {
@@ -176,12 +165,8 @@ public class StbGuiButtonTests : StbGuiTestsBase
         ]);
 
         // Press
-        StbGui.stbg_set_user_input(new()
-        {
-            mouse_position = StbGui.stbg_build_position(2, 2),
-            mouse_position_valid = true,
-            mouse_button_1 = true,
-        });
+        SetMousePosition(2, 2);
+        SetMouseButton1(true);
 
         StbGui.stbg_begin_frame();
         {
@@ -227,12 +212,8 @@ public class StbGuiButtonTests : StbGuiTestsBase
         ]);
 
         // Press
-        StbGui.stbg_set_user_input(new()
-        {
-            mouse_position = StbGui.stbg_build_position(2, 2),
-            mouse_position_valid = true,
-            mouse_button_1 = true,
-        });
+        SetMousePosition(2, 2);
+        SetMouseButton1(true);
 
         StbGui.stbg_begin_frame();
         {
@@ -253,11 +234,7 @@ public class StbGuiButtonTests : StbGuiTestsBase
         ]);
 
         // Release (triggers click)
-        StbGui.stbg_set_user_input(new()
-        {
-            mouse_position = StbGui.stbg_build_position(2, 2),
-            mouse_position_valid = true,
-        });
+        SetMouseButton1(false);
 
         StbGui.stbg_begin_frame();
         {
@@ -279,12 +256,6 @@ public class StbGuiButtonTests : StbGuiTestsBase
 
 
         // Frame after click (should not triggers click anymore)
-        StbGui.stbg_set_user_input(new()
-        {
-            mouse_position = StbGui.stbg_build_position(2, 2),
-            mouse_position_valid = true,
-        });
-
         StbGui.stbg_begin_frame();
         {
             Assert.False(StbGui.stbg_button("Button 1"));
@@ -303,7 +274,4 @@ public class StbGuiButtonTests : StbGuiTestsBase
             ["""\----------/""", "BW12"],
         ]);
     }
-
-
-
 }

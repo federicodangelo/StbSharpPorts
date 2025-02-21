@@ -147,7 +147,7 @@ public class StbGuiWindowTestsResize : StbGuiTestsBase
         Assert.Equal(window_bottom, bounds.y1);
     }
 
-    private static int RunResizeTest(int direction_x, int direction_y, float dx, float dy, Action? create_other_children = null, Action? create_parent = null, Action? end_parent = null)
+    private int RunResizeTest(int direction_x, int direction_y, float dx, float dy, Action? create_other_children = null, Action? create_parent = null, Action? end_parent = null)
     {
         create_other_children ??= () => { };
         create_parent ??= () => { };
@@ -207,12 +207,9 @@ public class StbGuiWindowTestsResize : StbGuiTestsBase
             start_mouse_position_y = window_top + (window_bottom - window_top) / 2;
 
         // Hover near window and press mouse button, this mark the window as pressed
-        StbGui.stbg_set_user_input(new()
-        {
-            mouse_position = StbGui.stbg_build_position(start_mouse_position_x, start_mouse_position_y),
-            mouse_position_valid = true,
-            mouse_button_1 = true,
-        });
+        SetMousePosition(start_mouse_position_x, start_mouse_position_y);
+        SetMouseButton1(true);
+
         StbGui.stbg_begin_frame();
         {
             create_parent();
@@ -240,12 +237,7 @@ public class StbGuiWindowTestsResize : StbGuiTestsBase
         }
 
         // Wait another frame so the dragging operations starts
-        StbGui.stbg_set_user_input(new()
-        {
-            mouse_position = StbGui.stbg_build_position(start_mouse_position_x, start_mouse_position_y),
-            mouse_position_valid = true,
-            mouse_button_1 = true,
-        });
+        
         StbGui.stbg_begin_frame();
         {
             create_parent();
@@ -263,12 +255,8 @@ public class StbGuiWindowTestsResize : StbGuiTestsBase
         StbGui.stbg_end_frame();
 
         // Now drag the mouse
-        StbGui.stbg_set_user_input(new()
-        {
-            mouse_position = StbGui.stbg_build_position(start_mouse_position_x + dx, start_mouse_position_y + dy),
-            mouse_position_valid = true,
-            mouse_button_1 = true,
-        });
+        SetMousePosition(start_mouse_position_x + dx, start_mouse_position_y + dy);
+
         StbGui.stbg_begin_frame();
         {
             create_parent();
@@ -286,11 +274,8 @@ public class StbGuiWindowTestsResize : StbGuiTestsBase
         StbGui.stbg_end_frame();
 
         // Now release the mouse
-        StbGui.stbg_set_user_input(new()
-        {
-            mouse_position = StbGui.stbg_build_position(start_mouse_position_x + dx, start_mouse_position_y + dy),
-            mouse_position_valid = true,
-        });
+        SetMouseButton1(false);
+
         StbGui.stbg_begin_frame();
         {
             create_parent();
@@ -308,11 +293,7 @@ public class StbGuiWindowTestsResize : StbGuiTestsBase
         StbGui.stbg_end_frame();
 
         // Now don't hover the window any more
-        StbGui.stbg_set_user_input(new()
-        {
-            mouse_position = StbGui.stbg_build_position(start_mouse_position_x + dx, start_mouse_position_y + dy),
-            mouse_position_valid = false,
-        });
+        SetMousePositionInvalid();
 
         StbGui.stbg_begin_frame();
         {
