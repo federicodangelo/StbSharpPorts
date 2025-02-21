@@ -16,7 +16,14 @@ public class SDLAppBase : IDisposable
 
     private bool use_fake_vsync;
 
-    public int Fps { private set; get; }
+    public struct MetricsInfo
+    {
+        public int Fps;
+        public long TotalAllocatedBytes;
+        public long LastFrameAllocatedBytes;
+    }
+
+    public MetricsInfo Metrics { get; private set; } = new();
 
     public class SdlAppOptions
     {
@@ -61,7 +68,7 @@ public class SDLAppBase : IDisposable
 
     public void MainLoop()
     {
-        var frames_ticks = SDL.GetTicks();
+        var frames_count_ticks = SDL.GetTicks();
         var frames_count = 0;
 
         var input = new StbGui.stbg_user_input();
@@ -88,7 +95,7 @@ public class SDLAppBase : IDisposable
 
             UpdateActiveCursor();
 
-            UpdateFps(ref frames_ticks, ref frames_count);
+            UpdateMetrics(ref frames_count_ticks, ref frames_count);
 
             // Screen presenting is handled by STBG_RENDER_COMMAND_TYPE.END_FRAME
 
@@ -148,16 +155,27 @@ public class SDLAppBase : IDisposable
         }
     }
 
-    private void UpdateFps(ref ulong frames_ticks, ref int frames_count)
+    private void UpdateMetrics(ref ulong frames_count_ticks, ref int frames_count)
     {
+        var updatedMetrics = Metrics;
+
+        // Update FPS
         frames_count++;
-        if (SDL.GetTicks() - frames_ticks > 1000)
+        if (SDL.GetTicks() - frames_count_ticks > 1000)
         {
-            Fps = (int)Math.Round(frames_count / ((SDL.GetTicks() - frames_ticks) / 1000.0f));
+            updatedMetrics.Fps = (int)Math.Round(frames_count / ((SDL.GetTicks() - frames_count_ticks) / 1000.0f));
 
             frames_count = 0;
-            frames_ticks = SDL.GetTicks();
+            frames_count_ticks = SDL.GetTicks();
         }
+
+        // Update memory usage
+        var totalAllocatedBytes = GC.GetTotalAllocatedBytes(true);
+
+        updatedMetrics.LastFrameAllocatedBytes = totalAllocatedBytes - updatedMetrics.TotalAllocatedBytes;
+        updatedMetrics.TotalAllocatedBytes = totalAllocatedBytes;
+
+        Metrics = updatedMetrics;
     }
 
     private void FrameDelay(ulong frame_ns)

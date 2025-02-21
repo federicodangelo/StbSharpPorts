@@ -1,5 +1,6 @@
 namespace StbSharp.Examples;
 
+using System.Buffers.Text;
 using StbSharp;
 
 public class SDLApp : SDLAppBase
@@ -15,12 +16,13 @@ public class SDLApp : SDLAppBase
 
     protected override void OnRenderStbGui()
     {
-        StbGui.stbg_label("FPS: " + Fps);
+        StbGui.stbg_label("FPS: " + Metrics.Fps);
+        StbGui.stbg_label("Allocated Bytes Delta: " + Metrics.LastFrameAllocatedBytes);
 
         StbGui.stbg_begin_window("Window 1");
         {
             if (StbGui.stbg_get_last_widget_is_new())
-                StbGui.stbg_set_last_widget_position(100, 50);
+                StbGui.stbg_set_last_widget_position(100, 100);
 
             StbGui.stbg_button("Button 1");
             if (StbGui.stbg_button("Toggle Button 3"))
@@ -52,9 +54,9 @@ public class SDLApp : SDLAppBase
 
                 StbGui.stbg_begin_container("con3332", StbGui.STBG_CHILDREN_LAYOUT.VERTICAL);
                 {
-                    StbGui.stbg_label($"Scrollbar Value: {scrollbar_value}");
+                    StbGui.stbg_label("Scrollbar Value: " + scrollbar_value);
 
-                    StbGui.stbg_label($"Scrollbar Value Int: {scrollbar_value_int}");
+                    StbGui.stbg_label("Scrollbar Value Int: " + scrollbar_value_int);
                 }
                 StbGui.stbg_end_container();
             }
