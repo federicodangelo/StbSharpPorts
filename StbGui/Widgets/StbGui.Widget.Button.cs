@@ -78,7 +78,7 @@ public partial class StbGui
             context.input.mouse_button_1;
     }
 
-    private static void stbg__button_render(ref stbg_widget button, ref stbg_render_context render_context)
+    private static void stbg__button_render(ref stbg_widget button)
     {
         var size = button.properties.computed_bounds.size;
 
@@ -89,13 +89,13 @@ public partial class StbGui
         var background_color = stbg_get_widget_style_color(pressed ? STBG_WIDGET_STYLE.BUTTON_PRESSED_BACKGROUND_COLOR : hovered ? STBG_WIDGET_STYLE.BUTTON_HOVERED_BACKGROUND_COLOR : STBG_WIDGET_STYLE.BUTTON_BACKGROUND_COLOR);
         var text_color = stbg_get_widget_style_color(pressed ? STBG_WIDGET_STYLE.BUTTON_PRESSED_TEXT_COLOR : hovered ? STBG_WIDGET_STYLE.BUTTON_HOVERED_TEXT_COLOR : STBG_WIDGET_STYLE.BUTTON_TEXT_COLOR);
 
-        render_context.draw_border(
+        stbg__rc_draw_border(
             stbg_build_rect(0, 0, size.width, size.height),
             stbg_get_widget_style(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE),
             border_color,
             background_color
         );
-        render_context.draw_text(
+        stbg__rc_draw_text(
             stbg_build_rect(
                 stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_LEFT),
                 stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_TOP),

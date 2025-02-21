@@ -445,7 +445,7 @@ public partial class StbGui
             resize_x = 0;
     }
 
-    private static void stbg__window_render(ref stbg_widget window, ref stbg_render_context render_context)
+    private static void stbg__window_render(ref stbg_widget window)
     {
         var size = window.properties.computed_bounds.size;
 
@@ -461,14 +461,14 @@ public partial class StbGui
         }
 
         // background and border
-        render_context.draw_border(
+        stbg__rc_draw_border(
             stbg_build_rect(0, 0, size.width, size.height),
             stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE),
             stbg_get_widget_style_color(STBG_WIDGET_STYLE.WINDOW_BORDER_COLOR),
             stbg_get_widget_style_color(STBG_WIDGET_STYLE.WINDOW_BACKGROUND_COLOR)
         );
         // title background
-        render_context.draw_border(
+        stbg__rc_draw_border(
             stbg_build_rect(
                 0,
                 0,
@@ -480,7 +480,7 @@ public partial class StbGui
             title_background_color
         );
         // title text
-        render_context.draw_text(
+        stbg__rc_draw_text(
             stbg_build_rect(
                 stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_LEFT),
                 stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP),

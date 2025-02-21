@@ -9,7 +9,7 @@ using font_id = int;
 
 public partial class StbGui
 {
-    private delegate void stbg__widget_render_delegate(ref stbg_widget widget, ref stbg_render_context render_context);
+    private delegate void stbg__widget_render_delegate(ref stbg_widget widget);
     private delegate bool stbg__widget_update_input_delegate(ref stbg_widget widget);
     private delegate void stbg__widget_init_default_theme_delegate();
 

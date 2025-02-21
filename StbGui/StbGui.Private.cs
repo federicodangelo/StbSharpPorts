@@ -62,7 +62,7 @@ public partial class StbGui
         context.init_options = options;
         context.external_dependencies = external_dependencies;
         context.theme.styles = new double[(int)STBG_WIDGET_STYLE.COUNT];
-        context.render_commands_queue = render_commands_queue;
+        context.render_context.render_commands_queue = render_commands_queue;
         stbg__string_memory_pool_init(ref context.string_memory_pool, options.string_memory_pool_size);
     }
 

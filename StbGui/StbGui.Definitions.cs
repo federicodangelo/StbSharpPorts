@@ -550,7 +550,7 @@ public partial class StbGui
 
         public stbg_theme theme;
 
-        public stbg_render_command[] render_commands_queue;
+        public stbg_render_context render_context;
 
         public stbg_position next_new_window_position;
 

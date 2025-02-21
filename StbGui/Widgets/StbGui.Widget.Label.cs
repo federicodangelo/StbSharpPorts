@@ -46,19 +46,19 @@ public partial class StbGui
         return ref label;
     }
 
-    private static void stbg__label_render(ref stbg_widget label, ref stbg_render_context render_context)
+    private static void stbg__label_render(ref stbg_widget label)
     {
         var size = label.properties.computed_bounds.size;
 
         var background_color = stbg_get_widget_style_color(STBG_WIDGET_STYLE.LABEL_BACKGROUND_COLOR);
         var text_color = stbg_get_widget_style_color(STBG_WIDGET_STYLE.LABEL_TEXT_COLOR);
 
-        render_context.draw_rectangle(
+        stbg__rc_draw_rectangle(
             stbg_build_rect(0, 0, size.width, size.height),
             background_color
         );
 
-        render_context.draw_text(
+        stbg__rc_draw_text(
             stbg_build_rect(
                 stbg__sum_styles(STBG_WIDGET_STYLE.LABEL_PADDING_LEFT),
                 stbg__sum_styles(STBG_WIDGET_STYLE.LABEL_PADDING_TOP),

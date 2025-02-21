@@ -234,7 +234,7 @@ public partial class StbGui
         }
     }
 
-    private static void stbg__scrollbar_render(ref stbg_widget scrollbar, ref stbg_render_context render_context)
+    private static void stbg__scrollbar_render(ref stbg_widget scrollbar)
     {
         const int SUB_WIDGET_PART_MIN_BUTTON = 1;
         const int SUB_WIDGET_PART_THUMB_BUTTON = 2;
@@ -246,7 +246,7 @@ public partial class StbGui
 
         stbg__scrollbar_get_parts(scrollbar, parameters, bounds, out stbg_rect min_button_rect, out stbg_rect max_button_rect, out stbg_rect thumb_rect);
 
-        render_context.draw_rectangle(bounds, stbg_get_widget_style_color(STBG_WIDGET_STYLE.SCROLLBAR_BACKGROUND_COLOR));
+        stbg__rc_draw_rectangle(bounds, stbg_get_widget_style_color(STBG_WIDGET_STYLE.SCROLLBAR_BACKGROUND_COLOR));
 
         for (int p = SUB_WIDGET_PART_MIN_BUTTON; p <= SUB_WIDGET_PART_MAX_BUTTON; p++)
         {
@@ -266,21 +266,21 @@ public partial class StbGui
                 p == SUB_WIDGET_PART_MAX_BUTTON ? max_button_rect :
                 thumb_rect;
 
-            render_context.draw_rectangle(rect, background_color);
+            stbg__rc_draw_rectangle(rect, background_color);
 
             if (p == SUB_WIDGET_PART_MIN_BUTTON)
             {
                 if (parameters.direction == STBG_SCROLLBAR_DIRECTION.HORIZONTAL)
-                    render_context.draw_text(rect, stbg__build_text("<".AsMemory(), color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
+                    stbg__rc_draw_text(rect, stbg__build_text("<".AsMemory(), color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
                 else
-                    render_context.draw_text(rect, stbg__build_text("^".AsMemory(), color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
+                    stbg__rc_draw_text(rect, stbg__build_text("^".AsMemory(), color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
             }
             else if (p == SUB_WIDGET_PART_MAX_BUTTON)
             {
                 if (parameters.direction == STBG_SCROLLBAR_DIRECTION.HORIZONTAL)
-                    render_context.draw_text(rect, stbg__build_text(">".AsMemory(), color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
+                    stbg__rc_draw_text(rect, stbg__build_text(">".AsMemory(), color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
                 else
-                    render_context.draw_text(rect, stbg__build_text("v".AsMemory(), color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
+                    stbg__rc_draw_text(rect, stbg__build_text("v".AsMemory(), color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
             }
         }
     }
