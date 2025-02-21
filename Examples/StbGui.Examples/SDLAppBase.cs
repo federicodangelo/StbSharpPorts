@@ -21,6 +21,7 @@ public class SDLAppBase : IDisposable
         public int Fps;
         public long TotalAllocatedBytes;
         public long LastFrameAllocatedBytes;
+        public long TotalGarbageCollectionsPerformed;
     }
 
     public MetricsInfo Metrics { get; private set; } = new();
@@ -60,6 +61,7 @@ public class SDLAppBase : IDisposable
         SDL.SetWindowResizable(window, true);
         SDL.SetWindowBordered(window, true);
         SDL.SetWindowMinimumSize(window, options.MinWindowWidth, options.MinWindowHeight);
+        SDL.EnableScreenSaver(); //Re-enable the screensaver that is disabled by default
 
         mainFont = new SDLFont(options.DefaultFontName, options.DefaultFontPath, options.DefaultFontSize, renderer);
 
@@ -174,6 +176,13 @@ public class SDLAppBase : IDisposable
 
         updatedMetrics.LastFrameAllocatedBytes = totalAllocatedBytes - updatedMetrics.TotalAllocatedBytes;
         updatedMetrics.TotalAllocatedBytes = totalAllocatedBytes;
+
+        var collectionCount = 0;
+
+        for (var i = 0; i < GC.MaxGeneration; i++)
+            collectionCount += GC.CollectionCount(i);
+
+        updatedMetrics.TotalGarbageCollectionsPerformed = collectionCount;
 
         Metrics = updatedMetrics;
     }

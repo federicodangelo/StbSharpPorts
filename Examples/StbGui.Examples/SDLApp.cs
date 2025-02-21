@@ -22,6 +22,7 @@ public class SDLApp : SDLAppBase
 
         StbGui.stbg_label(mp.Concat("FPS: ", Metrics.Fps));
         StbGui.stbg_label(mp.Concat("Allocated Bytes Delta: ", Metrics.LastFrameAllocatedBytes));
+        StbGui.stbg_label(mp.Concat("Total GC Performed: ", Metrics.TotalGarbageCollectionsPerformed));
         StbGui.stbg_label(mp.Concat("String Memory Pool Used Characters: ", StbGui.stbg_get_frame_stats().string_memory_pool_used_characters));
         StbGui.stbg_label(mp.Concat("String Memory Pool Overflown Characters: ", StbGui.stbg_get_frame_stats().string_memory_pool_overflowed_characters));
 
