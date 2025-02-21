@@ -90,11 +90,18 @@ public partial class StbGui
     private const string DEBUG_WINDOW_TITLE = "_DEBUG_";
     private static widget_hash debug_window_hash = stbg__calculate_hash(STBG_WIDGET_TYPE.WINDOW, DEBUG_WINDOW_TITLE, true);
 
+    [Flags]
+    private enum STBG__WIDGET_ADD_OPTIONS
+    {
+        NONE = 0,
+        IGNORE_DUPLICATED = 1 << 0,
+    }
+
     private static ref stbg_widget stbg__get_or_create_debug_window()
     {
-        ref var debug_window = ref stbg__add_widget(debug_window_hash, STBG_WIDGET_TYPE.WINDOW, context.root_widget_id, out var is_new, true);
+        ref var debug_window = ref stbg__add_widget(debug_window_hash, STBG_WIDGET_TYPE.WINDOW, context.root_widget_id, out var is_new, out var is_already_created_in_same_frame, STBG__WIDGET_ADD_OPTIONS.IGNORE_DUPLICATED);
 
-        if (is_new)
+        if (!is_already_created_in_same_frame)
             stbg__window_init(ref debug_window, is_new, DEBUG_WINDOW_TITLE);
 
         return ref debug_window;
@@ -102,14 +109,14 @@ public partial class StbGui
 
     private static ref stbg_widget stbg__add_widget(STBG_WIDGET_TYPE type, ReadOnlySpan<char> identifier, out bool is_new)
     {
-        ref var widget = ref stbg__add_widget(stbg__calculate_hash(type, identifier), type, context.current_widget_id, out is_new);
+        ref var widget = ref stbg__add_widget(stbg__calculate_hash(type, identifier), type, context.current_widget_id, out is_new, out _);
         context.last_widget_id = widget.id;
         context.last_widget_is_new = is_new;
 
         return ref widget;
     }
 
-    private static ref stbg_widget stbg__add_widget(widget_hash hash, STBG_WIDGET_TYPE type, widget_id parent_id, out bool is_new, bool ignore_duplicated = false)
+    private static ref stbg_widget stbg__add_widget(widget_hash hash, STBG_WIDGET_TYPE type, widget_id parent_id, out bool is_new, out bool is_already_created_in_same_frame, STBG__WIDGET_ADD_OPTIONS options = STBG__WIDGET_ADD_OPTIONS.NONE)
     {
         stbg__assert(context.inside_frame);
         stbg__assert(context.first_free_widget_id != STBG_WIDGET_ID_NULL, "No more room for widgets");
@@ -119,7 +126,7 @@ public partial class StbGui
                 ref stbg__get_widget_by_id_internal(existingWidgetId) :
                 ref stbg__get_widget_by_id_internal(context.first_free_widget_id));
 
-        bool is_already_created_in_same_frame = false;
+        is_already_created_in_same_frame = false;
 
         if ((widget.flags & STBG_WIDGET_FLAGS.USED) == 0)
         {
@@ -170,7 +177,7 @@ public partial class StbGui
         }
 
         // Update last used
-        if (is_already_created_in_same_frame && !ignore_duplicated)
+        if (is_already_created_in_same_frame && (options & STBG__WIDGET_ADD_OPTIONS.IGNORE_DUPLICATED) == 0)
         {
             context.frame_stats.duplicated_widgets_ids++;
             stbg__assert(widget.last_used_in_frame != context.current_frame, "Duplicated widget identifier!!");
