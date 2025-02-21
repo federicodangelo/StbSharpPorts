@@ -1,4 +1,4 @@
-﻿#pragma warning disable IDE1006 // Naming Styles
+#pragma warning disable IDE1006 // Naming Styles
 
 namespace StbSharp;
 
@@ -112,8 +112,8 @@ public partial class StbGui
 
         ref var widget =
             ref (stbg__find_widget_by_hash(hash, out var existingWidgetId) ?
-                ref stbg_get_widget_by_id(existingWidgetId) :
-                ref stbg_get_widget_by_id(context.first_free_widget_id));
+                ref stbg__get_widget_by_id_internal(existingWidgetId) :
+                ref stbg__get_widget_by_id_internal(context.first_free_widget_id));
 
         bool is_already_created_in_same_frame = false;
 
@@ -373,6 +373,12 @@ public partial class StbGui
         return false;
     }
 
+    private static ref stbg_widget stbg__get_widget_by_id_internal(widget_id id)
+    {
+        stbg__assert(id != STBG_WIDGET_ID_NULL);
+        return ref context.widgets[id];
+    }
+
     private static bool stbg__find_widget_by_hash(widget_hash hash, out widget_id found_id)
     {
         ref var bucket = ref stbg__get_hash_entry_by_hash(hash);
@@ -383,7 +389,7 @@ public partial class StbGui
 
             do
             {
-                ref var widget = ref stbg_get_widget_by_id(found_id);
+                ref var widget = ref stbg__get_widget_by_id_internal(found_id);
 
                 if (widget.hash == hash)
                     return true;

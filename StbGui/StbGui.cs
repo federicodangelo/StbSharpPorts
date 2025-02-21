@@ -283,7 +283,8 @@ public partial class StbGui
     public static ref stbg_widget stbg_get_widget_by_id(widget_id id)
     {
         stbg__assert(id != STBG_WIDGET_ID_NULL);
-        return ref context.widgets[id];
+        stbg__assert(context.widgets[id].last_used_in_frame == context.current_frame, "Can't access preious frame widget until they are created again");
+        return ref stbg__get_widget_by_id_internal(id);
     }
 
     /// <summary>
@@ -293,7 +294,7 @@ public partial class StbGui
     {
         var id = stbg_get_last_widget_id();
         stbg__assert(id != STBG_WIDGET_ID_NULL);
-        return ref context.widgets[id];
+        return ref stbg_get_widget_by_id(id);
     }
 
     /// <summary>
