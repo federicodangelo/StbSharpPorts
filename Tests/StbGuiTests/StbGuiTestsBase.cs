@@ -357,7 +357,7 @@ public class StbGuiTestsBase : IDisposable
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_TEXT_COLOR, StbGui.STBG_COLOR_MAGENTA);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR, StbGui.STBG_COLOR_WHITE);
 
-        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_EXPAND_TO_FIT_CHILDREN, true);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_ALLOW_SCROLLBARS, false);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING, windowChidlrenSpacing);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, windowDefaultWidth);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, windowDefaultHeight);

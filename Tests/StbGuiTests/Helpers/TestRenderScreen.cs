@@ -104,7 +104,8 @@ public class TestRenderScreen
                                 y == (int)bounds.y0 || y == (int)bounds.y1 - 1 ? '-' :
                                 ' ';
 
-                            SetTestRenderScreenPixel(x, y, new() { character = character, background_color = background_color, character_color = character != ' ' ? color : GetTestRenderScreenPixel(x, y).character_color });
+                            if (!IsClipped(x, y))
+                                SetTestRenderScreenPixel(x, y, new() { character = character, background_color = background_color, character_color = character != ' ' ? color : GetTestRenderScreenPixel(x, y).character_color });
                         }
                     }
                     SetTestRenderScreenPixelCharacter((int)bounds.x0, (int)bounds.y0, '/');

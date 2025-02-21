@@ -38,7 +38,7 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_RIGHT, windowChildrenPadding);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING, windowChidlrenSpacing);
 
-        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_EXPAND_TO_FIT_CHILDREN, false);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_ALLOW_SCROLLBARS, true);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_SCROLL_LINES_AMOUNT, 3);
 
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, windowDefaultWidth);
@@ -91,7 +91,7 @@ public partial class StbGui
         layout.children_layout_direction = STBG_CHILDREN_LAYOUT.VERTICAL;
         layout.children_spacing = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING);
 
-        if (!stbg_get_widget_style_boolean(STBG_WIDGET_STYLE.WINDOW_EXPAND_TO_FIT_CHILDREN))
+        if (stbg_get_widget_style_boolean(STBG_WIDGET_STYLE.WINDOW_ALLOW_SCROLLBARS))
             layout.flags |= STBG_WIDGET_LAYOUT_FLAGS.ALLOW_CHILDREN_OVERFLOW;
 
         if (is_new)

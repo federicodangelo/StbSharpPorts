@@ -1,4 +1,7 @@
-﻿namespace StbSharp.Tests;
+﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel;
+
+namespace StbSharp.Tests;
 
 public class StbGuiWindowTests : StbGuiTestsBase
 {
@@ -442,6 +445,576 @@ public class StbGuiWindowTests : StbGuiTestsBase
             ["""|                                      |""", "BW1BT38BW1"],
             ["""|                                      |""", "BW1BT38BW1"],
             ["""\--------------------------------------/""", "BW40"],
+        ]);
+    }
+
+    [Fact]
+    public void TestRenderWindowScrollableWithTenButtonsInside()
+    {
+        InitGUI();
+
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, 20);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, 30);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_ALLOW_SCROLLBARS, true);
+
+        // Scrollbars take 2 frames to appear
+        for (int i = 0; i < 2; i++)
+        {
+            StbGui.stbg_begin_frame();
+            {
+                StbGui.stbg_begin_window("Window 1");
+                {
+                    for (int b = 0; b < 10; b++)
+                        StbGui.stbg_button("Button " + b);
+                }
+                StbGui.stbg_end_window();
+            }
+            StbGui.stbg_end_frame();
+
+            StbGui.stbg_render();
+        }
+
+        RenderCommandsToTestScreen();
+
+        AssertScreenEqual([
+            ["""/----------------------------\""", "MW30"],
+            ["""|Window 1                    |""", "MW9MT20MW1"],
+            ["""\----------------------------/""", "MW30"],
+            ["""|                           ^|""", "BW1BT27BW2"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""| /----------\               |""", "BW1BT1CB12BT15BW1"],
+            ["""| |          |               |""", "BW1BT1CB1CT10CB1BT14CT1BW1"],
+            ["""| | Button 0 |               |""", "BW1BT1CB1CT1CW8CT1CB1BT14CT1BW1"],
+            ["""| |          |               |""", "BW1BT1CB1CT10CB1BT14CT1BW1"],
+            ["""| \----------/               |""", "BW1BT1CB12BT14CT1BW1"],
+            ["""| /----------\               |""", "BW1BT1CB12BT14CT1BW1"],
+            ["""| |          |               |""", "BW1BT1CB1CT10CB1BT14CT1BW1"],
+            ["""| | Button 1 |               |""", "BW1BT1CB1CT1CW8CT1CB1BT14CT1BW1"],
+            ["""| |          |               |""", "BW1BT1CB1CT10CB1BT14CT1BW1"],
+            ["""| \----------/               |""", "BW1BT1CB12BT14CT1BW1"],
+            ["""| /----------\               |""", "BW1BT1CB12BT14CT1BW1"],
+            ["""| |          |               |""", "BW1BT1CB1CT10CB1BT14CT1BW1"],
+            ["""| | Button 2 |               |""", "BW1BT1CB1CT1CW8CT1CB1BT14CT1BW1"],
+            ["""|                           v|""", "BW1BT27BW2"],
+            ["""\----------------------------/""", "BW30"],
+        ]);
+    }
+
+    [Fact]
+    public void TestScrollWindowWithTenButtonsInside()
+    {
+        InitGUI();
+
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, 20);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, 30);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_ALLOW_SCROLLBARS, true);
+
+        Action render = () =>
+        {
+            StbGui.stbg_begin_frame();
+            {
+                StbGui.stbg_begin_window("Window 1");
+                {
+                    for (int b = 0; b < 10; b++)
+                        StbGui.stbg_button("Button " + b);
+                }
+                StbGui.stbg_end_window();
+            }
+            StbGui.stbg_end_frame();
+
+            StbGui.stbg_render();
+
+        };
+
+        // Scrollbars take 2 frames to appear
+        for (int i = 0; i < 2; i++)
+            render();
+
+        // click the "scroll down" button 3 times
+        for (var times = 0; times < 3; times++)
+        {
+            // click the "scroll down" button
+            StbGui.stbg_set_user_input(new StbGui.stbg_user_input()
+            {
+                mouse_position = StbGui.stbg_build_position(28, 18),
+                mouse_position_valid = true,
+                mouse_button_1 = true,
+            });
+
+            render();
+
+            // release the "scroll down" button
+            StbGui.stbg_set_user_input(new StbGui.stbg_user_input()
+            {
+                mouse_position = StbGui.stbg_build_position(28, 18),
+                mouse_position_valid = true,
+                mouse_button_1 = false,
+            });
+
+            render();
+        }
+
+        RenderCommandsToTestScreen();
+
+        AssertScreenEqual([
+            ["""/----------------------------\""", "MW30"],
+            ["""|Window 1                    |""", "MW9MT20MW1"],
+            ["""\----------------------------/""", "MW30"],
+            ["""|                           ^|""", "BW1BT27BW2"],
+            ["""|                            |""", "BW1BT27CT1BW1"],
+            ["""| \----------/               |""", "BW1BT1CB12BT14CT1BW1"],
+            ["""| /----------\               |""", "BW1BT1CB12BT15BW1"],
+            ["""| |          |               |""", "BW1BT1CB1CT10CB1BT15BW1"],
+            ["""| | Button 2 |               |""", "BW1BT1CB1CT1CW8CT1CB1BT14CT1BW1"],
+            ["""| |          |               |""", "BW1BT1CB1CT10CB1BT14CT1BW1"],
+            ["""| \----------/               |""", "BW1BT1CB12BT14CT1BW1"],
+            ["""| /----------\               |""", "BW1BT1CB12BT14CT1BW1"],
+            ["""| |          |               |""", "BW1BT1CB1CT10CB1BT14CT1BW1"],
+            ["""| | Button 3 |               |""", "BW1BT1CB1CT1CW8CT1CB1BT14CT1BW1"],
+            ["""| |          |               |""", "BW1BT1CB1CT10CB1BT14CT1BW1"],
+            ["""| \----------/               |""", "BW1BT1CB12BT14CT1BW1"],
+            ["""| /----------\               |""", "BW1BT1CB12BT14CT1BW1"],
+            ["""| |          |               |""", "BW1BT1CB1CT10CB1BT14CT1BW1"],
+            ["""|                           v|""", "BW1BT27BR1BW1"],
+            ["""\----------------------------/""", "BW30"],
+        ]);
+    }
+
+    [Fact]
+    public void TestScrollWindowUsingMouseWheelWithTenButtonsInside()
+    {
+        InitGUI();
+
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, 20);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, 30);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_ALLOW_SCROLLBARS, true);
+
+        Action render = () =>
+        {
+            StbGui.stbg_begin_frame();
+            {
+                StbGui.stbg_begin_window("Window 1");
+                {
+                    for (int b = 0; b < 10; b++)
+                        StbGui.stbg_button("Button " + b);
+                }
+                StbGui.stbg_end_window();
+            }
+            StbGui.stbg_end_frame();
+
+            StbGui.stbg_render();
+
+        };
+
+        // Scrollbars take 2 frames to appear
+        for (int i = 0; i < 2; i++)
+            render();
+
+        // use the scroll wheel 3 times
+        for (var times = 0; times < 3; times++)
+        {
+            // use the scroll wheel in the middle of the window
+            StbGui.stbg_set_user_input(new StbGui.stbg_user_input()
+            {
+                mouse_position = StbGui.stbg_build_position(14, 9),
+                mouse_position_valid = true,
+                mouse_wheel_scroll_amount = { y = -1 }
+            });
+
+            render();
+
+            StbGui.stbg_set_user_input(new StbGui.stbg_user_input()
+            {
+                mouse_position = StbGui.stbg_build_position(14, 9),
+                mouse_position_valid = true,
+            });
+
+            render();
+        }
+
+        RenderCommandsToTestScreen();
+
+        AssertScreenEqual([
+            ["""/----------------------------\""", "WW30"],
+            ["""|Window 1                    |""", "WW1WM8WT20WW1"],
+            ["""\----------------------------/""", "WW30"],
+            ["""|                           ^|""", "BW1BT27BW2"],
+            ["""|                            |""", "BW1BT27CT1BW1"],
+            ["""| \----------/               |""", "BW1BT1CB12BT14CT1BW1"],
+            ["""| /----------\               |""", "BW1BT1CB12BT15BW1"],
+            ["""| |          |               |""", "BW1BT1CB1CT10CB1BT15BW1"],
+            ["""| | Button 2 |               |""", "BW1BT1CB1CT1CW8CT1CB1BT14CT1BW1"],
+            ["""| |          |               |""", "BW1BT1CB1CT10CB1BT14CT1BW1"],
+            ["""| \----------/               |""", "BW1BT1CB12BT14CT1BW1"],
+            ["""| /----------\               |""", "BW1BT1CB12BT14CT1BW1"],
+            ["""| |          |               |""", "BW1BT1CB1CT10CB1BT14CT1BW1"],
+            ["""| | Button 3 |               |""", "BW1BT1CB1CT1CW8CT1CB1BT14CT1BW1"],
+            ["""| |          |               |""", "BW1BT1CB1CT10CB1BT14CT1BW1"],
+            ["""| \----------/               |""", "BW1BT1CB12BT14CT1BW1"],
+            ["""| /----------\               |""", "BW1BT1CB12BT14CT1BW1"],
+            ["""| |          |               |""", "BW1BT1CB1CT10CB1BT14CT1BW1"],
+            ["""|                           v|""", "BW1BT27BW2"],
+            ["""\----------------------------/""", "BW30"],
+        ]);
+    }    
+
+    [Fact]
+    public void TestScrollWindowUsingMouseWheelWithTenButtonsInsideWhileHoveringAButton()
+    {
+        InitGUI();
+
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, 20);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, 30);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_ALLOW_SCROLLBARS, true);
+
+        Action render = () =>
+        {
+            StbGui.stbg_begin_frame();
+            {
+                StbGui.stbg_begin_window("Window 1");
+                {
+                    for (int b = 0; b < 10; b++)
+                        StbGui.stbg_button("Button " + b);
+                }
+                StbGui.stbg_end_window();
+            }
+            StbGui.stbg_end_frame();
+
+            StbGui.stbg_render();
+
+        };
+
+        // Scrollbars take 2 frames to appear
+        for (int i = 0; i < 2; i++)
+            render();
+
+        // use the scroll wheel 3 times
+        for (var times = 0; times < 3; times++)
+        {
+            // use the scroll wheel in the middle of the window
+            StbGui.stbg_set_user_input(new StbGui.stbg_user_input()
+            {
+                mouse_position = StbGui.stbg_build_position(6, 9),
+                mouse_position_valid = true,
+                mouse_wheel_scroll_amount = { y = -1 }
+            });
+
+            render();
+
+            StbGui.stbg_set_user_input(new StbGui.stbg_user_input()
+            {
+                mouse_position = StbGui.stbg_build_position(6, 9),
+                mouse_position_valid = true,
+            });
+
+            render();
+        }
+
+        RenderCommandsToTestScreen();
+
+        AssertScreenEqual([
+            ["""/----------------------------\""", "MW30"],
+            ["""|Window 1                    |""", "MW9MT20MW1"],
+            ["""\----------------------------/""", "MW30"],
+            ["""|                           ^|""", "BW1BT27BW2"],
+            ["""|                            |""", "BW1BT27CT1BW1"],
+            ["""| \----------/               |""", "BW1BT1CB12BT14CT1BW1"],
+            ["""| /----------\               |""", "BW1BT1BW12BT15BW1"],
+            ["""| |          |               |""", "BW1BT1BW1BT10BW1BT15BW1"],
+            ["""| | Button 2 |               |""", "BW1BT1BW1BT1BK8BT1BW1BT14CT1BW1"],
+            ["""| |          |               |""", "BW1BT1BW1BT10BW1BT14CT1BW1"],
+            ["""| \----------/               |""", "BW1BT1BW12BT14CT1BW1"],
+            ["""| /----------\               |""", "BW1BT1CB12BT14CT1BW1"],
+            ["""| |          |               |""", "BW1BT1CB1CT10CB1BT14CT1BW1"],
+            ["""| | Button 3 |               |""", "BW1BT1CB1CT1CW8CT1CB1BT14CT1BW1"],
+            ["""| |          |               |""", "BW1BT1CB1CT10CB1BT14CT1BW1"],
+            ["""| \----------/               |""", "BW1BT1CB12BT14CT1BW1"],
+            ["""| /----------\               |""", "BW1BT1CB12BT14CT1BW1"],
+            ["""| |          |               |""", "BW1BT1CB1CT10CB1BT14CT1BW1"],
+            ["""|                           v|""", "BW1BT27BW2"],
+            ["""\----------------------------/""", "BW30"],
+        ]);
+    }        
+
+    [Fact]
+    public void TestRenderWindowScrollableWithTenButtonsHorizontallyInside()
+    {
+        InitGUI();
+
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, 20);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, 30);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_ALLOW_SCROLLBARS, true);
+
+        // Scrollbars take 2 frames to appear
+        for (int i = 0; i < 2; i++)
+        {
+            StbGui.stbg_begin_frame();
+            {
+                StbGui.stbg_begin_window("Window 1");
+                {
+                    StbGui.stbg_begin_container("con", StbGui.STBG_CHILDREN_LAYOUT.HORIZONTAL);
+                    {
+                        for (int b = 0; b < 10; b++)
+                            StbGui.stbg_button("Button " + b);
+                    }
+                    StbGui.stbg_end_container();
+                }
+                StbGui.stbg_end_window();
+            }
+            StbGui.stbg_end_frame();
+
+            StbGui.stbg_render();
+        }
+
+        RenderCommandsToTestScreen();
+
+        AssertScreenEqual([
+            ["""/----------------------------\""", "MW30"],
+            ["""|Window 1                    |""", "MW9MT20MW1"],
+            ["""\----------------------------/""", "MW30"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""| /----------\/----------\/- |""", "BW1BT1CB26BT1BW1"],
+            ["""| |          ||          ||  |""", "BW1BT1CB1CT10CB2CT10CB2CT1BT1BW1"],
+            ["""| | Button 0 || Button 1 ||  |""", "BW1BT1CB1CT1CW8CT1CB2CT1CW8CT1CB2CT1BT1BW1"],
+            ["""| |          ||          ||  |""", "BW1BT1CB1CT10CB2CT10CB2CT1BT1BW1"],
+            ["""| \----------/\----------/\- |""", "BW1BT1CB26BT1BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|<                          >|""", "BW2BT2CT24BW2"],
+            ["""\----------------------------/""", "BW30"],
+        ]);
+    }
+
+    [Fact]
+    public void TestScrollWindowWithTenButtonsHorizontallyInside()
+    {
+        InitGUI();
+
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, 20);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, 30);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_ALLOW_SCROLLBARS, true);
+
+        Action render = () =>
+        {
+            StbGui.stbg_begin_frame();
+            {
+                StbGui.stbg_begin_window("Window 1");
+                {
+                    StbGui.stbg_begin_container("con", StbGui.STBG_CHILDREN_LAYOUT.HORIZONTAL);
+                    {
+                        for (int b = 0; b < 10; b++)
+                            StbGui.stbg_button("Button " + b);
+                    }
+                    StbGui.stbg_end_container();
+                }
+                StbGui.stbg_end_window();
+            }
+            StbGui.stbg_end_frame();
+
+            StbGui.stbg_render();
+
+        };
+
+        // Scrollbars take 2 frames to appear
+        for (int i = 0; i < 2; i++)
+            render();
+
+        // click the "scroll down" button 3 times
+        for (var times = 0; times < 3; times++)
+        {
+            // click the "scroll down" button
+            StbGui.stbg_set_user_input(new StbGui.stbg_user_input()
+            {
+                mouse_position = StbGui.stbg_build_position(28, 18),
+                mouse_position_valid = true,
+                mouse_button_1 = true,
+            });
+
+            render();
+
+            // release the "scroll down" button
+            StbGui.stbg_set_user_input(new StbGui.stbg_user_input()
+            {
+                mouse_position = StbGui.stbg_build_position(28, 18),
+                mouse_position_valid = true,
+                mouse_button_1 = false,
+            });
+
+            render();
+        }
+
+        RenderCommandsToTestScreen();
+
+        AssertScreenEqual([
+            ["""/----------------------------\""", "MW30"],
+            ["""|Window 1                    |""", "MW9MT20MW1"],
+            ["""\----------------------------/""", "MW30"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""| --\/----------\/---------- |""", "BW1BT1CB26BT1BW1"],
+            ["""|   ||          ||           |""", "BW1BT1CT2CB2CT10CB2CT10BT1BW1"],
+            ["""| 0 || Button 1 || Button 2  |""", "BW1BT1CW1CT1CB2CT1CW8CT1CB2CT1CW8CT1BT1BW1"],
+            ["""|   ||          ||           |""", "BW1BT1CT2CB2CT10CB2CT10BT1BW1"],
+            ["""| --/\----------/\---------- |""", "BW1BT1CB26BT1BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|<                          >|""", "BW2CT2BT2CT22BR1BW1"],
+            ["""\----------------------------/""", "BW30"],
+        ]);
+    }
+
+    [Fact]
+    public void TestScrollWindowUsingMouseWheelWithTenButtonsHorizontallyInside()
+    {
+        InitGUI();
+
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, 20);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, 30);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_ALLOW_SCROLLBARS, true);
+
+        Action render = () =>
+        {
+            StbGui.stbg_begin_frame();
+            {
+                StbGui.stbg_begin_window("Window 1");
+                {
+                    StbGui.stbg_begin_container("con", StbGui.STBG_CHILDREN_LAYOUT.HORIZONTAL);
+                    {
+                        for (int b = 0; b < 10; b++)
+                            StbGui.stbg_button("Button " + b);
+                    }
+                    StbGui.stbg_end_container();
+                }
+                StbGui.stbg_end_window();
+            }
+            StbGui.stbg_end_frame();
+
+            StbGui.stbg_render();
+
+        };
+
+        // Scrollbars take 2 frames to appear
+        for (int i = 0; i < 2; i++)
+            render();
+
+        // use the scroll wheel 3 times
+        for (var times = 0; times < 3; times++)
+        {
+            // use the scroll wheel 
+            StbGui.stbg_set_user_input(new StbGui.stbg_user_input()
+            {
+                mouse_position = StbGui.stbg_build_position(14, 13),
+                mouse_position_valid = true,
+                mouse_wheel_scroll_amount = { x = 1 }
+            });
+
+            render();
+
+            // release the scroll wheel
+            StbGui.stbg_set_user_input(new StbGui.stbg_user_input()
+            {
+                mouse_position = StbGui.stbg_build_position(14, 13),
+                mouse_position_valid = true,
+            });
+
+            render();
+        }
+
+        RenderCommandsToTestScreen();
+
+        AssertScreenEqual([
+            ["""/----------------------------\""", "WW30"],
+            ["""|Window 1                    |""", "WW1WM8WT20WW1"],
+            ["""\----------------------------/""", "WW30"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""| --\/----------\/---------- |""", "BW1BT1CB26BT1BW1"],
+            ["""|   ||          ||           |""", "BW1BT1CT2CB2CT10CB2CT10BT1BW1"],
+            ["""| 0 || Button 1 || Button 2  |""", "BW1BT1CW1CT1CB2CT1CW8CT1CB2CT1CW8CT1BT1BW1"],
+            ["""|   ||          ||           |""", "BW1BT1CT2CB2CT10CB2CT10BT1BW1"],
+            ["""| --/\----------/\---------- |""", "BW1BT1CB26BT1BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""|<                          >|""", "BW2CT2BT2CT22BW2"],
+            ["""\----------------------------/""", "BW30"],
+        ]);
+    }    
+
+    [Fact]
+    public void TestRenderWindowScrollableWithBothScrollDirections()
+    {
+        InitGUI();
+
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, 20);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, 30);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_ALLOW_SCROLLBARS, true);
+
+        // Scrollbars take 2 frames to appear
+        for (int i = 0; i < 2; i++)
+        {
+            StbGui.stbg_begin_frame();
+            {
+                StbGui.stbg_begin_window("Window 1");
+                {
+                    for (int c = 0; c < 10; c++)
+                    {                        
+                        StbGui.stbg_begin_container("con" + c, StbGui.STBG_CHILDREN_LAYOUT.HORIZONTAL);
+                        {
+                            for (int b = 0; b < 10; b++)
+                                StbGui.stbg_button("Button " + b);
+                        }
+                        StbGui.stbg_end_container();
+                    }
+                }
+                StbGui.stbg_end_window();
+            }
+            StbGui.stbg_end_frame();
+
+            StbGui.stbg_render();
+        }
+
+        RenderCommandsToTestScreen();
+
+        AssertScreenEqual([
+            ["""/----------------------------\""", "MW30"],
+            ["""|Window 1                    |""", "MW9MT20MW1"],
+            ["""\----------------------------/""", "MW30"],
+            ["""|                           ^|""", "BW1BT27BW2"],
+            ["""|                            |""", "BW1BT28BW1"],
+            ["""| /----------\/----------\/  |""", "BW1BT1CB25BT2BW1"],
+            ["""| |          ||          ||  |""", "BW1BT1CB1CT10CB2CT10CB2BT1CT1BW1"],
+            ["""| | Button 0 || Button 1 ||  |""", "BW1BT1CB1CT1CW8CT1CB2CT1CW8CT1CB2BT1CT1BW1"],
+            ["""| |          ||          ||  |""", "BW1BT1CB1CT10CB2CT10CB2BT1CT1BW1"],
+            ["""| \----------/\----------/\  |""", "BW1BT1CB25BT1CT1BW1"],
+            ["""| /----------\/----------\/  |""", "BW1BT1CB25BT1CT1BW1"],
+            ["""| |          ||          ||  |""", "BW1BT1CB1CT10CB2CT10CB2BT1CT1BW1"],
+            ["""| | Button 0 || Button 1 ||  |""", "BW1BT1CB1CT1CW8CT1CB2CT1CW8CT1CB2BT1CT1BW1"],
+            ["""| |          ||          ||  |""", "BW1BT1CB1CT10CB2CT10CB2BT1CT1BW1"],
+            ["""| \----------/\----------/\  |""", "BW1BT1CB25BT1CT1BW1"],
+            ["""| /----------\/----------\/  |""", "BW1BT1CB25BT1CT1BW1"],
+            ["""| |          ||          ||  |""", "BW1BT1CB1CT10CB2CT10CB2BT1CT1BW1"],
+            ["""|                            |""", "BW1BT27CT1BW1"],
+            ["""|<                         >v|""", "BW2BT2CT23BW3"],
+            ["""\----------------------------/""", "BW30"],
         ]);
     }
 
