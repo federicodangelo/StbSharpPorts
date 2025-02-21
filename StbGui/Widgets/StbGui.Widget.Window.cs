@@ -293,7 +293,10 @@ public partial class StbGui
                     intrinsic_position.x = MathF.Max(mouse_position.x - parent_bounds.x0, 0);
                     intrinsic_size.width = (bounds.x1 - bounds.x0) - parent_bounds.x0 + (x - intrinsic_position.x);
 
-                    var min_width = window.properties.computed_bounds.children_size.width + window.properties.layout.inner_padding.left + window.properties.layout.inner_padding.right;
+                    var min_width = window.properties.layout.inner_padding.left + window.properties.layout.inner_padding.right +
+                        (((window.properties.layout.flags & STBG_WIDGET_LAYOUT_FLAGS.ALLOW_CHILDREN_OVERFLOW) == 0) ?
+                          window.properties.computed_bounds.children_size.width : 0);
+
                     if (intrinsic_size.width < min_width)
                     {
                         var delta = min_width - intrinsic_size.width;
@@ -312,7 +315,10 @@ public partial class StbGui
                     intrinsic_position.y = MathF.Max(mouse_position.y - parent_bounds.y0, 0);
                     intrinsic_size.height = (bounds.y1 - bounds.y0) - parent_bounds.y0 + (y - intrinsic_position.y);
 
-                    var min_height = window.properties.computed_bounds.children_size.height + window.properties.layout.inner_padding.top + window.properties.layout.inner_padding.bottom;
+                    var min_height = window.properties.layout.inner_padding.top + window.properties.layout.inner_padding.bottom +
+                        (((window.properties.layout.flags & STBG_WIDGET_LAYOUT_FLAGS.ALLOW_CHILDREN_OVERFLOW) == 0) ?
+                          window.properties.computed_bounds.children_size.height : 0);
+
                     if (intrinsic_size.height < min_height)
                     {
                         var delta = min_height - intrinsic_size.height;
@@ -348,7 +354,7 @@ public partial class StbGui
             if (stbg__window_get_children_scrolling_info(ref window, out var needs_horizontal_bar, out var needs_vertical_bar, out var horizontal_size, out var vertical_size))
             {
                 var scroll_lines_amount = stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_SCROLL_LINES_AMOUNT);
-                
+
                 if (needs_vertical_bar && context.input.mouse_wheel_scroll_amount.y != 0)
                 {
                     var dy = context.theme.default_font_style.size * scroll_lines_amount * context.input.mouse_wheel_scroll_amount.y;
@@ -366,7 +372,7 @@ public partial class StbGui
                 return true;
             }
         }
-        
+
         return false;
     }
 
