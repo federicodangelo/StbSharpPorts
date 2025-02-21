@@ -101,7 +101,7 @@ static public class Program
         }
 
         var output = new MemoryStream();
-        StbImagWrite.stbi_write_func write_func = (data, size) =>
+        StbImageWrite.stbi_write_func write_func = (data, size) =>
         {
             if (size < 16)
             {
@@ -120,17 +120,17 @@ static public class Program
         {
             case StbiFormat.Png:
                 // Setting a filter modes beforehand makes the encoding faster
-                StbImagWrite.stbi_write_force_png_filter = StbImagWrite.STBIW_PNG_FILTER.NONE;
-                StbImagWrite.stbi_write_png_to_func(write_func, (int) image.Width, (int) image.Height, components, pixels, 0);
+                StbImageWrite.stbi_write_force_png_filter = StbImageWrite.STBIW_PNG_FILTER.NONE;
+                StbImageWrite.stbi_write_png_to_func(write_func, (int) image.Width, (int) image.Height, components, pixels, 0);
                 break;
             case StbiFormat.Bmp:
-                StbImagWrite.stbi_write_bmp_to_func(write_func, (int) image.Width, (int) image.Height, components, pixels);
+                StbImageWrite.stbi_write_bmp_to_func(write_func, (int) image.Width, (int) image.Height, components, pixels);
                 break;
             case StbiFormat.Tga:
-                StbImagWrite.stbi_write_tga_to_func(write_func, (int) image.Width, (int) image.Height, components, pixels);
+                StbImageWrite.stbi_write_tga_to_func(write_func, (int) image.Width, (int) image.Height, components, pixels);
                 break;
             case StbiFormat.Jpeg:
-                StbImagWrite.stbi_write_jpg_to_func(write_func, (int) image.Width, (int) image.Height, components, pixels, 95);
+                StbImageWrite.stbi_write_jpg_to_func(write_func, (int) image.Width, (int) image.Height, components, pixels, 95);
                 break;
         }
 

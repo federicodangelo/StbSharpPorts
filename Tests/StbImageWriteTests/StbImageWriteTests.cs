@@ -82,7 +82,7 @@ public class StbImageWriteTests
         }
 
         var output = new MemoryStream();
-        StbImagWrite.stbi_write_func write_func = (data, size) =>
+        StbImageWrite.stbi_write_func write_func = (data, size) =>
         {
             if (size < 16)
             {
@@ -98,16 +98,16 @@ public class StbImageWriteTests
         switch (format)
         {
             case StbiFormat.Png:
-                Assert.True(StbImagWrite.stbi_write_png_to_func(write_func, (int)image.Width, (int)image.Height, components, pixels, 0));
+                Assert.True(StbImageWrite.stbi_write_png_to_func(write_func, (int)image.Width, (int)image.Height, components, pixels, 0));
                 break;
             case StbiFormat.Bmp:
-                Assert.True(StbImagWrite.stbi_write_bmp_to_func(write_func, (int)image.Width, (int)image.Height, components, pixels));
+                Assert.True(StbImageWrite.stbi_write_bmp_to_func(write_func, (int)image.Width, (int)image.Height, components, pixels));
                 break;
             case StbiFormat.Tga:
-                Assert.True(StbImagWrite.stbi_write_tga_to_func(write_func, (int)image.Width, (int)image.Height, components, pixels));
+                Assert.True(StbImageWrite.stbi_write_tga_to_func(write_func, (int)image.Width, (int)image.Height, components, pixels));
                 break;
             case StbiFormat.Jpeg:
-                Assert.True(StbImagWrite.stbi_write_jpg_to_func(write_func, (int)image.Width, (int)image.Height, components, pixels, 95));
+                Assert.True(StbImageWrite.stbi_write_jpg_to_func(write_func, (int)image.Width, (int)image.Height, components, pixels, 95));
                 break;
         }
 

@@ -12,7 +12,7 @@ public partial class StbGui
     private struct stbg__scrollbar_parameters
     {
         public STBG_SCROLLBAR_DIRECTION direction;
-        public bool intenger;
+        public bool integer;
         public float step_size;
         public float min_value;
         public float max_value;
@@ -49,7 +49,7 @@ public partial class StbGui
     private static void stbg__scrollbar_set_parameters(ref stbg_widget widget, stbg__scrollbar_parameters parameters)
     {
         widget.properties.parameters.sub_type = (int)parameters.direction;
-        widget.properties.parameters.parameter1.b = parameters.intenger;
+        widget.properties.parameters.parameter1.b = parameters.integer;
         widget.properties.parameters.parameter2.f = parameters.step_size;
         widget.properties.parameters.min_value.f = parameters.min_value;
         widget.properties.parameters.max_value.f = parameters.max_value;
@@ -59,7 +59,7 @@ public partial class StbGui
     {
         parameters = new stbg__scrollbar_parameters();
         parameters.direction = (STBG_SCROLLBAR_DIRECTION)widget.properties.parameters.sub_type;
-        parameters.intenger = widget.properties.parameters.parameter1.b;
+        parameters.integer = widget.properties.parameters.parameter1.b;
         parameters.step_size = widget.properties.parameters.parameter2.f;
         parameters.min_value = widget.properties.parameters.min_value.f;
         parameters.max_value = widget.properties.parameters.max_value.f;
@@ -73,7 +73,7 @@ public partial class StbGui
         parameters.min_value = min_value;
         parameters.max_value = max_value;
         parameters.step_size = step_size;
-        parameters.intenger = integer;
+        parameters.integer = integer;
         parameters.direction = direction;
 
         stbg__scrollbar_set_parameters(ref scrollbar, parameters);
@@ -143,7 +143,7 @@ public partial class StbGui
         {
             if (context.input_feedback.dragged_widget_id == scrollbar.id)
             {
-                // Cancel any dragging operation realted to this widget
+                // Cancel any dragging operation related to this widget
                 context.input_feedback.dragged_widget_id = STBG_WIDGET_ID_NULL;
             }
 
@@ -223,7 +223,7 @@ public partial class StbGui
     {
         var old_value = scrollbar.properties.value.f;
         new_value = stbg_clamp(new_value, parameters.min_value, parameters.max_value);
-        if (parameters.intenger)
+        if (parameters.integer)
             new_value = (int)new_value;
 
         if (new_value != old_value)
@@ -305,7 +305,7 @@ public partial class StbGui
 
         var scrolling_percent = scrolling_range_value != 0 ? scrolling_value / scrolling_range_value : 1;
 
-        var thumb_size = parameters.intenger ? stbg_clamp(scrolling_size_available - scrolling_range_value, min_thumb_size, scrolling_size_available) : min_thumb_size;
+        var thumb_size = parameters.integer ? stbg_clamp(scrolling_size_available - scrolling_range_value, min_thumb_size, scrolling_size_available) : min_thumb_size;
 
         var scrolling_size = scrolling_size_available - thumb_size;
 
@@ -329,7 +329,7 @@ public partial class StbGui
 
         var scrolling_range_value = parameters.max_value - parameters.min_value;
 
-        var thumb_size = parameters.intenger ? stbg_clamp(scrolling_size_available - scrolling_range_value, min_thumb_size, scrolling_size_available) : min_thumb_size;
+        var thumb_size = parameters.integer ? stbg_clamp(scrolling_size_available - scrolling_range_value, min_thumb_size, scrolling_size_available) : min_thumb_size;
 
         var scrolling_size = scrolling_size_available - thumb_size;
 

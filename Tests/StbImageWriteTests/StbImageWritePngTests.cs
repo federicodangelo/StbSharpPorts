@@ -91,16 +91,16 @@ public class StbImageWritePngTests : StbImageWriteTests
             )
         ] string imageFileName,
         [CombinatorialValues(
-            StbImagWrite.STBIW_PNG_FILTER.RUNTIME_DETECTED, 
-            StbImagWrite.STBIW_PNG_FILTER.NONE, 
-            StbImagWrite.STBIW_PNG_FILTER.SUB, 
-            StbImagWrite.STBIW_PNG_FILTER.UP, 
-            StbImagWrite.STBIW_PNG_FILTER.AVERAGE, 
-            StbImagWrite.STBIW_PNG_FILTER.PAETH)]
-        StbImagWrite.STBIW_PNG_FILTER pngFilter
+            StbImageWrite.STBIW_PNG_FILTER.RUNTIME_DETECTED, 
+            StbImageWrite.STBIW_PNG_FILTER.NONE, 
+            StbImageWrite.STBIW_PNG_FILTER.SUB, 
+            StbImageWrite.STBIW_PNG_FILTER.UP, 
+            StbImageWrite.STBIW_PNG_FILTER.AVERAGE, 
+            StbImageWrite.STBIW_PNG_FILTER.PAETH)]
+        StbImageWrite.STBIW_PNG_FILTER pngFilter
         )
     {
-        StbImagWrite.stbi_write_force_png_filter = pngFilter;
+        StbImageWrite.stbi_write_force_png_filter = pngFilter;
         TestImage(imageFileName, StbiFormat.Png, 4, 0);
     }
 

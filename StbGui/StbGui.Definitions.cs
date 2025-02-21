@@ -56,9 +56,9 @@ public partial class StbGui
         public int max_fonts;
 
         /// <summary>
-        /// Behaviour of assert calls, defaults to ASSERT
+        /// Behavior of assert calls, defaults to ASSERT
         /// </summary>
-        public STBG_ASSERT_BEHAVIOUR assert_behaviour;
+        public STBG_ASSERT_BEHAVIOR assert_behavior;
 
         /// <summary>
         /// Size of render commands queue, defaults to DEFAULT_RENDER_QUEUE_SIZE
@@ -90,7 +90,7 @@ public partial class StbGui
         /// </summary>
         FIXED_PIXELS,
         /// <summary>
-        /// Widget has an instrinsic size based on the measurement of the text
+        /// Widget has an intrinsic size based on the measurement of the text
         /// </summary>
         MEASURE_TEXT
     };
@@ -259,12 +259,12 @@ public partial class StbGui
     public struct stbg_widget_layout
     {
         /// <summary>
-        /// Widget size constrains, can be overriden if the widget doesn't fit in the expected bounds, or if it auto-expands
+        /// Widget size constrains, can be overridden if the widget doesn't fit in the expected bounds, or if it auto-expands
         /// </summary>
         public stbg_widget_constrains constrains;
 
         /// <summary>
-        /// Intrinsic size, doesn't include inner_padding, can be overriden if the widget doesn't fit in the expected bounds, or if it auto-expands
+        /// Intrinsic size, doesn't include inner_padding, can be overridden if the widget doesn't fit in the expected bounds, or if it auto-expands
         /// </summary>
         public stbg_widget_intrinsic_size intrinsic_size;
 
@@ -274,7 +274,7 @@ public partial class StbGui
         public stbg_position intrinsic_position;
 
         /// <summary>
-        /// Intrinsic sorting index value, used when the parent's children layout direction is FREE to sort the childrens
+        /// Intrinsic sorting index value, used when the parent's children layout direction is FREE to sort the children
         /// </summary>
         public int intrinsic_sorting_index;
 
@@ -548,7 +548,7 @@ public partial class StbGui
         public STBG_ACTIVE_CURSOR_TYPE active_cursor;
     }
 
-    public enum STBG_ASSERT_BEHAVIOUR
+    public enum STBG_ASSERT_BEHAVIOR
     {
         /// <summary>
         /// Asserts in DEBUG builds, does nothing in RELEASE builds

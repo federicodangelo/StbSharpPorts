@@ -283,7 +283,7 @@ public partial class StbGui
     public static ref stbg_widget stbg_get_widget_by_id(widget_id id)
     {
         stbg__assert(id != STBG_WIDGET_ID_NULL);
-        stbg__assert(context.widgets[id].last_used_in_frame == context.current_frame, "Can't access preious frame widget until they are created again");
+        stbg__assert(context.widgets[id].last_used_in_frame == context.current_frame, "Can't access previous frame widget until they are created again");
         return ref stbg__get_widget_by_id_internal(id);
     }
 
@@ -362,7 +362,7 @@ public partial class StbGui
     }
 
     /// <summary>
-    /// Changes existing widget instrinsic size
+    /// Changes existing widget intrinsic size
     /// </summary>
     public static void stbg_set_widget_size(widget_id widget_id, float width, float height)
     {
@@ -378,7 +378,7 @@ public partial class StbGui
     }
 
     /// <summary>
-    /// Changes existing widget instrinsic size
+    /// Changes existing widget intrinsic size
     /// </summary>
     public static void stbg_set_last_widget_size(float width, float height)
     {

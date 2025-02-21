@@ -1,3 +1,21 @@
 {
-    "dotnet.defaultSolution": "StrTrueTypeSharp.sln"
+    "dotnet.defaultSolution": "StrTrueTypeSharp.sln",
+    "cSpell.words": [
+        "antialiasing",
+        "bakedchar",
+        "chardata",
+        "codepoint",
+        "Codepoints",
+        "fontinfo",
+        "offsetted",
+        "oversample",
+        "packedchar",
+        "RASTERIZER",
+        "rects",
+        "stbg",
+        "stbiw",
+        "stbrp",
+        "stbtt",
+        "vsync"
+    ]
 }

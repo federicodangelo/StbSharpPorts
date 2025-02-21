@@ -61,11 +61,11 @@ public partial class StbGui
         input.mouse_position_valid = user_input.mouse_position_valid;
         input.mouse_wheel_scroll_amount = user_input.mouse_wheel_scroll_amount;
 
-        stgb_update_input_button(user_input.mouse_button_1, ref input.mouse_button_1, ref input.mouse_button_1_down, ref input.mouse_button_1_up);
-        stgb_update_input_button(user_input.mouse_button_2, ref input.mouse_button_2, ref input.mouse_button_2_down, ref input.mouse_button_2_up);
+        stbg_update_input_button(user_input.mouse_button_1, ref input.mouse_button_1, ref input.mouse_button_1_down, ref input.mouse_button_1_up);
+        stbg_update_input_button(user_input.mouse_button_2, ref input.mouse_button_2, ref input.mouse_button_2_down, ref input.mouse_button_2_up);
     }
 
-    private static void stgb_update_input_button(bool user_pressed, ref bool pressed, ref bool down, ref bool up)
+    private static void stbg_update_input_button(bool user_pressed, ref bool pressed, ref bool down, ref bool up)
     {
         if (user_pressed)
         {
@@ -141,10 +141,10 @@ public partial class StbGui
         while (children_id != STBG_WIDGET_ID_NULL)
         {
             ref var children = ref stbg_get_widget_by_id(children_id);
-            var childrean_at_position = stbg__get_widget_id_at_position(ref children, position, global_rect);
+            var children_at_position = stbg__get_widget_id_at_position(ref children, position, global_rect);
 
-            if (childrean_at_position != STBG_WIDGET_ID_NULL)
-                return childrean_at_position;
+            if (children_at_position != STBG_WIDGET_ID_NULL)
+                return children_at_position;
 
             children_id = children.hierarchy.prev_sibling_id;
         }

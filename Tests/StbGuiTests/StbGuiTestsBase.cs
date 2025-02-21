@@ -284,7 +284,7 @@ public class StbGuiTestsBase : IDisposable
 
     static protected void InitGUI()
     {
-        InitGUI(new() { assert_behaviour = StbGui.STBG_ASSERT_BEHAVIOUR.EXCEPTION, dont_nest_non_window_root_elements_into_debug_window = true });
+        InitGUI(new() { assert_behavior = StbGui.STBG_ASSERT_BEHAVIOR.EXCEPTION, dont_nest_non_window_root_elements_into_debug_window = true });
     }
 
     static protected void InitGUI(StbGui.stbg_init_options options)
@@ -336,7 +336,7 @@ public class StbGuiTestsBase : IDisposable
         var windowChildrenPadding = MathF.Ceiling(font_style.size / 2);
         var windowDefaultWidth = 34;
         var windowDefaultHeight = 22;
-        var windowChidlrenSpacing = 0;
+        var windowChildrenSpacing = 0;
 
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, windowBorder);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT, windowTitleHeight);
@@ -358,7 +358,7 @@ public class StbGuiTestsBase : IDisposable
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR, StbGui.STBG_COLOR_WHITE);
 
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_ALLOW_SCROLLBARS, false);
-        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING, windowChidlrenSpacing);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING, windowChildrenSpacing);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, windowDefaultWidth);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, windowDefaultHeight);
 

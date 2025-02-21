@@ -32,7 +32,7 @@ public class StbGuiLayoutTests : StbGuiTestsBase
     }
 
     [Fact]
-    public void TestSetStyleWhildInsideAFrameShouldThrowAnException()
+    public void TestSetStyleWhileInsideAFrameShouldThrowAnException()
     {
         InitGUI();
 

@@ -73,11 +73,11 @@ public partial class StbGui
         var widget_constrains = widget_layout.constrains;
         var widget_inner_padding = widget.properties.layout.inner_padding;
 
-        // Build current contrains by merging the widget constrains with the parent constrains
+        // Build current constrains by merging the widget constrains with the parent constrains
         var constrains = stbg_merge_constrains(parent_constrains, widget_constrains);
 
-        stbg_size intrinsic_size = stbg__get_instrinsic_size(widget, widget_intrinsic_size);
-        bool intrinsic_size_includes_padding = stbg__get_instrinsic_size_includes_padding(widget_intrinsic_size);
+        stbg_size intrinsic_size = stbg__get_intrinsic_size(widget, widget_intrinsic_size);
+        bool intrinsic_size_includes_padding = stbg__get_intrinsic_size_includes_padding(widget_intrinsic_size);
 
         var accumulated_children_size = stbg_build_size_zero();
 
@@ -139,7 +139,7 @@ public partial class StbGui
                     children.properties.layout.last_layout_in_frame = context.current_frame;
                     children_id = children.hierarchy.next_sibling_id;
 
-                    // Move children last in hierarchy, so it's always on top of all other childrens, and handles input first
+                    // Move children last in hierarchy, so it's always on top of all other children, and handles input first
                     stbg__set_widget_last_in_parent(ref children);
 
                     continue;
@@ -282,7 +282,7 @@ public partial class StbGui
         }
     }
 
-    private static stbg_size stbg__get_instrinsic_size(stbg_widget widget, stbg_widget_intrinsic_size widget_intrinsic_size)
+    private static stbg_size stbg__get_intrinsic_size(stbg_widget widget, stbg_widget_intrinsic_size widget_intrinsic_size)
     {
         return widget_intrinsic_size.type == STBG_INTRINSIC_SIZE_TYPE.FIXED_PIXELS ?
             widget_intrinsic_size.size :
@@ -291,7 +291,7 @@ public partial class StbGui
             stbg_build_size_zero();
     }
 
-    private static bool stbg__get_instrinsic_size_includes_padding(stbg_widget_intrinsic_size widget_intrinsic_size)
+    private static bool stbg__get_intrinsic_size_includes_padding(stbg_widget_intrinsic_size widget_intrinsic_size)
     {
         return widget_intrinsic_size.type == STBG_INTRINSIC_SIZE_TYPE.FIXED_PIXELS;
     }

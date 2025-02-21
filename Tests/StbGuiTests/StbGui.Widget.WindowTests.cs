@@ -56,7 +56,7 @@ public class StbGuiWindowTests : StbGuiTestsBase
     }
 
     [Fact]
-    public void TestWindowDissapearsInSecondFrame()
+    public void TestWindowDisappearsInSecondFrame()
     {
         InitGUI();
 

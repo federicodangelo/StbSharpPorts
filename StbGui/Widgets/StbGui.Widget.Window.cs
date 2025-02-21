@@ -20,7 +20,7 @@ public partial class StbGui
         var windowChildrenPadding = MathF.Ceiling(font_style.size / 2);
         var windowDefaultWidth = MathF.Ceiling(font_style.size * 30);
         var windowDefaultHeight = MathF.Ceiling(font_style.size * 15);
-        var windowChidlrenSpacing = MathF.Ceiling(font_style.size / 4);
+        var windowChildrenSpacing = MathF.Ceiling(font_style.size / 4);
         var windowSpacingBetweenNewWindows = MathF.Ceiling(font_style.size / 2);
         var windowBorderResizeTolerance = MathF.Ceiling(font_style.size / 4);
 
@@ -36,7 +36,7 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_BOTTOM, windowChildrenPadding);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_LEFT, windowChildrenPadding);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_RIGHT, windowChildrenPadding);
-        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING, windowChidlrenSpacing);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING, windowChildrenSpacing);
 
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_ALLOW_SCROLLBARS, true);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_SCROLL_LINES_AMOUNT, 3);

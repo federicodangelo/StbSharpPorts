@@ -15,24 +15,24 @@ public partial class StbGui
     }
 
 
-    // Use to asssert public API access and potential user errors
+    // Use to assert public API access and potential user errors
     [ExcludeFromCodeCoverage]
     private static void stbg__assert(bool condition, [CallerArgumentExpression(nameof(condition))] string? message = null)
     {
-        switch (context.init_options.assert_behaviour)
+        switch (context.init_options.assert_behavior)
         {
-            case STBG_ASSERT_BEHAVIOUR.ASSERT:
+            case STBG_ASSERT_BEHAVIOR.ASSERT:
                 Debug.Assert(condition, message);
                 break;
-            case STBG_ASSERT_BEHAVIOUR.EXCEPTION:
+            case STBG_ASSERT_BEHAVIOR.EXCEPTION:
                 if (!condition)
                     throw new StbgAssertException(message);
                 break;
-            case STBG_ASSERT_BEHAVIOUR.CONSOLE:
+            case STBG_ASSERT_BEHAVIOR.CONSOLE:
                 if (!condition)
                     Console.Error.WriteLine($"Failed assert: {message}");
                 break;
-            case STBG_ASSERT_BEHAVIOUR.NONE:
+            case STBG_ASSERT_BEHAVIOR.NONE:
                 break;
         }
     }
@@ -42,20 +42,20 @@ public partial class StbGui
     [ExcludeFromCodeCoverage]
     private static void stbg__assert_internal(bool condition, [CallerArgumentExpression(nameof(condition))] string? message = null)
     {
-        switch (context.init_options.assert_behaviour)
+        switch (context.init_options.assert_behavior)
         {
-            case STBG_ASSERT_BEHAVIOUR.ASSERT:
+            case STBG_ASSERT_BEHAVIOR.ASSERT:
                 Debug.Assert(condition, message);
                 break;
-            case STBG_ASSERT_BEHAVIOUR.EXCEPTION:
+            case STBG_ASSERT_BEHAVIOR.EXCEPTION:
                 if (!condition)
                     throw new StbgAssertException(message);
                 break;
-            case STBG_ASSERT_BEHAVIOUR.CONSOLE:
+            case STBG_ASSERT_BEHAVIOR.CONSOLE:
                 if (!condition)
                     Console.Error.WriteLine($"Failed assert: {message}");
                 break;
-            case STBG_ASSERT_BEHAVIOUR.NONE:
+            case STBG_ASSERT_BEHAVIOR.NONE:
                 break;
         }
     }
