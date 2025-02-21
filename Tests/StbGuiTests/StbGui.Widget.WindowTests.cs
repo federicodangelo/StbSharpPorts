@@ -1,13 +1,98 @@
-namespace StbSharp.Tests;
+﻿namespace StbSharp.Tests;
 
-public class StbGuiInputTests : StbGuiTestsBase
+public class StbGuiWindowTests : StbGuiTestsBase
 {
     [Fact]
-    public void TestButtonHover()
+    public void TestBeginAndEndWindow()
     {
         InitGUI();
 
-        // Normal render
+        StbGui.stbg_begin_frame();
+        {
+            StbGui.stbg_begin_window("Window 1");
+            StbGui.stbg_end_window();
+
+            StbGui.stbg_begin_window("Window 2");
+            StbGui.stbg_end_window();
+        }
+        StbGui.stbg_end_frame();
+    }
+
+    [Fact]
+    public void TestUnbalancedBeginAndEndWindowThrowsException()
+    {
+        InitGUI();
+
+        StbGui.stbg_begin_frame();
+        {
+            StbGui.stbg_begin_window("Window 1");
+        }
+        Assert.Throws<StbGui.StbgAssertException>(() => StbGui.stbg_end_frame());
+    }
+
+    [Fact]
+    public void TestDuplicatedButtonIdsInDifferentWindows()
+    {
+        InitGUI();
+
+        StbGui.stbg_begin_frame();
+        {
+            if (StbGui.stbg_begin_window("Window 1"))
+            {
+                StbGui.stbg_button("Button");
+            }
+            StbGui.stbg_end_window();
+
+            if (StbGui.stbg_begin_window("Window 2"))
+            {
+                StbGui.stbg_button("Button");
+            }
+            StbGui.stbg_end_window();
+        }
+        StbGui.stbg_end_frame();
+    }
+
+    [Fact]
+    public void TestWindowDissapearsInSecondFrame()
+    {
+        InitGUI();
+
+        StbGui.stbg_begin_frame();
+        {
+            StbGui.stbg_begin_window("Window 1");
+            {
+                StbGui.stbg_button("Button");
+            }
+            StbGui.stbg_end_window();
+
+            StbGui.stbg_begin_window("Window 2");
+            {
+                StbGui.stbg_button("Button");
+            }
+            StbGui.stbg_end_window();
+        }
+        StbGui.stbg_end_frame();
+
+        StbGui.stbg_begin_frame();
+        {
+            // Skip Window 1
+            StbGui.stbg_begin_window("Window 2");
+            {
+                StbGui.stbg_button("Button");
+                StbGui.stbg_end_window();
+            }
+        }
+        StbGui.stbg_end_frame();
+
+        // Both Window1 and the contained button should have been destroyed
+        Assert.Equal(2, StbGui.stbg_get_context().frame_stats.destroyed_widgets);
+    }
+
+    [Fact]
+    public void TestRenderButtonInDebugWindow()
+    {
+        InitGUI(new StbGui.stbg_init_options() { dont_nest_non_window_root_elements_into_debug_window = false });
+
         StbGui.stbg_begin_frame();
         {
             StbGui.stbg_button("Button 1");
@@ -19,48 +104,46 @@ public class StbGuiInputTests : StbGuiTestsBase
         RenderCommandsToTestScreen();
 
         AssertScreenEqual([
-            ["""/----------\""", "CB12"],
-            ["""|          |""", "CB1CT10CB1"],
-            ["""| Button 1 |""", "CB1CT1CW8CT1CB1"],
-            ["""|          |""", "CB1CT10CB1"],
-            ["""\----------/""", "CB12"],
-        ]);
-
-        // Hover
-        StbGui.stbg_set_user_input(new()
-        {
-            mouse_position = StbGui.stbg_build_position(2, 2),
-            mouse_position_valid = true
-        });
-
-        StbGui.stbg_begin_frame();
-        {
-            StbGui.stbg_button("Button 1");
-        }
-        StbGui.stbg_end_frame();
-
-        StbGui.stbg_render();
-
-        RenderCommandsToTestScreen();
-
-        AssertScreenEqual([
-            ["""/----------\""", "BW12"],
-            ["""|          |""", "BW1BT10BW1"],
-            ["""| Button 1 |""", "BW1BT1BK8BT1BW1"],
-            ["""|          |""", "BW1BT10BW1"],
-            ["""\----------/""", "BW12"],
+            ["""/--------------------------------\""", "RW34"],
+            ["""|_DEBUG_                         |""", "RW8RT25RW1"],
+            ["""\--------------------------------/""", "RW34"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""| /----------\                   |""", "BW1BT1CB12BT19BW1"],
+            ["""| |          |                   |""", "BW1BT1CB1CT10CB1BT19BW1"],
+            ["""| | Button 1 |                   |""", "BW1BT1CB1CT1CW8CT1CB1BT19BW1"],
+            ["""| |          |                   |""", "BW1BT1CB1CT10CB1BT19BW1"],
+            ["""| \----------/                   |""", "BW1BT1CB12BT19BW1"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""|                                |""", "BW1BT32BW1"],
+            ["""\--------------------------------/""", "BW34"],
         ]);
     }
 
     [Fact]
-    public void TestButtonHoverOff()
+    public void TestRenderWindow()
     {
         InitGUI();
 
-        // Normal render
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, 11);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, 18);
+
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_button("Button 1");
+            StbGui.stbg_begin_window("Window 1");
+            {
+
+            }
+            StbGui.stbg_end_window();
         }
         StbGui.stbg_end_frame();
 
@@ -69,72 +152,35 @@ public class StbGuiInputTests : StbGuiTestsBase
         RenderCommandsToTestScreen();
 
         AssertScreenEqual([
-            ["""/----------\""", "CB12"],
-            ["""|          |""", "CB1CT10CB1"],
-            ["""| Button 1 |""", "CB1CT1CW8CT1CB1"],
-            ["""|          |""", "CB1CT10CB1"],
-            ["""\----------/""", "CB12"],
-        ]);
-
-        // Hover
-        StbGui.stbg_set_user_input(new()
-        {
-            mouse_position = StbGui.stbg_build_position(2, 2),
-            mouse_position_valid = true
-        });
-
-        StbGui.stbg_begin_frame();
-        {
-            StbGui.stbg_button("Button 1");
-        }
-        StbGui.stbg_end_frame();
-
-        StbGui.stbg_render();
-
-        RenderCommandsToTestScreen();
-
-        AssertScreenEqual([
-            ["""/----------\""", "BW12"],
-            ["""|          |""", "BW1BT10BW1"],
-            ["""| Button 1 |""", "BW1BT1BK8BT1BW1"],
-            ["""|          |""", "BW1BT10BW1"],
-            ["""\----------/""", "BW12"],
-        ]);
-
-        // Hover off
-        StbGui.stbg_set_user_input(new()
-        {
-            mouse_position_valid = false
-        });
-
-        StbGui.stbg_begin_frame();
-        {
-            StbGui.stbg_button("Button 1");
-        }
-        StbGui.stbg_end_frame();
-
-        StbGui.stbg_render();
-
-        RenderCommandsToTestScreen();
-
-        AssertScreenEqual([
-            ["""/----------\""", "CB12"],
-            ["""|          |""", "CB1CT10CB1"],
-            ["""| Button 1 |""", "CB1CT1CW8CT1CB1"],
-            ["""|          |""", "CB1CT10CB1"],
-            ["""\----------/""", "CB12"],
+            ["""/----------------\""", "MW18"],
+            ["""|Window 1        |""", "MW9MT8MW1"],
+            ["""\----------------/""", "MW18"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""\----------------/""", "BW18"],
         ]);
     }
 
     [Fact]
-    public void TestButtonPressed()
+    public void TestRenderWindowLongTitle()
     {
         InitGUI();
 
-        // Normal render
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, 11);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, 18);
+
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_button("Button 1");
+            StbGui.stbg_begin_window("Window with really really long title");
+            {
+
+            }
+            StbGui.stbg_end_window();
         }
         StbGui.stbg_end_frame();
 
@@ -143,49 +189,41 @@ public class StbGuiInputTests : StbGuiTestsBase
         RenderCommandsToTestScreen();
 
         AssertScreenEqual([
-            ["""/----------\""", "CB12"],
-            ["""|          |""", "CB1CT10CB1"],
-            ["""| Button 1 |""", "CB1CT1CW8CT1CB1"],
-            ["""|          |""", "CB1CT10CB1"],
-            ["""\----------/""", "CB12"],
-        ]);
-
-        // Press
-        StbGui.stbg_set_user_input(new()
-        {
-            mouse_position = StbGui.stbg_build_position(2, 2),
-            mouse_position_valid = true,
-            mouse_button_1 = true,
-        });
-
-        StbGui.stbg_begin_frame();
-        {
-            StbGui.stbg_button("Button 1");
-        }
-        StbGui.stbg_end_frame();
-
-        StbGui.stbg_render();
-
-        RenderCommandsToTestScreen();
-
-        AssertScreenEqual([
-            ["""/----------\""", "GW12"],
-            ["""|          |""", "GW1GT10GW1"],
-            ["""| Button 1 |""", "GW1GT1GK8GT1GW1"],
-            ["""|          |""", "GW1GT10GW1"],
-            ["""\----------/""", "GW12"],
+            ["""/----------------\""", "MW18"],
+            ["""|Window with real|""", "MW18"],
+            ["""\----------------/""", "MW18"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""|                |""", "BW1BT16BW1"],
+            ["""\----------------/""", "BW18"],
         ]);
     }
 
     [Fact]
-    public void TestButtonClick()
+    public void TestRenderWindowTwoWindows()
     {
         InitGUI();
 
-        // Normal render
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, 14);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, 18);
+
         StbGui.stbg_begin_frame();
         {
-            Assert.False(StbGui.stbg_button("Button 1"));
+            StbGui.stbg_begin_window("Window 1");
+            {
+            }
+            StbGui.stbg_end_window();
+            StbGui.stbg_begin_window("Window 2");
+            {
+            }
+            StbGui.stbg_end_window();
+
+            StbGui.stbg_set_widget_position(StbGui.stbg_get_last_widget_id(), 20, 5);
+
         }
         StbGui.stbg_end_frame();
 
@@ -194,24 +232,44 @@ public class StbGuiInputTests : StbGuiTestsBase
         RenderCommandsToTestScreen();
 
         AssertScreenEqual([
-            ["""/----------\""", "CB12"],
-            ["""|          |""", "CB1CT10CB1"],
-            ["""| Button 1 |""", "CB1CT1CW8CT1CB1"],
-            ["""|          |""", "CB1CT10CB1"],
-            ["""\----------/""", "CB12"],
+            ["""/----------------\                    """, "MW18CT20"],
+            ["""|Window 1        |                    """, "MW9MT8MW1CT20"],
+            ["""\----------------/                    """, "MW18CT20"],
+            ["""|                |                    """, "BW1BT16BW1CT20"],
+            ["""|                |                    """, "BW1BT16BW1CT20"],
+            ["""|                |  /----------------\""", "BW1BT16BW1CT2MW18"],
+            ["""|                |  |Window 2        |""", "BW1BT16BW1CT2MW9MT8MW1"],
+            ["""|                |  \----------------/""", "BW1BT16BW1CT2MW18"],
+            ["""|                |  |                |""", "BW1BT16BW1CT2BW1BT16BW1"],
+            ["""|                |  |                |""", "BW1BT16BW1CT2BW1BT16BW1"],
+            ["""|                |  |                |""", "BW1BT16BW1CT2BW1BT16BW1"],
+            ["""|                |  |                |""", "BW1BT16BW1CT2BW1BT16BW1"],
+            ["""|                |  |                |""", "BW1BT16BW1CT2BW1BT16BW1"],
+            ["""\----------------/  |                |""", "BW18CT2BW1BT16BW1"],
+            ["""                    |                |""", "CT20BW1BT16BW1"],
+            ["""                    |                |""", "CT20BW1BT16BW1"],
+            ["""                    |                |""", "CT20BW1BT16BW1"],
+            ["""                    |                |""", "CT20BW1BT16BW1"],
+            ["""                    \----------------/""", "CT20BW18"],
         ]);
+    }
 
-        // Press
-        StbGui.stbg_set_user_input(new()
-        {
-            mouse_position = StbGui.stbg_build_position(2, 2),
-            mouse_position_valid = true,
-            mouse_button_1 = true,
-        });
+    [Fact]
+    public void TestRenderWindowWithTwoButtons()
+    {
+        InitGUI();
+
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, 17);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, 24);
 
         StbGui.stbg_begin_frame();
         {
-            Assert.False(StbGui.stbg_button("Button 1"));
+            StbGui.stbg_begin_window("Window 1");
+            {
+                StbGui.stbg_button("Button 1");
+                StbGui.stbg_button("Button 2");
+            }
+            StbGui.stbg_end_window();
         }
         StbGui.stbg_end_frame();
 
@@ -220,23 +278,43 @@ public class StbGuiInputTests : StbGuiTestsBase
         RenderCommandsToTestScreen();
 
         AssertScreenEqual([
-            ["""/----------\""", "GW12"],
-            ["""|          |""", "GW1GT10GW1"],
-            ["""| Button 1 |""", "GW1GT1GK8GT1GW1"],
-            ["""|          |""", "GW1GT10GW1"],
-            ["""\----------/""", "GW12"],
+            ["""/----------------------\""", "MW24"],
+            ["""|Window 1              |""", "MW9MT14MW1"],
+            ["""\----------------------/""", "MW24"],
+            ["""|                      |""", "BW1BT22BW1"],
+            ["""|                      |""", "BW1BT22BW1"],
+            ["""| /----------\         |""", "BW1BT1CB12BT9BW1"],
+            ["""| |          |         |""", "BW1BT1CB1CT10CB1BT9BW1"],
+            ["""| | Button 1 |         |""", "BW1BT1CB1CT1CW8CT1CB1BT9BW1"],
+            ["""| |          |         |""", "BW1BT1CB1CT10CB1BT9BW1"],
+            ["""| \----------/         |""", "BW1BT1CB12BT9BW1"],
+            ["""| /----------\         |""", "BW1BT1CB12BT9BW1"],
+            ["""| |          |         |""", "BW1BT1CB1CT10CB1BT9BW1"],
+            ["""| | Button 2 |         |""", "BW1BT1CB1CT1CW8CT1CB1BT9BW1"],
+            ["""| |          |         |""", "BW1BT1CB1CT10CB1BT9BW1"],
+            ["""| \----------/         |""", "BW1BT1CB12BT9BW1"],
+            ["""|                      |""", "BW1BT22BW1"],
+            ["""\----------------------/""", "BW24"],
         ]);
+    }
 
-        // Release (triggers click)
-        StbGui.stbg_set_user_input(new()
-        {
-            mouse_position = StbGui.stbg_build_position(2, 2),
-            mouse_position_valid = true,
-        });
+    [Fact]
+    public void TestRenderWindowWithThreeButtons()
+    {
+        InitGUI();
+
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, 17);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, 24);
 
         StbGui.stbg_begin_frame();
         {
-            Assert.True(StbGui.stbg_button("Button 1"));
+            StbGui.stbg_begin_window("Window 1");
+            {
+                StbGui.stbg_button("Button 1");
+                StbGui.stbg_button("Button 2");
+                StbGui.stbg_button("Button 3");
+            }
+            StbGui.stbg_end_window();
         }
         StbGui.stbg_end_frame();
 
@@ -245,24 +323,51 @@ public class StbGuiInputTests : StbGuiTestsBase
         RenderCommandsToTestScreen();
 
         AssertScreenEqual([
-            ["""/----------\""", "BW12"],
-            ["""|          |""", "BW1BT10BW1"],
-            ["""| Button 1 |""", "BW1BT1BK8BT1BW1"],
-            ["""|          |""", "BW1BT10BW1"],
-            ["""\----------/""", "BW12"],
+            ["""/----------------------\""", "MW24"],
+            ["""|Window 1              |""", "MW9MT14MW1"],
+            ["""\----------------------/""", "MW24"],
+            ["""|                      |""", "BW1BT22BW1"],
+            ["""|                      |""", "BW1BT22BW1"],
+            ["""| /----------\         |""", "BW1BT1CB12BT9BW1"],
+            ["""| |          |         |""", "BW1BT1CB1CT10CB1BT9BW1"],
+            ["""| | Button 1 |         |""", "BW1BT1CB1CT1CW8CT1CB1BT9BW1"],
+            ["""| |          |         |""", "BW1BT1CB1CT10CB1BT9BW1"],
+            ["""| \----------/         |""", "BW1BT1CB12BT9BW1"],
+            ["""| /----------\         |""", "BW1BT1CB12BT9BW1"],
+            ["""| |          |         |""", "BW1BT1CB1CT10CB1BT9BW1"],
+            ["""| | Button 2 |         |""", "BW1BT1CB1CT1CW8CT1CB1BT9BW1"],
+            ["""| |          |         |""", "BW1BT1CB1CT10CB1BT9BW1"],
+            ["""| \----------/         |""", "BW1BT1CB12BT9BW1"],
+            ["""| /----------\         |""", "BW1BT1CB12BT9BW1"],
+            ["""| |          |         |""", "BW1BT1CB1CT10CB1BT9BW1"],
+            ["""| | Button 3 |         |""", "BW1BT1CB1CT1CW8CT1CB1BT9BW1"],
+            ["""| |          |         |""", "BW1BT1CB1CT10CB1BT9BW1"],
+            ["""| \----------/         |""", "BW1BT1CB12BT9BW1"],
+            ["""|                      |""", "BW1BT22BW1"],
+            ["""\----------------------/""", "BW24"],
         ]);
+    }
 
+    [Fact]
+    public void TestRenderWindowWithTwoButtonsInHorizontalContainer()
+    {
+        InitGUI();
 
-        // Frame after click (should not triggers click anymore)
-        StbGui.stbg_set_user_input(new()
-        {
-            mouse_position = StbGui.stbg_build_position(2, 2),
-            mouse_position_valid = true,
-        });
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, 17);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, 24);
 
         StbGui.stbg_begin_frame();
         {
-            Assert.False(StbGui.stbg_button("Button 1"));
+            StbGui.stbg_begin_window("Window 1");
+            {
+                StbGui.stbg_begin_container("Container 1", StbGui.STBG_CHILDREN_LAYOUT.HORIZONTAL);
+                {
+                    StbGui.stbg_button("Button 1");
+                    StbGui.stbg_button("Button 2");
+                }
+                StbGui.stbg_end_container();
+            }
+            StbGui.stbg_end_window();
         }
         StbGui.stbg_end_frame();
 
@@ -271,11 +376,72 @@ public class StbGuiInputTests : StbGuiTestsBase
         RenderCommandsToTestScreen();
 
         AssertScreenEqual([
-            ["""/----------\""", "BW12"],
-            ["""|          |""", "BW1BT10BW1"],
-            ["""| Button 1 |""", "BW1BT1BK8BT1BW1"],
-            ["""|          |""", "BW1BT10BW1"],
-            ["""\----------/""", "BW12"],
+            ["""/--------------------------\""", "MW28"],
+            ["""|Window 1                  |""", "MW9MT18MW1"],
+            ["""\--------------------------/""", "MW28"],
+            ["""|                          |""", "BW1BT26BW1"],
+            ["""|                          |""", "BW1BT26BW1"],
+            ["""| /----------\/----------\ |""", "BW1BT1CB24BT1BW1"],
+            ["""| |          ||          | |""", "BW1BT1CB1CT10CB2CT10CB1BT1BW1"],
+            ["""| | Button 1 || Button 2 | |""", "BW1BT1CB1CT1CW8CT1CB2CT1CW8CT1CB1BT1BW1"],
+            ["""| |          ||          | |""", "BW1BT1CB1CT10CB2CT10CB1BT1BW1"],
+            ["""| \----------/\----------/ |""", "BW1BT1CB24BT1BW1"],
+            ["""|                          |""", "BW1BT26BW1"],
+            ["""|                          |""", "BW1BT26BW1"],
+            ["""|                          |""", "BW1BT26BW1"],
+            ["""|                          |""", "BW1BT26BW1"],
+            ["""|                          |""", "BW1BT26BW1"],
+            ["""|                          |""", "BW1BT26BW1"],
+            ["""\--------------------------/""", "BW28"],
+        ]);
+    }
+
+    [Fact]
+    public void TestRenderWindowWithThreeButtonsInHorizontalContainer()
+    {
+        InitGUI();
+
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, 17);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, 24);
+
+        StbGui.stbg_begin_frame();
+        {
+            StbGui.stbg_begin_window("Window 1");
+            {
+                StbGui.stbg_begin_container("Container 1", StbGui.STBG_CHILDREN_LAYOUT.HORIZONTAL);
+                {
+                    StbGui.stbg_button("Button 1");
+                    StbGui.stbg_button("Button 2");
+                    StbGui.stbg_button("Button 3");
+                }
+                StbGui.stbg_end_container();
+            }
+            StbGui.stbg_end_window();
+        }
+        StbGui.stbg_end_frame();
+
+        StbGui.stbg_render();
+
+        RenderCommandsToTestScreen();
+
+        AssertScreenEqual([
+            ["""/--------------------------------------\""", "MW40"],
+            ["""|Window 1                              |""", "MW9MT30MW1"],
+            ["""\--------------------------------------/""", "MW40"],
+            ["""|                                      |""", "BW1BT38BW1"],
+            ["""|                                      |""", "BW1BT38BW1"],
+            ["""| /----------\/----------\/----------\ |""", "BW1BT1CB36BT1BW1"],
+            ["""| |          ||          ||          | |""", "BW1BT1CB1CT10CB2CT10CB2CT10CB1BT1BW1"],
+            ["""| | Button 1 || Button 2 || Button 3 | |""", "BW1BT1CB1CT1CW8CT1CB2CT1CW8CT1CB2CT1CW8CT1CB1BT1BW1"],
+            ["""| |          ||          ||          | |""", "BW1BT1CB1CT10CB2CT10CB2CT10CB1BT1BW1"],
+            ["""| \----------/\----------/\----------/ |""", "BW1BT1CB36BT1BW1"],
+            ["""|                                      |""", "BW1BT38BW1"],
+            ["""|                                      |""", "BW1BT38BW1"],
+            ["""|                                      |""", "BW1BT38BW1"],
+            ["""|                                      |""", "BW1BT38BW1"],
+            ["""|                                      |""", "BW1BT38BW1"],
+            ["""|                                      |""", "BW1BT38BW1"],
+            ["""\--------------------------------------/""", "BW40"],
         ]);
     }
 

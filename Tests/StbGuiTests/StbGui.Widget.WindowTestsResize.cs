@@ -2,7 +2,7 @@ using System.Net;
 
 namespace StbSharp.Tests;
 
-public class StbGuiInpuptWindowResizeTests : StbGuiTestsBase
+public class StbGuiWindowTestsResize : StbGuiTestsBase
 {
     const float window_top = 15;
     const float window_left = 15;

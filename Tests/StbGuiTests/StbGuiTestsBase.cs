@@ -371,6 +371,33 @@ public class StbGuiTestsBase : IDisposable
         // LABEL
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.LABEL_TEXT_COLOR, StbGui.STBG_COLOR_WHITE);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.LABEL_BACKGROUND_COLOR, StbGui.STBG_COLOR_CYAN);
+
+        // SCROLLBAR
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.LABEL_TEXT_COLOR, StbGui.STBG_COLOR_WHITE);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.LABEL_BACKGROUND_COLOR, StbGui.STBG_COLOR_CYAN);
+
+        // SCROLLBAR
+        var scrollbarSize = 1;
+        var scrollbarButtonSize = 1;
+        var scrollbarThumbSize = 2;
+
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.SCROLLBAR_SIZE, scrollbarSize);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.SCROLLBAR_BUTTON_SIZE, scrollbarButtonSize);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.SCROLLBAR_THUMB_SIZE, scrollbarThumbSize);
+
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.SCROLLBAR_BACKGROUND_COLOR, StbGui.STBG_COLOR_CYAN);
+
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.SCROLLBAR_THUMB_COLOR, StbGui.STBG_COLOR_BLUE);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.SCROLLBAR_BUTTON_BACKGROUND_COLOR, StbGui.STBG_COLOR_BLUE);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.SCROLLBAR_BUTTON_COLOR, StbGui.STBG_COLOR_WHITE);
+
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.SCROLLBAR_THUMB_HOVERED_COLOR, StbGui.STBG_COLOR_MAGENTA);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.SCROLLBAR_BUTTON_HOVERED_BACKGROUND_COLOR, StbGui.STBG_COLOR_BLUE);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.SCROLLBAR_BUTTON_HOVERED_COLOR, StbGui.STBG_COLOR_RED);
+
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.SCROLLBAR_THUMB_PRESSED_COLOR, StbGui.STBG_COLOR_MAGENTA);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.SCROLLBAR_BUTTON_PRESSED_BACKGROUND_COLOR, StbGui.STBG_COLOR_BLUE);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.SCROLLBAR_BUTTON_PRESSED_COLOR, StbGui.STBG_COLOR_RED);
     }
 
     static protected void DestroyGui()
