@@ -77,7 +77,7 @@ public class SDLApp : SDLAppBase
 
             for (int i = 0; i < 20; i++)
             {
-                StbGui.stbg_button($"Test Button {i}");
+                StbGui.stbg_button(mp.Concat("Test Button ", i));
             }
 
             StbGui.stbg_button("Test Button XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
