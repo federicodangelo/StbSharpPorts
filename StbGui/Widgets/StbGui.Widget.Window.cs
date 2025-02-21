@@ -63,7 +63,7 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR, rgb(231, 76, 60));
     }
 
-    private static ref stbg_widget stbg__window_create(string title)
+    private static ref stbg_widget stbg__window_create(ReadOnlySpan<char> title)
     {
         ref var window = ref stbg__add_widget(STBG_WIDGET_TYPE.WINDOW, title, out var is_new);
 
@@ -72,9 +72,9 @@ public partial class StbGui
         return ref window;
     }
 
-    private static void stbg__window_init(ref stbg_widget window, bool is_new, string title)
+    private static void stbg__window_init(ref stbg_widget window, bool is_new, ReadOnlySpan<char> title)
     {
-        window.properties.text = title.AsMemory();
+        window.properties.text = stbg__add_string(title);
 
         ref var layout = ref window.properties.layout;
 

@@ -37,11 +37,11 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.BUTTON_PRESSED_TEXT_COLOR, rgb(236, 240, 241));
     }
 
-    private static ref stbg_widget stbg__button_create(string label)
+    private static ref stbg_widget stbg__button_create(ReadOnlySpan<char> label)
     {
         ref var button = ref stbg__add_widget(STBG_WIDGET_TYPE.BUTTON, label, out _);
 
-        button.properties.text = label.AsMemory();
+        button.properties.text = stbg__add_string(label);
 
         ref var layout = ref button.properties.layout;
 

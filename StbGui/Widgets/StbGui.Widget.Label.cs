@@ -24,11 +24,11 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.LABEL_TEXT_COLOR, rgb(44, 62, 80));
     }
 
-    private static ref stbg_widget stbg__label_create(string text)
+    private static ref stbg_widget stbg__label_create(ReadOnlySpan<char> text)
     {
         ref var label = ref stbg__add_widget(STBG_WIDGET_TYPE.LABEL, text, out _);
 
-        label.properties.text = text.AsMemory();
+        label.properties.text = stbg__add_string(text);
 
         ref var layout = ref label.properties.layout;
 

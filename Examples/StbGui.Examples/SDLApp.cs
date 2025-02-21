@@ -14,10 +14,16 @@ public class SDLApp : SDLAppBase
     private float scrollbar_value = 50;
     private int scrollbar_value_int = 50;
 
+    private readonly StringMemoryPool mp = new StringMemoryPool();
+    
     protected override void OnRenderStbGui()
     {
-        StbGui.stbg_label("FPS: " + Metrics.Fps);
-        StbGui.stbg_label("Allocated Bytes Delta: " + Metrics.LastFrameAllocatedBytes);
+        mp.ResetPool();
+
+        StbGui.stbg_label(mp.Concat("FPS: ", Metrics.Fps));
+        StbGui.stbg_label(mp.Concat("Allocated Bytes Delta: ", Metrics.LastFrameAllocatedBytes));
+        StbGui.stbg_label(mp.Concat("String Memory Pool Used Characters: ", StbGui.stbg_get_frame_stats().string_memory_pool_used_characters));
+        StbGui.stbg_label(mp.Concat("String Memory Pool Overflown Characters: ", StbGui.stbg_get_frame_stats().string_memory_pool_overflowed_characters));
 
         StbGui.stbg_begin_window("Window 1");
         {
@@ -54,9 +60,9 @@ public class SDLApp : SDLAppBase
 
                 StbGui.stbg_begin_container("con3332", StbGui.STBG_CHILDREN_LAYOUT.VERTICAL);
                 {
-                    StbGui.stbg_label("Scrollbar Value: " + scrollbar_value);
+                    StbGui.stbg_label(mp.Concat("Scrollbar Value: ", scrollbar_value));
 
-                    StbGui.stbg_label("Scrollbar Value Int: " + scrollbar_value_int);
+                    StbGui.stbg_label(mp.Concat("Scrollbar Value Int: ", scrollbar_value_int));
                 }
                 StbGui.stbg_end_container();
             }
@@ -71,7 +77,7 @@ public class SDLApp : SDLAppBase
 
             for (int i = 0; i < 20; i++)
             {
-                StbGui.stbg_button("Test Button " + i);
+                StbGui.stbg_button($"Test Button {i}");
             }
 
             StbGui.stbg_button("Test Button XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");

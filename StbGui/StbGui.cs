@@ -190,6 +190,8 @@ public partial class StbGui
         context.prev_frame_stats = context.frame_stats;
         context.frame_stats = new stbg_context_frame_stats();
 
+        stbg__string_memory_pool_reset(ref context.string_memory_pool);
+
         ref var root = ref stbg__add_widget(STBG_WIDGET_TYPE.ROOT, "root", out _);
         root.properties.layout.constrains.max = context.screen_size;
 
@@ -216,6 +218,11 @@ public partial class StbGui
         }
 
         stbg__layout_widgets();
+    }
+
+    public static stbg_context_frame_stats stbg_get_frame_stats()
+    {
+        return context.frame_stats;
     }
 
     /// <summary>
@@ -313,7 +320,7 @@ public partial class StbGui
     /// </summary>
     /// <param name="title">Window title. Must be unique inside the parent container</param>
     /// <returns>Returns if the window is visible or not</returns>
-    public static bool stbg_begin_window(string title)
+    public static bool stbg_begin_window(ReadOnlySpan<char> title)
     {
         ref var window = ref stbg__window_create(title);
 
@@ -391,7 +398,7 @@ public partial class StbGui
     /// </summary>
     /// <param name="identifier">Container identifier (must be unique inside the parent widget)</param>
     /// <param name="layout_direction">Layout direction</param>
-    public static void stbg_begin_container(string identifier, STBG_CHILDREN_LAYOUT layout_direction)
+    public static void stbg_begin_container(ReadOnlySpan<char> identifier, STBG_CHILDREN_LAYOUT layout_direction)
     {
         stbg_begin_container(identifier, layout_direction, stbg_build_constrains_unconstrained(), stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING));
     }
@@ -402,7 +409,7 @@ public partial class StbGui
     /// <param name="identifier">Container identifier (must be unique inside the parent widget)</param>
     /// <param name="spacing">Spacing between children</param>
     /// <param name="constrains">size constrains</param>
-    public static void stbg_begin_container(string identifier, STBG_CHILDREN_LAYOUT layout_direction, stbg_widget_constrains constrains)
+    public static void stbg_begin_container(ReadOnlySpan<char> identifier, STBG_CHILDREN_LAYOUT layout_direction, stbg_widget_constrains constrains)
     {
         stbg_begin_container(identifier, layout_direction, constrains, stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_CHILDREN_SPACING));
     }
@@ -413,7 +420,7 @@ public partial class StbGui
     /// <param name="identifier">Container identifier (must be unique inside the parent widget)</param>
     /// <param name="layout_direction">Layout direction</param>
     /// <param name="spacing">Spacing between children</param>
-    public static void stbg_begin_container(string identifier, STBG_CHILDREN_LAYOUT layout_direction, float spacing)
+    public static void stbg_begin_container(ReadOnlySpan<char> identifier, STBG_CHILDREN_LAYOUT layout_direction, float spacing)
     {
         stbg_begin_container(identifier, layout_direction, stbg_build_constrains_unconstrained(), spacing);
     }
@@ -425,7 +432,7 @@ public partial class StbGui
     /// <param name="layout_direction">Layout direction</param>
     /// <param name="constrains">Size constrains</param>
     /// <param name="spacing">Spacing between children</param>
-    public static void stbg_begin_container(string identifier, STBG_CHILDREN_LAYOUT layout_direction, stbg_widget_constrains constrains, float spacing)
+    public static void stbg_begin_container(ReadOnlySpan<char> identifier, STBG_CHILDREN_LAYOUT layout_direction, stbg_widget_constrains constrains, float spacing)
     {
         ref var container = ref stbg__add_widget(STBG_WIDGET_TYPE.CONTAINER, identifier, out _);
 
@@ -457,7 +464,7 @@ public partial class StbGui
     /// </summary>
     /// <param name="label">Button label, must be unique in the parent</param>
     /// <returns>Returns true if the button was pressed</returns>
-    public static bool stbg_button(string label)
+    public static bool stbg_button(ReadOnlySpan<char> label)
     {
         ref var button = ref stbg__button_create(label);
 
@@ -475,7 +482,7 @@ public partial class StbGui
     /// Shows a label.
     /// </summary>
     /// <param name="text">Label text, must be unique in the parent</param>
-    public static void stbg_label(string text)
+    public static void stbg_label(ReadOnlySpan<char> text)
     {
         stbg__label_create(text);
     }
@@ -483,7 +490,7 @@ public partial class StbGui
     /// <summary>
     /// Shows a scrollbar.
     /// </summary>
-    public static void stbg_scrollbar(string identifier, STBG_SCROLLBAR_DIRECTION direction, ref float value, float min_value, float max_value)
+    public static void stbg_scrollbar(ReadOnlySpan<char> identifier, STBG_SCROLLBAR_DIRECTION direction, ref float value, float min_value, float max_value)
     {
         stbg__scrollbar_create(identifier, direction, ref value, min_value, max_value, (max_value - min_value) / 10.0f, false);
     }
@@ -491,7 +498,7 @@ public partial class StbGui
     /// <summary>
     /// Shows a scrollbar.
     /// </summary>
-    public static void stbg_scrollbar(string identifier, STBG_SCROLLBAR_DIRECTION direction, ref int value, int min_value, int max_value)
+    public static void stbg_scrollbar(ReadOnlySpan<char> identifier, STBG_SCROLLBAR_DIRECTION direction, ref int value, int min_value, int max_value)
     {
         float f = value;
         stbg__scrollbar_create(identifier, direction, ref f, min_value, max_value, (max_value - min_value) / 10.0f, true);

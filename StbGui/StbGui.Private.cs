@@ -26,6 +26,9 @@ public partial class StbGui
         if (options.max_fonts == 0)
             options.max_fonts = DEFAULT_MAX_FONTS;
 
+        if (options.string_memory_pool_size == 0)
+            options.string_memory_pool_size = DEFAULT_STRING_MEMORY_POOL_SIZE;
+
         if (options.render_commands_queue_size == 0)
             options.render_commands_queue_size = DEFAULT_RENDER_QUEUE_SIZE;
 
@@ -60,6 +63,7 @@ public partial class StbGui
         context.external_dependencies = external_dependencies;
         context.theme.styles = new double[(int)STBG_WIDGET_STYLE.COUNT];
         context.render_commands_queue = render_commands_queue;
+        stbg__string_memory_pool_init(ref context.string_memory_pool, options.string_memory_pool_size);
     }
 
     private static stbg_size stbg__measure_text(stbg_text text)
@@ -96,7 +100,7 @@ public partial class StbGui
         return ref debug_window;
     }
 
-    private static ref stbg_widget stbg__add_widget(STBG_WIDGET_TYPE type, string identifier, out bool is_new)
+    private static ref stbg_widget stbg__add_widget(STBG_WIDGET_TYPE type, ReadOnlySpan<char> identifier, out bool is_new)
     {
         ref var widget = ref stbg__add_widget(stbg__calculate_hash(type, identifier), type, context.current_widget_id, out is_new);
         context.last_widget_id = widget.id;
@@ -409,9 +413,9 @@ public partial class StbGui
         return ref context.hash_table[index];
     }
 
-    private static widget_hash stbg__calculate_hash(STBG_WIDGET_TYPE type, string identifier, bool ignore_parent = false)
+    private static widget_hash stbg__calculate_hash(STBG_WIDGET_TYPE type, ReadOnlySpan<char> identifier, bool ignore_parent = false)
     {
-        return stbg__calculate_hash(type, MemoryMarshal.Cast<char, byte>(identifier.AsSpan()), ignore_parent);
+        return stbg__calculate_hash(type, MemoryMarshal.Cast<char, byte>(identifier), ignore_parent);
     }
 
     private static widget_hash stbg__calculate_hash(STBG_WIDGET_TYPE type, ReadOnlySpan<byte> identifier, bool ignore_parent = false)

@@ -38,6 +38,8 @@ public partial class StbGui
 
     public const int DEFAULT_RENDER_QUEUE_SIZE = 128;
 
+    public const int DEFAULT_STRING_MEMORY_POOL_SIZE = 1024 * 1024;
+
     public struct stbg_init_options
     {
         /// <summary>
@@ -49,6 +51,11 @@ public partial class StbGui
         /// Hash table size, defaults to max_widgets
         /// </summary>
         public int hash_table_size;
+
+        /// <summary>
+        /// Size of string memory pool, defaults to DEFAULT_STRING_MEMORY_POOL_SIZE
+        /// </summary>
+        public int string_memory_pool_size;
 
         /// <summary>
         /// Max number of loaded fonts, defaults to DEFAULT_MAX_FONTS
@@ -391,7 +398,7 @@ public partial class StbGui
         public stbg_widget_value parameter1;
         public stbg_widget_value parameter2;
         public stbg_widget_value min_value;
-        public stbg_widget_value max_value;       
+        public stbg_widget_value max_value;
     }
 
     public struct stbg_widget_properties
@@ -483,6 +490,8 @@ public partial class StbGui
         public int reused_widgets;
         public int destroyed_widgets;
         public int duplicated_widgets_ids;
+        public int string_memory_pool_used_characters;
+        public int string_memory_pool_overflowed_characters;
     }
 
     public struct stbg_context_input_feedback
@@ -498,6 +507,12 @@ public partial class StbGui
         public float drag_resize_y;
         public float drag_from_widget_x;
         public float drag_from_widget_y;
+    }
+
+    public struct stbg_string_memory_pool
+    {
+        public Memory<char> memory_pool;
+        public int offset;
     }
 
     public struct stbg_context
@@ -546,6 +561,8 @@ public partial class StbGui
         public stbg_context_input_feedback input_feedback;
 
         public STBG_ACTIVE_CURSOR_TYPE active_cursor;
+
+        public stbg_string_memory_pool string_memory_pool;
     }
 
     public enum STBG_ASSERT_BEHAVIOR

@@ -65,7 +65,7 @@ public partial class StbGui
         parameters.max_value = widget.properties.parameters.max_value.f;
     }
 
-    private static ref stbg_widget stbg__scrollbar_create(string identifier, STBG_SCROLLBAR_DIRECTION direction, ref float value, float min_value, float max_value, float step_size, bool integer)
+    private static ref stbg_widget stbg__scrollbar_create(ReadOnlySpan<char> identifier, STBG_SCROLLBAR_DIRECTION direction, ref float value, float min_value, float max_value, float step_size, bool integer)
     {
         ref var scrollbar = ref stbg__add_widget(STBG_WIDGET_TYPE.SCROLLBAR, identifier, out var is_new);
 
