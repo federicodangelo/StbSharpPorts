@@ -14,6 +14,7 @@ Ported:
 - StbImageWrite: Fully ported
 - StbRectPack: Fully ported
 - StbTrueType: Fully ported
+- StbTextEdit: Fully ported
 
 Original Libraries:
 - StbHash: Hashing functions
