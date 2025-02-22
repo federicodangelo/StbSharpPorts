@@ -179,6 +179,10 @@ public partial class StbGui
         WINDOW_TITLE_BACKGROUND_COLOR,
         WINDOW_TITLE_ACTIVE_TEXT_COLOR,
         WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR,
+        WINDOW_TITLE_CLOSE_BUTTON_SIZE,
+        WINDOW_TITLE_CLOSE_BUTTON_COLOR,
+        WINDOW_TITLE_CLOSE_BUTTON_HOVERED_COLOR,
+        WINDOW_TITLE_CLOSE_BUTTON_PRESSED_COLOR,
 
         // Button styles
         BUTTON_BORDER_SIZE,
@@ -369,7 +373,8 @@ public partial class StbGui
     public enum STBG_WIDGET_FLAGS
     {
         NONE = 0,
-        USED = 1 << 0
+        USED = 1 << 0,
+        IGNORE = 1 << 1,
     }
 
     [Flags]

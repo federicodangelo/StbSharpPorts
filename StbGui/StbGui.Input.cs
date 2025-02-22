@@ -48,7 +48,7 @@ public partial class StbGui
             }
         }
 
-        stbg__process_widget_input(context.root_widget_id);
+        stbg__process_widget_input(ref stbg_get_widget_by_id(context.root_widget_id));
     }
 
     private static void stbg__derive_new_input_from_user_input()
@@ -95,15 +95,18 @@ public partial class StbGui
         }
     }
 
-    private static bool stbg__process_widget_input(widget_id widget_id)
+    private static bool stbg__process_widget_input(ref stbg_widget widget)
     {
-        ref var widget = ref stbg_get_widget_by_id(widget_id);
-
+        if ((widget.flags & STBG_WIDGET_FLAGS.IGNORE) != 0)
+            return false;
+            
         var children_id = widget.hierarchy.first_children_id;
 
         while (children_id != STBG_WIDGET_ID_NULL)
         {
-            if (stbg__process_widget_input(children_id))
+            ref var children =ref stbg_get_widget_by_id(children_id);
+
+            if (stbg__process_widget_input(ref children))
                 return true;
 
             children_id = stbg_get_widget_by_id(children_id).hierarchy.next_sibling_id;
@@ -124,6 +127,9 @@ public partial class StbGui
 
     private static widget_id stbg__get_widget_id_at_position(ref stbg_widget widget, stbg_position position, stbg_rect parent_global_rect)
     {
+        if ((widget.flags & STBG_WIDGET_FLAGS.IGNORE) != 0)
+            return STBG_WIDGET_ID_NULL;
+
         var mouse_tolerance = widget.properties.mouse_tolerance;
 
         var global_rect = stbg_clamp_rect(widget.properties.computed_bounds.global_rect, parent_global_rect);

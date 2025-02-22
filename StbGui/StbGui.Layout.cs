@@ -125,6 +125,13 @@ public partial class StbGui
                     continue;
                 }
 
+                if ((children.flags & STBG_WIDGET_FLAGS.IGNORE) != 0)
+                {
+                    // Skip ignored widgets
+                    children_id = children.hierarchy.next_sibling_id;
+                    continue;
+                }
+
                 if ((children.properties.layout.flags & STBG_WIDGET_LAYOUT_FLAGS.PARENT_CONTROLLED) != 0)
                 {
                     // Special case: This children's layout ignores our layout, its layout is handled manually, it's 

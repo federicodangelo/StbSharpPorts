@@ -28,6 +28,7 @@ public partial class StbGui
         var windowChildrenSpacing = MathF.Ceiling(font_style.size / 4);
         var windowSpacingBetweenNewWindows = MathF.Ceiling(font_style.size / 2);
         var windowBorderResizeTolerance = MathF.Ceiling(font_style.size / 4);
+        var windowCloseButtonSize = MathF.Ceiling(font_style.size);
 
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, windowBorder);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT, windowTitleHeight);
@@ -60,6 +61,11 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_TEXT_COLOR, rgb(236, 240, 241));
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR, rgb(52, 73, 94));
 
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_CLOSE_BUTTON_COLOR, rgb(236, 240, 241));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_CLOSE_BUTTON_HOVERED_COLOR, rgb(192, 57, 43));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_CLOSE_BUTTON_PRESSED_COLOR, rgb(231, 76, 60));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_CLOSE_BUTTON_SIZE, windowCloseButtonSize);
+
         // DEBUG WINDOW
         stbg_set_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_TEXT_COLOR, rgb(236, 240, 241));
         stbg_set_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_BACKGROUND_COLOR, rgb(192, 57, 43));
@@ -79,16 +85,16 @@ public partial class StbGui
         parameters.options = (STBG_WINDOW_OPTIONS)widget.properties.parameters.flags;
     }
 
-    private static ref stbg_widget stbg__window_create(ReadOnlySpan<char> title, STBG_WINDOW_OPTIONS options)
+    private static ref stbg_widget stbg__window_create(ReadOnlySpan<char> title, ref bool is_open, STBG_WINDOW_OPTIONS options)
     {
         ref var window = ref stbg__add_widget(STBG_WIDGET_TYPE.WINDOW, title, out var is_new);
 
-        stbg__window_init(ref window, is_new, title, options);
+        stbg__window_init(ref window, ref is_open, is_new, title, options);
 
         return ref window;
     }
 
-    private static void stbg__window_init(ref stbg_widget window, bool is_new, ReadOnlySpan<char> title, STBG_WINDOW_OPTIONS options)
+    private static void stbg__window_init(ref stbg_widget window, ref bool is_open, bool is_new, ReadOnlySpan<char> title, STBG_WINDOW_OPTIONS options)
     {
         window.properties.text = stbg__add_string(title);
 
@@ -131,6 +137,21 @@ public partial class StbGui
 
             context.next_new_window_position = stbg_offset_position(context.next_new_window_position, stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_SPACING_BETWEEN_NEW_WINDOWS), stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_SPACING_BETWEEN_NEW_WINDOWS));
         }
+
+        if (is_new || (window.properties.input_flags & STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED) == 0)
+        {
+            window.properties.value.b = is_open;
+        }
+        else
+        {
+            is_open = window.properties.value.b;
+            window.properties.input_flags &= ~STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED;
+        }
+
+        if (is_open)
+            window.flags &= ~STBG_WIDGET_FLAGS.IGNORE;
+        else
+            window.flags |= STBG_WIDGET_FLAGS.IGNORE;
 
         // Add scrollbars if required
         if (stbg__window_get_children_scrolling_info(ref window, parameters, out var needs_horizontal_bar, out var needs_vertical_bar, out var horizontal_size, out var vertical_size) && !is_new)
@@ -200,8 +221,10 @@ public partial class StbGui
         ref var computed_bounds = ref window.properties.computed_bounds;
 
         var has_scrollbars = (parameters.options & STBG_WINDOW_OPTIONS.NO_SCROLLBAR) == 0;
+        var ignored = (window.flags & STBG_WIDGET_FLAGS.IGNORE) != 0;
+        var allow_children_overflow = (layout.flags & STBG_WIDGET_LAYOUT_FLAGS.ALLOW_CHILDREN_OVERFLOW) != 0;
 
-        if (!has_scrollbars || (layout.flags & STBG_WIDGET_LAYOUT_FLAGS.ALLOW_CHILDREN_OVERFLOW) == 0)
+        if (ignored || !has_scrollbars || !allow_children_overflow)
         {
             needs_vertical_bar = false;
             needs_horizontal_bar = false;
@@ -259,6 +282,7 @@ public partial class StbGui
         bool allow_resize = (parameters.options & STBG_WINDOW_OPTIONS.NO_RESIZE) == 0;
         bool allow_move = (parameters.options & STBG_WINDOW_OPTIONS.NO_MOVE) == 0;
         bool has_title = (parameters.options & STBG_WINDOW_OPTIONS.NO_TITLE) == 0;
+        bool has_close_button = (parameters.options & STBG_WINDOW_OPTIONS.CLOSE_BUTTON) != 0;
 
         if (context.input_feedback.pressed_widget_id == window.id)
         {
@@ -279,6 +303,9 @@ public partial class StbGui
         float title_height_total = has_title ? stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP, STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT, STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_BOTTOM, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_TOP) : 0;
 
         bool mouse_over_title = has_title && context.input.mouse_position.y < Math.Min(bounds.y1, bounds.y0 + title_height_total);
+        bool mouse_over_close_button = has_title && has_close_button && mouse_over_title && context.input.mouse_position.x > Math.Max(bounds.x0, bounds.x1 - stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_CLOSE_BUTTON_SIZE));
+
+        context.input_feedback.hovered_sub_widget_part = mouse_over_close_button ? 1 : 0;
 
         if (context.input_feedback.pressed_widget_id == window.id)
         {
@@ -298,9 +325,16 @@ public partial class StbGui
                     context.input_feedback.dragged_widget_id = STBG_WIDGET_ID_NULL;
                 }
                 context.input_feedback.pressed_widget_id = STBG_WIDGET_ID_NULL;
+
+                 if (has_close_button && context.input_feedback.pressed_sub_widget_part == 1)
+                 {
+                    // Close button pressed
+                    window.properties.value.b = false;
+                    window.properties.input_flags |= STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED;
+                 }
             }
         }
-        else if ((allow_resize || allow_move) && context.input.mouse_button_1_down)
+        else if (context.input.mouse_button_1_down)
         {
             context.input_feedback.pressed_widget_id = window.id;
             context.input_feedback.active_widget_id = window.id;
@@ -308,6 +342,7 @@ public partial class StbGui
             context.input_feedback.drag_resize_y = resize_y;
             context.input_feedback.drag_from_widget_x = mouse_position.x - bounds.x0;
             context.input_feedback.drag_from_widget_y = mouse_position.y - bounds.y0;
+            context.input_feedback.pressed_sub_widget_part = mouse_over_close_button ? 1 : 0;            
             // Bringing the window to the top is handled by StbGui.Input
         }
 
@@ -489,6 +524,7 @@ public partial class StbGui
     {
         stbg__winddow_get_parameters(ref window, out var parameters);
         var has_title = (parameters.options & STBG_WINDOW_OPTIONS.NO_TITLE) == 0;
+        var has_close_button = (parameters.options & STBG_WINDOW_OPTIONS.CLOSE_BUTTON) != 0;
 
         var size = window.properties.computed_bounds.size;
 
@@ -529,13 +565,38 @@ public partial class StbGui
                 stbg_build_rect(
                     stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_LEFT),
                     stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP),
-                    size.width - stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_RIGHT),
+                    size.width - stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_RIGHT) - (has_close_button ? stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_CLOSE_BUTTON_SIZE) : 0),
                     stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP, STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT)
                 ),
                 stbg__build_text(window.properties.text, title_text_color),
                 -1, 0, // center vertically
                 STBG_RENDER_TEXT_OPTIONS.SINGLE_LINE
             );
+
+            if (has_close_button)
+            {
+                var close_button_hovered = context.input_feedback.hovered_widget_id == window.id && context.input_feedback.hovered_sub_widget_part == 1;
+                var close_button_pressed = context.input_feedback.pressed_sub_widget_part == window.id && context.input_feedback.pressed_sub_widget_part == 1;
+
+                var close_button_color = stbg_get_widget_style_color_normal_hovered_pressed(
+                    STBG_WIDGET_STYLE.WINDOW_TITLE_CLOSE_BUTTON_COLOR,
+                    STBG_WIDGET_STYLE.WINDOW_TITLE_CLOSE_BUTTON_HOVERED_COLOR,
+                    STBG_WIDGET_STYLE.WINDOW_TITLE_CLOSE_BUTTON_PRESSED_COLOR,
+                    close_button_hovered,
+                    close_button_pressed
+                );
+
+                var close_button_size = stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_CLOSE_BUTTON_SIZE);
+
+                var close_button_bounds = stbg_build_rect(
+                    size.width - stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_RIGHT) - close_button_size,
+                    stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE),
+                    size.width - stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE),
+                    stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP, STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT)
+                );
+
+                stbg__rc_draw_text(close_button_bounds, stbg__build_text("X".AsMemory(), close_button_color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
+            }
         }
     }
 }

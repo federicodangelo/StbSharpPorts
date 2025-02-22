@@ -107,6 +107,9 @@ public partial class StbGui
 
     private static void stbg__render_widget(ref stbg_widget widget, stbg_rect parent_clip_bounds)
     {
+        if ((widget.flags & STBG_WIDGET_FLAGS.IGNORE) != 0)
+            return;
+
         var global_rect = widget.properties.computed_bounds.global_rect;
 
         var clip_bounds = stbg_clamp_rect(global_rect, parent_clip_bounds);

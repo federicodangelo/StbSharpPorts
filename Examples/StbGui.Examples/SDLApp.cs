@@ -21,6 +21,8 @@ public class SDLApp : SDLAppBase
     private bool show_scrollbars = true;
     private bool movable = true;
 
+    private bool window_open = true;
+
     protected override void OnRenderStbGui()
     {
         mp.ResetPool();
@@ -31,12 +33,12 @@ public class SDLApp : SDLAppBase
         StbGui.stbg_label(mp.Concat("String Memory Pool Used Characters: ", StbGui.stbg_get_frame_stats().string_memory_pool_used_characters));
         StbGui.stbg_label(mp.Concat("String Memory Pool Overflown Characters: ", StbGui.stbg_get_frame_stats().string_memory_pool_overflowed_characters));
 
-        StbGui.stbg_begin_window("Window 1", 
-            (show_title ? 0 : StbGui.STBG_WINDOW_OPTIONS.NO_TITLE) |
-            (resizable ? 0 : StbGui.STBG_WINDOW_OPTIONS.NO_RESIZE) |
-            (show_scrollbars ? 0 : StbGui.STBG_WINDOW_OPTIONS.NO_SCROLLBAR) |
-            (movable ? 0 : StbGui.STBG_WINDOW_OPTIONS.NO_MOVE)
-        );
+        if (StbGui.stbg_begin_window("Window 1",
+                (show_title ? 0 : StbGui.STBG_WINDOW_OPTIONS.NO_TITLE) |
+                (resizable ? 0 : StbGui.STBG_WINDOW_OPTIONS.NO_RESIZE) |
+                (show_scrollbars ? 0 : StbGui.STBG_WINDOW_OPTIONS.NO_SCROLLBAR) |
+                (movable ? 0 : StbGui.STBG_WINDOW_OPTIONS.NO_MOVE))
+            )
         {
             if (StbGui.stbg_get_last_widget_is_new())
                 StbGui.stbg_set_last_widget_position(100, 100);
@@ -59,10 +61,11 @@ public class SDLApp : SDLAppBase
 
             if (showButton3)
                 StbGui.stbg_button("Button 3");
-        }
-        StbGui.stbg_end_window();
 
-        StbGui.stbg_begin_window("Window 2 with a REALLY REALLY REALLY REALLY REALLY REALLY REALLY REALLY REALLY REALLY long title");
+            StbGui.stbg_end_window();
+        }
+
+        if (StbGui.stbg_begin_window("Window 2", ref window_open))
         {
             if (StbGui.stbg_get_last_widget_is_new())
                 StbGui.stbg_set_last_widget_position(200, 150);
@@ -90,10 +93,11 @@ public class SDLApp : SDLAppBase
                 StbGui.stbg_end_container();
             }
             StbGui.stbg_end_container();
-        }
-        StbGui.stbg_end_window();
 
-        StbGui.stbg_begin_window("Window 4");
+            StbGui.stbg_end_window();
+        }
+
+        if (StbGui.stbg_begin_window("Window 4"))
         {
             if (StbGui.stbg_get_last_widget_is_new())
                 StbGui.stbg_set_last_widget_position(300, 250);
@@ -104,9 +108,13 @@ public class SDLApp : SDLAppBase
             }
 
             StbGui.stbg_button("Test Button XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+
+            StbGui.stbg_end_window();
         }
-        StbGui.stbg_end_window();
 
         StbGui.stbg_label("This is the debug window!");
+
+        if (!window_open && StbGui.stbg_button("Re-open Window 2"))
+            window_open = true;
     }
 }
