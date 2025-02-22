@@ -36,6 +36,8 @@ public class SDLAppBase : IDisposable
         public string DefaultFontPath = "Fonts/ProggyClean.ttf";
         public string DefaultFontName = "ProggyClean";
         public float DefaultFontSize = 13;
+        public int FontRenderingOversampling = 1;
+        public bool FontRenderingBilinear = false;
     }
 
     public SDLAppBase(SdlAppOptions options)
@@ -63,7 +65,7 @@ public class SDLAppBase : IDisposable
         SDL.SetWindowMinimumSize(window, options.MinWindowWidth, options.MinWindowHeight);
         SDL.EnableScreenSaver(); //Re-enable the screensaver that is disabled by default
 
-        mainFont = new SDLFont(options.DefaultFontName, options.DefaultFontPath, options.DefaultFontSize, renderer);
+        mainFont = new SDLFont(options.DefaultFontName, options.DefaultFontPath, options.DefaultFontSize, options.FontRenderingOversampling, options.FontRenderingBilinear, renderer);
 
         InitStbGui();
     }

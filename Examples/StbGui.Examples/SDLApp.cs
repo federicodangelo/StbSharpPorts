@@ -5,7 +5,15 @@ using StbSharp;
 
 public class SDLApp : SDLAppBase
 {
-    public SDLApp() : base(new SdlAppOptions() { WindowName = "Example App" })
+
+    // Available fonts: 
+    // DefaultFontPath = "Fonts/ProggyClean.ttf", DefaultFontSize = 13
+    // DefaultFontPath = "Fonts/ProggyTiny.ttf", DefaultFontSize = 10
+    // DefaultFontPath = "Fonts/DroidSans.ttf", DefaultFontSize = 24
+    // DefaultFontPath = "Fonts/Karla-Regular.ttf", DefaultFontSize = 16
+    // DefaultFontPath = "Fonts/Roboto-Medium.ttf", DefaultFontSize = 16
+
+    public SDLApp() : base(new SdlAppOptions() { WindowName = "Example App", DefaultFontName = "Font", DefaultFontPath = "Fonts/ProggyClean.ttf", DefaultFontSize = 13 })
     {
 
     }

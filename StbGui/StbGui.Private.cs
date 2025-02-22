@@ -153,7 +153,7 @@ public partial class StbGui
             {
                 // Bucket already points to an existing widget, make that widget point back to us since the first
                 // element in the bucket is going to be us.
-                stbg_get_widget_by_id(bucket.first_widget_in_bucket).hash_chain.prev_same_bucket = widget.id;
+                stbg__get_widget_by_id_internal(bucket.first_widget_in_bucket).hash_chain.prev_same_bucket = widget.id;
                 widget.hash_chain.next_same_bucket = bucket.first_widget_in_bucket;
             }
             bucket.first_widget_in_bucket = widget.id;
@@ -220,7 +220,7 @@ public partial class StbGui
     {
         stbg__assert_internal(widget.hierarchy.parent_id != STBG_WIDGET_ID_NULL);
 
-        ref var parent = ref stbg_get_widget_by_id(widget.hierarchy.parent_id);
+        ref var parent = ref stbg__get_widget_by_id_internal(widget.hierarchy.parent_id);
 
         // Update parent's first / last widget id if it matches the widget to remove
         if (parent.hierarchy.first_children_id == widget.id)
@@ -231,11 +231,11 @@ public partial class StbGui
 
         // If there is a next widget, update it to point to our previous widget
         if (widget.hierarchy.next_sibling_id != STBG_WIDGET_ID_NULL)
-            stbg_get_widget_by_id(widget.hierarchy.next_sibling_id).hierarchy.prev_sibling_id = widget.hierarchy.prev_sibling_id;
+            stbg__get_widget_by_id_internal(widget.hierarchy.next_sibling_id).hierarchy.prev_sibling_id = widget.hierarchy.prev_sibling_id;
 
         // If there is a previous widget, update it to point to our next widget
         if (widget.hierarchy.prev_sibling_id != STBG_WIDGET_ID_NULL)
-            stbg_get_widget_by_id(widget.hierarchy.prev_sibling_id).hierarchy.next_sibling_id = widget.hierarchy.next_sibling_id;
+            stbg__get_widget_by_id_internal(widget.hierarchy.prev_sibling_id).hierarchy.next_sibling_id = widget.hierarchy.next_sibling_id;
 
         // NULL parent and next / prev siblings
         widget.hierarchy.parent_id = STBG_WIDGET_ID_NULL;
@@ -250,7 +250,7 @@ public partial class StbGui
         stbg__assert_internal(widget.hierarchy.prev_sibling_id == STBG_WIDGET_ID_NULL);
         stbg__assert_internal(parent_id != STBG_WIDGET_ID_NULL);
 
-        ref var parent = ref stbg_get_widget_by_id(parent_id);
+        ref var parent = ref stbg__get_widget_by_id_internal(parent_id);
 
         widget.hierarchy.parent_id = parent_id;
 
@@ -262,7 +262,7 @@ public partial class StbGui
             // - set ourselves as the next sibling to the last children
             // - set our previous sibling to the last children
             // - replace the last children with ourselves
-            stbg_get_widget_by_id(parent.hierarchy.last_children_id).hierarchy.next_sibling_id = widget.id;
+            stbg__get_widget_by_id_internal(parent.hierarchy.last_children_id).hierarchy.next_sibling_id = widget.id;
             widget.hierarchy.prev_sibling_id = parent.hierarchy.last_children_id;
             parent.hierarchy.last_children_id = widget.id;
         }
@@ -278,7 +278,7 @@ public partial class StbGui
         stbg__assert_internal(widget.hierarchy.parent_id == STBG_WIDGET_ID_NULL);
         stbg__assert_internal(parent_id != STBG_WIDGET_ID_NULL);
 
-        ref var parent = ref stbg_get_widget_by_id(parent_id);
+        ref var parent = ref stbg__get_widget_by_id_internal(parent_id);
 
         widget.hierarchy.parent_id = parent_id;
 
@@ -291,7 +291,7 @@ public partial class StbGui
             // Update next sibling to point back to us
             if (widget.hierarchy.next_sibling_id != STBG_WIDGET_ID_NULL)
             {
-                stbg_get_widget_by_id(widget.hierarchy.next_sibling_id).hierarchy.prev_sibling_id = widget.id;
+                stbg__get_widget_by_id_internal(widget.hierarchy.next_sibling_id).hierarchy.prev_sibling_id = widget.id;
             }
             else // There is no next sibling, so we are the only children of our parent
             {
@@ -301,7 +301,7 @@ public partial class StbGui
         else
         {
             // Insert ourselves between our previous sibling and it's next sibling
-            ref var prev_sibling = ref stbg_get_widget_by_id(prev_sibling_id);
+            ref var prev_sibling = ref stbg__get_widget_by_id_internal(prev_sibling_id);
             stbg__assert_internal(prev_sibling.hierarchy.parent_id == parent_id);
 
             widget.hierarchy.next_sibling_id = prev_sibling.hierarchy.next_sibling_id;
@@ -312,7 +312,7 @@ public partial class StbGui
         // Update next sibling to point back to us
         if (widget.hierarchy.next_sibling_id != STBG_WIDGET_ID_NULL)
         {
-            stbg_get_widget_by_id(widget.hierarchy.next_sibling_id).hierarchy.prev_sibling_id = widget.id;
+            stbg__get_widget_by_id_internal(widget.hierarchy.next_sibling_id).hierarchy.prev_sibling_id = widget.id;
         }
         else // There is no next sibling, so we are the last children of our parent
         {
@@ -345,7 +345,7 @@ public partial class StbGui
         else
         {
             // We are NOT the first element, make the previous entry point to the next one in our hash list
-            stbg_get_widget_by_id(widget.hash_chain.prev_same_bucket).hash_chain.next_same_bucket = widget.hash_chain.next_same_bucket;
+            stbg__get_widget_by_id_internal(widget.hash_chain.prev_same_bucket).hash_chain.next_same_bucket = widget.hash_chain.next_same_bucket;
         }
 
         widget.hash_chain = new stbg_widget_hash_chain();
@@ -372,7 +372,7 @@ public partial class StbGui
     {
         while (widget_id != STBG_WIDGET_ID_NULL)
         {
-            ref var widget = ref stbg_get_widget_by_id(widget_id);
+            ref var widget = ref stbg__get_widget_by_id_internal(widget_id);
 
             if (widget.type == type)
             {
@@ -439,7 +439,7 @@ public partial class StbGui
         }
         else
         {
-            var parent_hash = stbg_get_widget_by_id(context.current_widget_id).hash;
+            var parent_hash = stbg__get_widget_by_id_internal(context.current_widget_id).hash;
 
             BitConverter.TryWriteBytes(key, parent_hash);
             BitConverter.TryWriteBytes(key.Slice(sizeof(widget_hash)), parent_hash);

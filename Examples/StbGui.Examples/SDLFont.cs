@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using SDL3;
 
@@ -17,23 +18,33 @@ public class SDLFont : IDisposable
     public readonly float LineHeight;
     public readonly float Baseline;
 
+    private bool use_bilinear_filtering = false;
+    private int oversampling = 1;
+    private float oversampling_scale = 1.0f;
+
     const int FONT_BITMAP_SIZE = 512;
     private nint fontTexture;
     private StbTrueType.stbtt_packedchar[] fontCharData;
 
     private nint renderer;
 
-    public SDLFont(string name, string fileName, float fontSize, nint renderer)
+    public SDLFont(string name, string fileName, float fontSize, int oversampling, bool use_bilinear_filtering, nint renderer)
     {
         Name = name;
         Size = fontSize;
         this.renderer = renderer;
+
+        this.oversampling = oversampling;
+        this.oversampling_scale = 1.0f / (float) oversampling;
+        this.use_bilinear_filtering = use_bilinear_filtering;
 
         byte[] fontBytes = File.ReadAllBytes(fileName);
         StbTrueType.stbtt_InitFont(out font, fontBytes, 0);
 
         fontScale = StbTrueType.stbtt_ScaleForPixelHeight(ref font, fontSize);
         StbTrueType.stbtt_GetFontVMetrics(ref font, out int ascent, out int descent, out int lineGap);
+
+        Debug.WriteLine($"Font: {fileName}, Size: {fontSize}, Scale: {fontScale} Ascent: {ascent}, Descent: {descent}, LineGap: {lineGap}");
 
         Ascent = ascent * fontScale;
         Descent = descent * fontScale;
@@ -63,7 +74,7 @@ public class SDLFont : IDisposable
 
         StbTrueType.stbtt_PackBegin(out var spc, fontBitmap, FONT_BITMAP_SIZE, FONT_BITMAP_SIZE, 0, 1);
 
-        StbTrueType.stbtt_PackSetOversampling(ref spc, 1, 1);
+        StbTrueType.stbtt_PackSetOversampling(ref spc, (uint)oversampling, (uint)oversampling);
         StbTrueType.stbtt_PackSetSkipMissingCodepoints(ref spc, true);
 
         StbTrueType.stbtt_PackFontRanges(ref spc, fontBytes, 0, packRanges, 1);
@@ -93,15 +104,19 @@ public class SDLFont : IDisposable
             }
         }
 
+
         fontTexture = SDL.CreateTexture(renderer, SDL.PixelFormat.RGBA8888, SDL.TextureAccess.Static, FONT_BITMAP_SIZE, FONT_BITMAP_SIZE);
 
+        if (use_bilinear_filtering)
+            SDL.SetTextureScaleMode(fontTexture, SDL.ScaleMode.Linear);
+        else
+            SDL.SetTextureScaleMode(fontTexture, SDL.ScaleMode.Nearest);
+            
         if (fontTexture == 0)
         {
             SDL.LogError(SDL.LogCategory.System, $"SDL failed to create texture: {SDL.GetError()}");
             return;
         }
-
-        SDL.SetTextureScaleMode(fontTexture, SDL.ScaleMode.Nearest);
 
         if (!SDL.UpdateTexture(fontTexture, new SDL.Rect() { W = FONT_BITMAP_SIZE, H = FONT_BITMAP_SIZE, }, fontPixels, FONT_BITMAP_SIZE * 4))
         {
@@ -131,8 +146,8 @@ public class SDLFont : IDisposable
 
             if (ignore_metrics)
             {
-                line_height = Math.Max(line_height, (charData.y1 - charData.y0) * scale);
-                dx = ((charData.x1 - charData.x0) + 1) * scale;
+                line_height = Math.Max(line_height, (charData.y1 - charData.y0) * scale * oversampling_scale);
+                dx = ((charData.x1 - charData.x0) + 1) * scale * oversampling_scale;
             }
             else
             {
@@ -218,8 +233,8 @@ public class SDLFont : IDisposable
 
             if (ignore_metrics)
             {
-                dx = ((charData.x1 - charData.x0) + 1) * scale;
-                line_height = Math.Max(line_height, (charData.y1 - charData.y0) * scale);
+                line_height = Math.Max(line_height, (charData.y1 - charData.y0) * scale * oversampling_scale);
+                dx = ((charData.x1 - charData.x0) + 1) * scale * oversampling_scale;
             }
             else
             {
@@ -239,9 +254,9 @@ public class SDLFont : IDisposable
 
             var metricsX = (ignore_metrics ? 0 : charData.xoff) * scale;
             var metricsY = (ignore_metrics ? 0 : (Baseline + charData.yoff)) * scale;
-            
+
             var fromRect = new SDL.FRect() { X = charData.x0, Y = charData.y0, W = charData.x1 - charData.x0, H = charData.y1 - charData.y0 };
-            var toRect = new SDL.FRect() { X = xpos + metricsX, Y = ypos + metricsY, W = (charData.x1 - charData.x0) * scale, H = (charData.y1 - charData.y0) * scale };
+            var toRect = new SDL.FRect() { X = xpos + metricsX, Y = ypos + metricsY, W = (charData.x1 - charData.x0) * scale * oversampling_scale, H = (charData.y1 - charData.y0) * scale * oversampling_scale };
 
             if (!SDL.RenderTexture(renderer, fontTexture, fromRect, toRect))
             {
