@@ -69,6 +69,21 @@ public partial class StbGui
         if (context.input_feedback.hovered_widget_id == textfield.id && context.input.mouse_button_1_down)
         {
             context.input_feedback.editing_text_widget_id = textfield.id;
+
+            context.input_feedback.ime_info = new stbg_input_method_editor_info()
+            {
+                widget_id = textfield.id,
+                enable = true,
+                editing_global_rect = textfield.properties.computed_bounds.global_rect,
+                editing_cursor_global_x = textfield.properties.computed_bounds.global_rect.x0,
+            };
+
+            context.external_dependencies.set_input_method_editor(new stbg_input_method_editor_info()
+            {
+                enable = true,
+                editing_global_rect = textfield.properties.computed_bounds.global_rect,
+                editing_cursor_global_x = textfield.properties.computed_bounds.global_rect.x0
+            });
         }
 
         if (context.input_feedback.editing_text_widget_id == textfield.id)
@@ -202,6 +217,9 @@ public partial class StbGui
                 context.input_feedback.editing_text_widget_id = STBG_WIDGET_ID_NULL;
                 context.text_edit.widget_id = STBG_WIDGET_ID_NULL;
                 context.text_edit.widget_hash = 0;
+
+                if (context.input_feedback.ime_info.widget_id == textfield.id)
+                    context.input_feedback.ime_info = new stbg_input_method_editor_info();
             }
         }
 

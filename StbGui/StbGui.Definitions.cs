@@ -533,6 +533,8 @@ public partial class StbGui
         public widget_id active_widget_id;
         public widget_id editing_text_widget_id;
 
+        public stbg_input_method_editor_info ime_info;
+        
         public int hovered_sub_widget_part;
         public int pressed_sub_widget_part;
         public float drag_resize_x;
@@ -595,7 +597,7 @@ public partial class StbGui
         public stbg_position next_new_window_position;
 
         public stbg_user_input_input_event[] user_input_events_queue;
-        
+
         public int user_input_events_queue_offset;
 
         public stbg_input_derived input;
@@ -684,6 +686,16 @@ public partial class StbGui
 
     public delegate void stbg_render_delegate(Span<stbg_render_command> commands);
 
+    public struct stbg_input_method_editor_info
+    {
+        public bool enable;
+        public stbg_rect editing_global_rect;
+        public float editing_cursor_global_x;
+        public widget_id widget_id;
+    }
+
+    public delegate void stbg_set_input_method_editor_delegate(stbg_input_method_editor_info info);
+
     public struct stbg_external_dependencies
     {
         /// <summary>
@@ -695,6 +707,11 @@ public partial class StbGui
         /// Render
         /// </summary>
         public stbg_render_delegate render;
+
+        /// <summary>
+        /// Set input method editor (show keyboard)
+        /// </summary>
+        public stbg_set_input_method_editor_delegate set_input_method_editor;
     }
 
 

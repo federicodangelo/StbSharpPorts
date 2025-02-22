@@ -287,6 +287,12 @@ public class SDLAppBase : IDisposable
                     StbGui.stbg_add_user_input_event_mouse_position(0, 0, false);
                     break;
 
+                case SDL.EventType.TextInput:
+                    //StbGui.stbg_add_user_input_event_keyboard_key(mapped_key, modifiers, down);
+                    // TODO: Handle text input once e.Text.Text becomes a string pointer or similar
+                    // Console.WriteLine(e.Text.Text);
+                    break;
+
                 case SDL.EventType.KeyDown:
                 case SDL.EventType.KeyUp:
                     {
@@ -357,6 +363,28 @@ public class SDLAppBase : IDisposable
                 foreach (var cmd in commands)
                     ProcessRenderCommand(cmd);
             },
+            set_input_method_editor = (options) =>
+            {
+                if (options.enable)
+                {
+                    SDL.SetTextInputArea(window,
+                        new SDL.Rect() {
+                            X = (int) options.editing_global_rect.x0,
+                            Y = (int) options.editing_global_rect.y0,
+                            W = (int) (options.editing_global_rect.x1 - options.editing_global_rect.x0),
+                            H = (int) (options.editing_global_rect.y1 - options.editing_global_rect.y0)
+                        },
+                        (int)options.editing_cursor_global_x
+                    );
+
+                    SDL.StartTextInput(window);
+                }
+                else
+                {
+                    SDL.StopTextInput(window);
+                }
+
+            }
         };
     }
 

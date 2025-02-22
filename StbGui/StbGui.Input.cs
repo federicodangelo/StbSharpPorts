@@ -24,6 +24,8 @@ public partial class StbGui
 
         stbg__derive_new_input_from_user_input();
 
+        var last_ime_info = context.input_feedback.ime_info;
+
         if (!context.input.mouse_position_valid)
         {
             context.input.mouse_position = stbg_build_position(-99999, -99999);
@@ -59,6 +61,11 @@ public partial class StbGui
         stbg__process_widget_input(ref stbg_get_widget_by_id(context.root_widget_id));
 
         context.user_input_events_queue_offset = 0;
+
+        if (last_ime_info.widget_id != context.input_feedback.ime_info.widget_id)
+        {
+            context.external_dependencies.set_input_method_editor(context.input_feedback.ime_info);
+        }
     }
 
     private static void stbg__derive_new_input_from_user_input()
