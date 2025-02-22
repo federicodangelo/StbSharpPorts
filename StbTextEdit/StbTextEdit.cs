@@ -2,7 +2,7 @@
 
 namespace StbSharp;
 
-using STB_TEXTEDIT_CHARTYPE = int;
+using STB_TEXTEDIT_CHARTYPE = char;
 using STB_TEXTEDIT_POSITIONTYPE = int;
 using STB_TEXTEDIT_KEYTYPE = int;
 using StbSharp.StbCommon;
@@ -331,7 +331,7 @@ public class StbTextEdit
 
     // maps a keyboard input to an insertable character
     // (return type is int, -1 means not valid to insert)
-    static private int STB_TEXTEDIT_KEYTOTEXT(STB_TEXTEDIT_CHARTYPE k)
+    static private int STB_TEXTEDIT_KEYTOTEXT(STB_TEXTEDIT_KEYTYPE k)
     {
         k &= STB_TEXTEDIT_CHARS_MASK;
 
@@ -358,8 +358,7 @@ public class StbTextEdit
     static public bool STB_TEXTEDIT_INSERTCHARS(ref STB_TEXTEDIT_STRING str, int i, ReadOnlySpan<STB_TEXTEDIT_CHARTYPE> c, int n)
     {
         // TODO: Validation for bounds?
-
-        str.text.Slice(i).CopyTo(str.text.Slice(i + n));
+        str.text.Slice(i, str.text_length).CopyTo(str.text.Slice(i + n));
         c.CopyTo(str.text.Slice(i).Span);
         str.text_length += n;
 
@@ -383,35 +382,35 @@ public class StbTextEdit
     public const int STB_TEXTEDIT_CHAR_SPECIAL_BITS = 8;
     public const int STB_TEXTEDIT_CHAR_FLAG_BITS = 8;
     public const STB_TEXTEDIT_KEYTYPE STB_TEXTEDIT_K_SHIFT = 1 << (STB_TEXTEDIT_CHAR_BITS + STB_TEXTEDIT_CHAR_SPECIAL_BITS + 1); //a power of two that is or'd in to a keyboard input to represent the shift key
-    public const STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_CHARS_MASK = (1 << STB_TEXTEDIT_CHAR_BITS) - 1;
-    public const STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_SPECIAL_KEY_CODES_START = 1 << (STB_TEXTEDIT_CHAR_BITS + STB_TEXTEDIT_CHAR_SPECIAL_BITS);
+    public const STB_TEXTEDIT_KEYTYPE STB_TEXTEDIT_CHARS_MASK = (1 << STB_TEXTEDIT_CHAR_BITS) - 1;
+    public const STB_TEXTEDIT_KEYTYPE STB_TEXTEDIT_SPECIAL_KEY_CODES_START = 1 << (STB_TEXTEDIT_CHAR_BITS + STB_TEXTEDIT_CHAR_SPECIAL_BITS);
 
     // the character returned by _GETCHAR() we recognize
     // as manually wordwrapping for end-of-line positioning
     public const STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_NEWLINE = '\n';
 
-    public const STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_K_LEFT = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 1;        // keyboard input to move cursor left
-    public const STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_K_RIGHT = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 2;       // keyboard input to move cursor right
-    public const STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_K_UP = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 3;          // keyboard input to move cursor up
-    public const STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_K_DOWN = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 4;        // keyboard input to move cursor down
-    public const STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_K_PGUP = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 5;        // keyboard input to move cursor up a page
-    public const STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_K_PGDOWN = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 6;      // keyboard input to move cursor down a page
-    public const STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_K_LINESTART = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 7;   // keyboard input to move cursor to start of line  // e.g. HOME
-    public const STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_K_LINEEND = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 8;     // keyboard input to move cursor to end of line    // e.g. END
-    public const STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_K_TEXTSTART = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 9;   // keyboard input to move cursor to start of text  // e.g. ctrl-HOME
-    public const STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_K_TEXTEND = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 10;     // keyboard input to move cursor to end of text    // e.g. ctrl-END
-    public const STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_K_DELETE = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 11;      // keyboard input to delete selection or character under cursor
-    public const STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_K_BACKSPACE = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 12;   // keyboard input to delete selection or character left of cursor
-    public const STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_K_UNDO = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 13;        // keyboard input to perform undo
-    public const STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_K_REDO = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 14;        // keyboard input to perform redo
+    public const STB_TEXTEDIT_KEYTYPE STB_TEXTEDIT_K_LEFT = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 1;        // keyboard input to move cursor left
+    public const STB_TEXTEDIT_KEYTYPE STB_TEXTEDIT_K_RIGHT = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 2;       // keyboard input to move cursor right
+    public const STB_TEXTEDIT_KEYTYPE STB_TEXTEDIT_K_UP = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 3;          // keyboard input to move cursor up
+    public const STB_TEXTEDIT_KEYTYPE STB_TEXTEDIT_K_DOWN = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 4;        // keyboard input to move cursor down
+    public const STB_TEXTEDIT_KEYTYPE STB_TEXTEDIT_K_PGUP = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 5;        // keyboard input to move cursor up a page
+    public const STB_TEXTEDIT_KEYTYPE STB_TEXTEDIT_K_PGDOWN = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 6;      // keyboard input to move cursor down a page
+    public const STB_TEXTEDIT_KEYTYPE STB_TEXTEDIT_K_LINESTART = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 7;   // keyboard input to move cursor to start of line  // e.g. HOME
+    public const STB_TEXTEDIT_KEYTYPE STB_TEXTEDIT_K_LINEEND = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 8;     // keyboard input to move cursor to end of line    // e.g. END
+    public const STB_TEXTEDIT_KEYTYPE STB_TEXTEDIT_K_TEXTSTART = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 9;   // keyboard input to move cursor to start of text  // e.g. ctrl-HOME
+    public const STB_TEXTEDIT_KEYTYPE STB_TEXTEDIT_K_TEXTEND = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 10;     // keyboard input to move cursor to end of text    // e.g. ctrl-END
+    public const STB_TEXTEDIT_KEYTYPE STB_TEXTEDIT_K_DELETE = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 11;      // keyboard input to delete selection or character under cursor
+    public const STB_TEXTEDIT_KEYTYPE STB_TEXTEDIT_K_BACKSPACE = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 12;   // keyboard input to delete selection or character left of cursor
+    public const STB_TEXTEDIT_KEYTYPE STB_TEXTEDIT_K_UNDO = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 13;        // keyboard input to perform undo
+    public const STB_TEXTEDIT_KEYTYPE STB_TEXTEDIT_K_REDO = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 14;        // keyboard input to perform redo
 
-    public const STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_K_INSERT = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 15;     // keyboard input to toggle insert mode
-    public const STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_K_WORDLEFT = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 16;   // keyboard input to move cursor left one word // e.g. ctrl-LEFT
-    public const STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_K_WORDRIGHT = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 17;  // keyboard input to move cursor right one word // e.g. ctrl-RIGHT
-    public const STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_K_LINESTART2 = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 18; // secondary keyboard input to move cursor to start of line
-    public const STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_K_LINEEND2 = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 19;   // secondary keyboard input to move cursor to end of line
-    public const STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_K_TEXTSTART2 = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 20; // secondary keyboard input to move cursor to start of text
-    public const STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_K_TEXTEND2 = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 21;   // secondary keyboard input to move cursor to end of text    
+    public const STB_TEXTEDIT_KEYTYPE STB_TEXTEDIT_K_INSERT = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 15;     // keyboard input to toggle insert mode
+    public const STB_TEXTEDIT_KEYTYPE STB_TEXTEDIT_K_WORDLEFT = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 16;   // keyboard input to move cursor left one word // e.g. ctrl-LEFT
+    public const STB_TEXTEDIT_KEYTYPE STB_TEXTEDIT_K_WORDRIGHT = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 17;  // keyboard input to move cursor right one word // e.g. ctrl-RIGHT
+    public const STB_TEXTEDIT_KEYTYPE STB_TEXTEDIT_K_LINESTART2 = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 18; // secondary keyboard input to move cursor to start of line
+    public const STB_TEXTEDIT_KEYTYPE STB_TEXTEDIT_K_LINEEND2 = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 19;   // secondary keyboard input to move cursor to end of line
+    public const STB_TEXTEDIT_KEYTYPE STB_TEXTEDIT_K_TEXTSTART2 = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 20; // secondary keyboard input to move cursor to start of text
+    public const STB_TEXTEDIT_KEYTYPE STB_TEXTEDIT_K_TEXTEND2 = STB_TEXTEDIT_SPECIAL_KEY_CODES_START + 21;   // secondary keyboard input to move cursor to end of text    
 
 
     ////////////////////////////////////////////////////////////////////////////
@@ -604,7 +603,7 @@ public class StbTextEdit
     }
 
     // API click: on mouse down, move the cursor to the clicked location, and reset the selection
-    static void stb_textedit_click(ref STB_TEXTEDIT_STRING str, ref STB_TexteditState state, float x, float y)
+    public static void stb_textedit_click(ref STB_TEXTEDIT_STRING str, ref STB_TexteditState state, float x, float y)
     {
         // In single-line mode, just always make y = 0. This lets the drag keep working if the mouse
         // goes off the top or bottom of the text
@@ -622,7 +621,7 @@ public class StbTextEdit
     }
 
     // API drag: on mouse drag, move the cursor and selection endpoint to the clicked location
-    static void stb_textedit_drag(ref STB_TEXTEDIT_STRING str, ref STB_TexteditState state, float x, float y)
+    public static void stb_textedit_drag(ref STB_TEXTEDIT_STRING str, ref STB_TexteditState state, float x, float y)
     {
         int p = 0;
 
@@ -856,7 +855,7 @@ public class StbTextEdit
     }
 
     // API cut: delete selection
-    static int stb_textedit_cut(ref STB_TEXTEDIT_STRING str, ref STB_TexteditState state)
+    public static int stb_textedit_cut(ref STB_TEXTEDIT_STRING str, ref STB_TexteditState state)
     {
         if (STB_TEXT_HAS_SELECTION(ref state))
         {
@@ -868,7 +867,7 @@ public class StbTextEdit
     }
 
     // API paste: replace existing selection with passed-in text
-    static int stb_textedit_paste_internal(ref STB_TEXTEDIT_STRING str, ref STB_TexteditState state, ReadOnlySpan<STB_TEXTEDIT_CHARTYPE> text, int len)
+    public static int stb_textedit_paste_internal(ref STB_TEXTEDIT_STRING str, ref STB_TexteditState state, ReadOnlySpan<STB_TEXTEDIT_CHARTYPE> text, int len)
     {
         // if there's a selection, the paste should delete it
         stb_textedit_clamp(ref str, ref state);
@@ -886,7 +885,7 @@ public class StbTextEdit
     }
 
     // API key: process a keyboard input
-    static void stb_textedit_key(ref STB_TEXTEDIT_STRING str, ref STB_TexteditState state, STB_TEXTEDIT_KEYTYPE key)
+    public static void stb_textedit_key(ref STB_TEXTEDIT_STRING str, ref STB_TexteditState state, STB_TEXTEDIT_KEYTYPE key)
     {
     retry:
         switch (key)
@@ -1578,7 +1577,7 @@ public class StbTextEdit
     }
 
     // API initialize
-    static void stb_textedit_initialize_state(ref STB_TexteditState state, bool is_single_line)
+    public static void stb_textedit_initialize_state(ref STB_TexteditState state, bool is_single_line)
     {
         stb_textedit_clear_state(ref state, is_single_line);
     }

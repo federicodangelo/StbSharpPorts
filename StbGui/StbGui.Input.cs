@@ -12,9 +12,9 @@ public partial class StbGui
     private static void stbg__add_user_input_event(stbg_user_input_input_event user_input_event)
     {
         stbg__assert(!context.inside_frame);
-        stbg__assert(context.user_input_evenets_queue_offset + 1 < context.user_input_evenets_queue.Length);
+        stbg__assert(context.user_input_events_queue_offset + 1 < context.user_input_events_queue.Length);
 
-        context.user_input_evenets_queue[context.user_input_evenets_queue_offset++] = user_input_event;
+        context.user_input_events_queue[context.user_input_events_queue_offset++] = user_input_event;
     }
 
     private static void stbg__process_input()
@@ -58,7 +58,7 @@ public partial class StbGui
 
         stbg__process_widget_input(ref stbg_get_widget_by_id(context.root_widget_id));
 
-        context.user_input_evenets_queue_offset = 0;
+        context.user_input_events_queue_offset = 0;
     }
 
     private static void stbg__derive_new_input_from_user_input()
@@ -67,9 +67,14 @@ public partial class StbGui
 
         input.mouse_wheel_scroll_amount = stbg_build_position_zero();
 
-        for (var i = 0; i < context.user_input_evenets_queue_offset; i++)
+        input.mouse_button_1_down = false;
+        input.mouse_button_1_up = false;
+        input.mouse_button_2_down = false;
+        input.mouse_button_2_up = false;
+
+        for (var i = 0; i < context.user_input_events_queue_offset; i++)
         {
-            var user_input = context.user_input_evenets_queue[i];
+            var user_input = context.user_input_events_queue[i];
 
             switch (user_input.type)
             {

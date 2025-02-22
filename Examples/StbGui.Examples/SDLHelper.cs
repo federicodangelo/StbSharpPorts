@@ -6,7 +6,7 @@ namespace StbSharp.Examples;
 
 public class SDLHelper
 {
-    private static readonly Queue<StbGui.stbg_rect> clip_rects = new();
+    private static readonly Stack<StbGui.stbg_rect> clip_rects = new();
 
     static public void PushClipRect(nint renderer, StbGui.stbg_rect rect)
     {
@@ -14,7 +14,7 @@ public class SDLHelper
 
         var rect_clipped = StbGui.stbg_clamp_rect(rect, prev_clip);
 
-        clip_rects.Enqueue(rect_clipped);
+        clip_rects.Push(rect_clipped);
 
         if (!SDL.SetRenderClipRect(renderer, StbgRectToSdlRect(rect_clipped)))
         {
@@ -26,15 +26,21 @@ public class SDLHelper
     {
         Debug.Assert(clip_rects.Count > 0);
 
-        var rect = clip_rects.Dequeue();
+        clip_rects.Pop();
 
         if (clip_rects.Count > 0)
         {
-            SDL.SetRenderClipRect(renderer, StbgRectToSdlRect(rect));
+            if (!SDL.SetRenderClipRect(renderer, StbgRectToSdlRect(clip_rects.Peek())))
+            {
+                SDL.LogError(SDL.LogCategory.System, $"SDL failed to set clip rect: {SDL.GetError()}");
+            }
         }
         else
         {
-            SDL.SetRenderClipRect(renderer, 0);
+            if (!SDL.SetRenderClipRect(renderer, 0))
+            {
+                SDL.LogError(SDL.LogCategory.System, $"SDL failed to set clip rect: {SDL.GetError()}");
+            }
         }
     }
 

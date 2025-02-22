@@ -230,6 +230,20 @@ public partial class StbGui
         SCROLLBAR_BUTTON_PRESSED_BACKGROUND_COLOR,
         SCROLLBAR_BUTTON_PRESSED_COLOR,
 
+
+        // Textfield styles
+        TEXTFIELD_PADDING_TOP,
+        TEXTFIELD_PADDING_BOTTOM,
+        TEXTFIELD_PADDING_LEFT,
+        TEXTFIELD_PADDING_RIGHT,
+        TEXTFIELD_BACKGROUND_COLOR,
+        TEXTFIELD_BORDER_COLOR,
+        TEXTFIELD_BORDER_SIZE,
+        TEXTFIELD_TEXT_COLOR,
+        TEXTFIELD_CURSOR_COLOR,
+        TEXTFIELD_CURSOR_HEIGHT,
+        TEXTFIELD_CURSOR_WIDTH,
+
         // ALWAYS LAST!!
         COUNT
     }
@@ -373,6 +387,7 @@ public partial class StbGui
         BUTTON,
         LABEL,
         SCROLLBAR,
+        TEXTFIELD,
         COUNT, // MUST BE LAST
     }
 
@@ -423,6 +438,9 @@ public partial class StbGui
         public stbg_widget_computed_bounds computed_bounds;
 
         public ReadOnlyMemory<char> text;
+
+        public Memory<char> text_editable;
+        public int text_editable_length;
 
         public stbg_widget_value value;
 
@@ -513,6 +531,7 @@ public partial class StbGui
         public widget_id pressed_widget_id;
         public widget_id dragged_widget_id;
         public widget_id active_widget_id;
+        public widget_id editing_text_widget_id;
 
         public int hovered_sub_widget_part;
         public int pressed_sub_widget_part;
@@ -575,9 +594,9 @@ public partial class StbGui
 
         public stbg_position next_new_window_position;
 
-        public stbg_user_input_input_event[] user_input_evenets_queue;
+        public stbg_user_input_input_event[] user_input_events_queue;
         
-        public int user_input_evenets_queue_offset;
+        public int user_input_events_queue_offset;
 
         public stbg_input_derived input;
 

@@ -66,7 +66,7 @@ public partial class StbGui
         context.external_dependencies = external_dependencies;
         context.theme.styles = new double[(int)STBG_WIDGET_STYLE.COUNT];
         context.render_context.render_commands_queue = render_commands_queue;
-        context.user_input_evenets_queue = new stbg_user_input_input_event[options.max_user_input_events_queue_size];
+        context.user_input_events_queue = new stbg_user_input_input_event[options.max_user_input_events_queue_size];
         stbg__string_memory_pool_init(ref context.string_memory_pool, options.string_memory_pool_size);
 
         // This is the only field in text_edit that requires manual instantiation
@@ -373,6 +373,8 @@ public partial class StbGui
             context.input_feedback.pressed_widget_id = STBG_WIDGET_ID_NULL;
         if (context.input_feedback.active_widget_id == widget.id)
             context.input_feedback.active_widget_id = STBG_WIDGET_ID_NULL;
+        if (context.input_feedback.editing_text_widget_id == widget.id)
+            context.input_feedback.editing_text_widget_id = STBG_WIDGET_ID_NULL;
     }
 
     private static bool stbg__find_widget_parent_by_type(widget_id widget_id, STBG_WIDGET_TYPE type, out widget_id found_id)

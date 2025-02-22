@@ -146,17 +146,23 @@ public partial class StbGui
         SUPER = 1 << 3,
     }
 
-    public enum STBG_KEYBORD_KEY
+    public enum STBG_KEYBOARD_KEY
     {
         NONE,
         CHARACTER, // Pressed character is in key_character
         BACKSPACE,
+        DELETE,
         RETURN,
         LEFT,
         RIGHT,
         UP,
         DOWN,
-
+        CONTROL_LEFT,
+        CONTROL_RIGHT,
+        SHIFT_LEFT,
+        SHIFT_RIGHT,
+        ALT_LEFT,
+        ALT_RIGHT,
     }
 
     public struct stbg_user_input_input_event
@@ -171,7 +177,7 @@ public partial class StbGui
         public stbg_position mouse_scroll_wheel;
 
         // Key related properties
-        public STBG_KEYBORD_KEY key;
+        public STBG_KEYBOARD_KEY key;
         public char key_character;
         public bool key_pressed;
         public STBG_KEYBOARD_MODIFIER_FLAGS key_modifiers;
@@ -223,7 +229,7 @@ public partial class StbGui
         stbg__add_user_input_event(new stbg_user_input_input_event()
         {
             type = STBG_INPUT_EVENT_TYPE.KEYBOARD_KEY,
-            key = STBG_KEYBORD_KEY.CHARACTER,
+            key = STBG_KEYBOARD_KEY.CHARACTER,
             key_character = character,
             key_pressed = pressed,
             key_modifiers = modifiers,
@@ -233,7 +239,7 @@ public partial class StbGui
     /// <summary>
     /// Add keyboard key pressed / released event
     /// </summary>
-    public static void stbg_add_user_input_event_keyboard_key(STBG_KEYBORD_KEY key, STBG_KEYBOARD_MODIFIER_FLAGS modifiers, bool pressed)
+    public static void stbg_add_user_input_event_keyboard_key(STBG_KEYBOARD_KEY key, STBG_KEYBOARD_MODIFIER_FLAGS modifiers, bool pressed)
     {
         stbg__add_user_input_event(new stbg_user_input_input_event()
         {
@@ -497,11 +503,11 @@ public partial class StbGui
         stbg__assert(widget_id != context.root_widget_id);
         ref var widget = ref stbg_get_widget_by_id(widget_id);
 
-        //stbg__warning(widget.properties.layout.intrinsic_size.type == STBG_INTRINSIC_SIZE_TYPE.FIXED_PIXELS, "Size of widgets without FIXED_PIXELS size is ignored");
-
-        widget.properties.layout.intrinsic_size.type = STBG_INTRINSIC_SIZE_TYPE.FIXED_PIXELS;
-        widget.properties.layout.intrinsic_size.size.width = Math.Max(width, 0);
-        widget.properties.layout.intrinsic_size.size.height = Math.Max(height, 0);
+        widget.properties.layout.intrinsic_size =
+            stbg__build_intrinsic_size_pixels(
+                Math.Max(width, 0),
+                Math.Max(height, 0)
+        );
     }
 
     /// <summary>
@@ -623,5 +629,13 @@ public partial class StbGui
         float f = value;
         stbg__scrollbar_create(identifier, direction, ref f, min_value, max_value, (max_value - min_value) / 10.0f, true);
         value = (int)f;
+    }
+
+    /// <summary>
+    /// Creates an editable textfield
+    /// </summary>
+    public static void stbg_textfield(ReadOnlySpan<char> identifier, Memory<char> text, ref int text_length)
+    {
+        stbg__textfield_create(identifier, text, ref text_length);
     }
 }

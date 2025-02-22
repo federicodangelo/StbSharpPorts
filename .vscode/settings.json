@@ -12,6 +12,7 @@
         "packedchar",
         "RASTERIZER",
         "rects",
+        "Scancode",
         "stbg",
         "stbiw",
         "stbrp",

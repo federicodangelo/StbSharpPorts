@@ -276,6 +276,8 @@ public class SDLFont : IDisposable
             SDLHelper.PopClipRect(renderer);
         }
 
+        SDL.SetTextureColorMod(fontTexture, 255, 255, 255);
+
     }
 
     public void Dispose()

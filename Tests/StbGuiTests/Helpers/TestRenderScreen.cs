@@ -17,7 +17,7 @@ public class TestRenderScreen
 
     protected TestRenderScreenPixel[][] test_render_screen;
 
-    private Queue<StbGui.stbg_rect> clipping_rects = new();
+    private Stack<StbGui.stbg_rect> clipping_rects = new();
 
     public TestRenderScreen(int width, int height)
     {
@@ -164,17 +164,17 @@ public class TestRenderScreen
     {
         if (clipping_rects.Count > 0)
         {
-            clipping_rects.Enqueue(StbGui.stbg_clamp_rect(rect, clipping_rects.Peek()));
+            clipping_rects.Push(StbGui.stbg_clamp_rect(rect, clipping_rects.Peek()));
         }
         else
         {
-            clipping_rects.Enqueue(rect);
+            clipping_rects.Push(rect);
         }
     }
 
     private void PopClippingRect()
     {
-        clipping_rects.Dequeue();
+        clipping_rects.Pop();
     }
 
     static public string[] ConvertPixelsToStrings(TestRenderScreenPixel[][] pixels, bool color)

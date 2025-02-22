@@ -15,7 +15,10 @@ public class SDLApp : SDLAppBase
 
     public SDLApp() : base(new SdlAppOptions() { WindowName = "Example App", DefaultFontName = "Font", DefaultFontPath = "Fonts/ProggyClean.ttf", DefaultFontSize = 13 })
     {
+        var txt = "Hello World";
 
+        txt.AsSpan().CopyTo(text_to_edit.Span);
+        text_to_edit_length = txt.Length;
     }
 
     private bool showButton3 = true;
@@ -30,6 +33,9 @@ public class SDLApp : SDLAppBase
     private bool movable = true;
 
     private bool window_open = true;
+
+    private Memory<char> text_to_edit = new Memory<char>(new char[1024]);
+    private int text_to_edit_length;
 
     protected override void OnRenderStbGui()
     {
@@ -109,6 +115,8 @@ public class SDLApp : SDLAppBase
         {
             if (StbGui.stbg_get_last_widget_is_new())
                 StbGui.stbg_set_last_widget_position(300, 250);
+
+            StbGui.stbg_textfield("textfield1", text_to_edit, ref text_to_edit_length);
 
             for (int i = 0; i < 20; i++)
             {

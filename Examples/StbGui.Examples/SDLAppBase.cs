@@ -221,6 +221,37 @@ public class SDLAppBase : IDisposable
         }
     }
 
+    static private Dictionary<SDL.Scancode, StbGui.STBG_KEYBOARD_KEY> SDL_KEY_MAPPINGS = new() {
+        // Basic arrows
+        { SDL.Scancode.Left, StbGui.STBG_KEYBOARD_KEY.LEFT },
+        { SDL.Scancode.Right, StbGui.STBG_KEYBOARD_KEY.RIGHT },
+        { SDL.Scancode.Up, StbGui.STBG_KEYBOARD_KEY.UP },
+        { SDL.Scancode.Down, StbGui.STBG_KEYBOARD_KEY.DOWN },
+        
+        // Backspace
+        { SDL.Scancode.Backspace, StbGui.STBG_KEYBOARD_KEY.BACKSPACE },
+
+        // Backspace
+        { SDL.Scancode.Delete, StbGui.STBG_KEYBOARD_KEY.DELETE },
+
+        // Enter
+        { SDL.Scancode.Return, StbGui.STBG_KEYBOARD_KEY.RETURN },
+        { SDL.Scancode.Return2, StbGui.STBG_KEYBOARD_KEY.RETURN },
+        { SDL.Scancode.KpEnter, StbGui.STBG_KEYBOARD_KEY.RETURN },
+
+        // Control
+        { SDL.Scancode.RCtrl, StbGui.STBG_KEYBOARD_KEY.CONTROL_RIGHT },
+        { SDL.Scancode.LCtrl, StbGui.STBG_KEYBOARD_KEY.CONTROL_LEFT },
+
+        // Shift
+        { SDL.Scancode.LShift, StbGui.STBG_KEYBOARD_KEY.SHIFT_LEFT },
+        { SDL.Scancode.RShift, StbGui.STBG_KEYBOARD_KEY.SHIFT_RIGHT },
+
+        // Alt
+        { SDL.Scancode.LAlt, StbGui.STBG_KEYBOARD_KEY.ALT_LEFT },
+        { SDL.Scancode.RAlt, StbGui.STBG_KEYBOARD_KEY.ALT_RIGHT },
+    };
+
     private bool ProcessSDLEvents()
     {
         bool quit = false;
@@ -269,35 +300,24 @@ public class SDLAppBase : IDisposable
                         if ((e.Key.Mod & SDL.Keymod.GUI) != 0)
                             modifiers |= StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.SUPER;
 
-                        var key = e.Key.Key;
+                        var down = e.Key.Down;
 
-                        if ((key & SDL.Keycode.ExtendedMask) == 0 && key != SDL.Keycode.Unknown)
+                        // Some special keyboard keys are also valid unicode character, when we find one of those (Enter, Escape, Backspace, etc..)
+                        // we handle it as a special key and NOT as a character
+                        if (SDL_KEY_MAPPINGS.TryGetValue(e.Key.Scancode, out var mapped_key))
                         {
-                            StbGui.stbg_add_user_input_event_keyboard_key_character((char)key, modifiers, e.Key.Down);
+                            StbGui.stbg_add_user_input_event_keyboard_key(mapped_key, modifiers, down);
                         }
-
-                        switch (e.Key.Scancode)
+                        else
                         {
-                            case SDL.Scancode.Left:
-                                StbGui.stbg_add_user_input_event_keyboard_key(StbGui.STBG_KEYBORD_KEY.LEFT, modifiers, e.Key.Down);
-                                break;
-                            case SDL.Scancode.Right:
-                                StbGui.stbg_add_user_input_event_keyboard_key(StbGui.STBG_KEYBORD_KEY.RIGHT, modifiers, e.Key.Down);
-                                break;
-                            case SDL.Scancode.Up:
-                                StbGui.stbg_add_user_input_event_keyboard_key(StbGui.STBG_KEYBORD_KEY.UP, modifiers, e.Key.Down);
-                                break;
-                            case SDL.Scancode.Down:
-                                StbGui.stbg_add_user_input_event_keyboard_key(StbGui.STBG_KEYBORD_KEY.DOWN, modifiers, e.Key.Down);
-                                break;
-                            case SDL.Scancode.Backspace:
-                                StbGui.stbg_add_user_input_event_keyboard_key(StbGui.STBG_KEYBORD_KEY.BACKSPACE, modifiers, e.Key.Down);
-                                break;
-                            case SDL.Scancode.Return:
-                            case SDL.Scancode.Return2:
-                            case SDL.Scancode.KpEnter:
-                                StbGui.stbg_add_user_input_event_keyboard_key(StbGui.STBG_KEYBORD_KEY.RETURN, modifiers, e.Key.Down);
-                                break;
+                            var key = e.Key.Key;
+                            bool is_extended = (key & SDL.Keycode.ExtendedMask) != 0;
+                            bool is_scancode = (key & SDL.Keycode.ScanCodeMask) != 0;
+
+                            if (!is_scancode && !is_extended && key != SDL.Keycode.Unknown)
+                            {
+                                StbGui.stbg_add_user_input_event_keyboard_key_character((char)key, modifiers, e.Key.Down);
+                            }
                         }
                         break;
                     }
