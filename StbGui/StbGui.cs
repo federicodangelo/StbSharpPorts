@@ -127,40 +127,121 @@ public partial class StbGui
         context.screen_size.height = height;
     }
 
-    /// <summary>
-    /// User Input
-    /// </summary>
-    public struct stbg_user_input
+    public enum STBG_INPUT_EVENT_TYPE
     {
-        /// <summary>
-        /// Mouse position
-        /// </summary>
+        NONE,
+        MOUSE_POSITION,
+        MOUSE_SCROLL_WHEEL,
+        MOUSE_BUTTON,
+        KEYBOARD_KEY,
+    }
+
+    [Flags]
+    public enum STBG_KEYBOARD_MODIFIER_FLAGS
+    {
+        NONE = 0,
+        SHIFT = 1 << 0,
+        CONTROL = 1 << 1,
+        ALT = 1 << 2,
+        SUPER = 1 << 3,
+    }
+
+    public enum STBG_KEYBORD_KEY
+    {
+        NONE,
+        CHARACTER, // Pressed character is in key_character
+        BACKSPACE,
+        RETURN,
+        LEFT,
+        RIGHT,
+        UP,
+        DOWN,
+
+    }
+
+    public struct stbg_user_input_input_event
+    {
+        public STBG_INPUT_EVENT_TYPE type;
+
+        // Mouse related properties
+        public int mouse_button;
+        public bool mouse_button_pressed;
         public stbg_position mouse_position;
-        /// <summary>
-        /// Mouse wheel scroll amount
-        /// </summary>
-        public stbg_position mouse_wheel_scroll_amount;
-        /// <summary>
-        /// Mouse position valid or not (set to false when the mouse is outside the window)
-        /// </summary>
         public bool mouse_position_valid;
-        /// <summary>
-        /// Mouse button 1 is pressed
-        /// </summary>
-        public bool mouse_button_1;
-        /// <summary>
-        /// Mouse button 2 is pressed
-        /// </summary>
-        public bool mouse_button_2;
+        public stbg_position mouse_scroll_wheel;
+
+        // Key related properties
+        public STBG_KEYBORD_KEY key;
+        public char key_character;
+        public bool key_pressed;
+        public STBG_KEYBOARD_MODIFIER_FLAGS key_modifiers;
     }
 
     /// <summary>
-    /// Sets the input
+    /// Add mouse position changed event
     /// </summary>
-    public static void stbg_set_user_input(stbg_user_input user_input)
+    public static void stbg_add_user_input_event_mouse_position(float x, float y, bool valid = true)
     {
-        stbg__assert(!context.inside_frame);
-        context.user_input = user_input;
+        stbg__add_user_input_event(new stbg_user_input_input_event()
+        {
+            type = STBG_INPUT_EVENT_TYPE.MOUSE_POSITION,
+            mouse_position = stbg_build_position(x, y),
+            mouse_position_valid = valid
+        });
+    }
+
+    /// <summary>
+    /// Add mouse button changed event
+    /// </summary>
+    public static void stbg_add_user_input_event_mouse_button(int button, bool pressed)
+    {
+        stbg__add_user_input_event(new stbg_user_input_input_event()
+        {
+            type = STBG_INPUT_EVENT_TYPE.MOUSE_BUTTON,
+            mouse_button = button,
+            mouse_button_pressed = pressed,
+        });
+    }
+
+    /// <summary>
+    /// Add mouse wheel changed event
+    /// </summary>
+    public static void stbg_add_user_input_event_mouse_wheel(float dx, float dy)
+    {
+        stbg__add_user_input_event(new stbg_user_input_input_event()
+        {
+            type = STBG_INPUT_EVENT_TYPE.MOUSE_SCROLL_WHEEL,
+            mouse_scroll_wheel = stbg_build_position(dx, dy)
+        });
+    }
+
+    /// <summary>
+    /// Add keyboard key pressed / released event
+    /// </summary>
+    public static void stbg_add_user_input_event_keyboard_key_character(char character, STBG_KEYBOARD_MODIFIER_FLAGS modifiers, bool pressed)
+    {
+        stbg__add_user_input_event(new stbg_user_input_input_event()
+        {
+            type = STBG_INPUT_EVENT_TYPE.KEYBOARD_KEY,
+            key = STBG_KEYBORD_KEY.CHARACTER,
+            key_character = character,
+            key_pressed = pressed,
+            key_modifiers = modifiers,
+        });
+    }
+
+    /// <summary>
+    /// Add keyboard key pressed / released event
+    /// </summary>
+    public static void stbg_add_user_input_event_keyboard_key(STBG_KEYBORD_KEY key, STBG_KEYBOARD_MODIFIER_FLAGS modifiers, bool pressed)
+    {
+        stbg__add_user_input_event(new stbg_user_input_input_event()
+        {
+            type = STBG_INPUT_EVENT_TYPE.KEYBOARD_KEY,
+            key = key,
+            key_pressed = pressed,
+            key_modifiers = modifiers,
+        });
     }
 
     /// <summary>
@@ -541,6 +622,6 @@ public partial class StbGui
     {
         float f = value;
         stbg__scrollbar_create(identifier, direction, ref f, min_value, max_value, (max_value - min_value) / 10.0f, true);
-        value = (int) f;
+        value = (int)f;
     }
 }

@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\StbHash\StbHash.csproj" />
+    <ProjectReference Include="..\StbTextEdit\StbTextEdit.csproj" />
   </ItemGroup>
 
 </Project>

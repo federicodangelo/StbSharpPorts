@@ -9,6 +9,14 @@ using font_id = int;
 
 public partial class StbGui
 {
+    private static void stbg__add_user_input_event(stbg_user_input_input_event user_input_event)
+    {
+        stbg__assert(!context.inside_frame);
+        stbg__assert(context.user_input_evenets_queue_offset + 1 < context.user_input_evenets_queue.Length);
+
+        context.user_input_evenets_queue[context.user_input_evenets_queue_offset++] = user_input_event;
+    }
+
     private static void stbg__process_input()
     {
         if (context.root_widget_id == STBG_WIDGET_ID_NULL)
@@ -49,20 +57,44 @@ public partial class StbGui
         }
 
         stbg__process_widget_input(ref stbg_get_widget_by_id(context.root_widget_id));
+
+        context.user_input_evenets_queue_offset = 0;
     }
 
     private static void stbg__derive_new_input_from_user_input()
     {
-        var user_input = context.user_input;
-
         ref var input = ref context.input;
 
-        input.mouse_position = user_input.mouse_position;
-        input.mouse_position_valid = user_input.mouse_position_valid;
-        input.mouse_wheel_scroll_amount = user_input.mouse_wheel_scroll_amount;
+        input.mouse_wheel_scroll_amount = stbg_build_position_zero();
 
-        stbg_update_input_button(user_input.mouse_button_1, ref input.mouse_button_1, ref input.mouse_button_1_down, ref input.mouse_button_1_up);
-        stbg_update_input_button(user_input.mouse_button_2, ref input.mouse_button_2, ref input.mouse_button_2_down, ref input.mouse_button_2_up);
+        for (var i = 0; i < context.user_input_evenets_queue_offset; i++)
+        {
+            var user_input = context.user_input_evenets_queue[i];
+
+            switch (user_input.type)
+            {
+                case STBG_INPUT_EVENT_TYPE.MOUSE_POSITION:
+                    input.mouse_position = user_input.mouse_position;
+                    input.mouse_position_valid = user_input.mouse_position_valid;
+                    break;
+
+                case STBG_INPUT_EVENT_TYPE.MOUSE_SCROLL_WHEEL:
+                    input.mouse_wheel_scroll_amount.x += user_input.mouse_scroll_wheel.x;
+                    input.mouse_wheel_scroll_amount.y += user_input.mouse_scroll_wheel.y;
+                    break;
+
+                case STBG_INPUT_EVENT_TYPE.MOUSE_BUTTON:
+                    if (user_input.mouse_button == 1)
+                        stbg_update_input_button(user_input.mouse_button_pressed, ref input.mouse_button_1, ref input.mouse_button_1_down, ref input.mouse_button_1_up);
+                    if (user_input.mouse_button == 2)
+                        stbg_update_input_button(user_input.mouse_button_pressed, ref input.mouse_button_2, ref input.mouse_button_2_down, ref input.mouse_button_2_up);
+                    break;
+
+                case STBG_INPUT_EVENT_TYPE.KEYBOARD_KEY:
+                    // We don't derive anything from keyboard events
+                    break;
+            }
+        }
     }
 
     private static void stbg_update_input_button(bool user_pressed, ref bool pressed, ref bool down, ref bool up)
@@ -99,12 +131,12 @@ public partial class StbGui
     {
         if ((widget.flags & STBG_WIDGET_FLAGS.IGNORE) != 0)
             return false;
-            
+
         var children_id = widget.hierarchy.first_children_id;
 
         while (children_id != STBG_WIDGET_ID_NULL)
         {
-            ref var children =ref stbg_get_widget_by_id(children_id);
+            ref var children = ref stbg_get_widget_by_id(children_id);
 
             if (stbg__process_widget_input(ref children))
                 return true;

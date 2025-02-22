@@ -32,6 +32,9 @@ public partial class StbGui
         if (options.render_commands_queue_size == 0)
             options.render_commands_queue_size = DEFAULT_RENDER_QUEUE_SIZE;
 
+        if (options.max_user_input_events_queue_size == 0)
+            options.max_user_input_events_queue_size = DEFAULT_MAX_USER_INPUT_EVENTS_QUEUE_SIZE;
+
         var widgets = new stbg_widget[options.max_widgets + 1]; // first slot is never used (null widget)
         var hash_table = new stbg_hash_entry[options.hash_table_size];
         var fonts = new stbg_font[options.max_fonts + 1]; // first slot is never used (null font)
@@ -63,7 +66,11 @@ public partial class StbGui
         context.external_dependencies = external_dependencies;
         context.theme.styles = new double[(int)STBG_WIDGET_STYLE.COUNT];
         context.render_context.render_commands_queue = render_commands_queue;
+        context.user_input_evenets_queue = new stbg_user_input_input_event[options.max_user_input_events_queue_size];
         stbg__string_memory_pool_init(ref context.string_memory_pool, options.string_memory_pool_size);
+
+        // This is the only field in text_edit that requires manual instantiation
+        context.text_edit.state.undostate = new StbTextEdit.StbUndoState();
     }
 
     private static stbg_size stbg__measure_text(stbg_text text)

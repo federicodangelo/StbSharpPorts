@@ -610,8 +610,6 @@ public class StbGuiWindowTests : StbGuiTestsBase
 
             render();
 
-            SetMouseScrollWheelAmountZero();
-
             render();
         }
 
@@ -679,8 +677,6 @@ public class StbGuiWindowTests : StbGuiTestsBase
             SetMouseScrollWheelAmount(0, -1);
 
             render();
-
-            SetMouseScrollWheelAmountZero();
 
             render();
         }
@@ -884,9 +880,6 @@ public class StbGuiWindowTests : StbGuiTestsBase
             SetMouseScrollWheelAmount(1, 0);
 
             render();
-
-            // release the scroll wheel
-            SetMouseScrollWheelAmountZero();
 
             render();
         }

@@ -75,19 +75,15 @@ public class SDLAppBase : IDisposable
         var frames_count_ticks = SDL.GetTicks();
         var frames_count = 0;
 
-        var input = new StbGui.stbg_user_input();
-
         while (true)
         {
             ulong frame_start_ns = SDL.GetTicksNS();
 
-            var quit = ProcessSDLEvents(ref input);
+            var quit = ProcessSDLEvents();
 
             if (quit) break;
 
             // Screen clearing is handled by STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME
-
-            StbGui.stbg_set_user_input(input);
 
             StbGui.stbg_begin_frame();
             {
@@ -225,12 +221,9 @@ public class SDLAppBase : IDisposable
         }
     }
 
-    private bool ProcessSDLEvents(ref StbGui.stbg_user_input input)
+    private bool ProcessSDLEvents()
     {
         bool quit = false;
-
-        input.mouse_wheel_scroll_amount.x = 0;
-        input.mouse_wheel_scroll_amount.y = 0;
 
         while (SDL.PollEvent(out var e) && !quit)
         {
@@ -241,42 +234,73 @@ public class SDLAppBase : IDisposable
                     break;
 
                 case SDL.EventType.MouseMotion:
-                    input.mouse_position.x = e.Motion.X;
-                    input.mouse_position.y = e.Motion.Y;
-                    input.mouse_position_valid = true;
+                    StbGui.stbg_add_user_input_event_mouse_position(e.Motion.X, e.Motion.Y);
                     break;
 
                 case SDL.EventType.MouseButtonDown:
-                    if (e.Button.Button == 1)
-                        input.mouse_button_1 = true;
-                    else if (e.Button.Button == 2)
-                        input.mouse_button_2 = true;
-                    input.mouse_position.x = e.Button.X;
-                    input.mouse_position.y = e.Button.Y;
-                    input.mouse_position_valid = true;
+                    StbGui.stbg_add_user_input_event_mouse_position(e.Button.X, e.Button.Y, true);
+                    StbGui.stbg_add_user_input_event_mouse_button(e.Button.Button, true);
                     break;
 
                 case SDL.EventType.MouseButtonUp:
-                    if (e.Button.Button == 1)
-                        input.mouse_button_1 = false;
-                    else if (e.Button.Button == 2)
-                        input.mouse_button_2 = false;
-                    input.mouse_position.x = e.Button.X;
-                    input.mouse_position.y = e.Button.Y;
-                    input.mouse_position_valid = true;
+                    StbGui.stbg_add_user_input_event_mouse_position(e.Button.X, e.Button.Y);
+                    StbGui.stbg_add_user_input_event_mouse_button(e.Button.Button, false);
                     break;
 
                 case SDL.EventType.MouseWheel:
-                    input.mouse_wheel_scroll_amount.x += e.Wheel.X;
-                    input.mouse_wheel_scroll_amount.y += e.Wheel.Y;
-                    input.mouse_position.x = e.Wheel.MouseX;
-                    input.mouse_position.y = e.Wheel.MouseY;
-                    input.mouse_position_valid = true;
+                    StbGui.stbg_add_user_input_event_mouse_position(e.Wheel.MouseX, e.Wheel.MouseY);
+                    StbGui.stbg_add_user_input_event_mouse_wheel(e.Wheel.X, e.Wheel.Y);
                     break;
 
                 case SDL.EventType.WindowMouseLeave:
-                    input.mouse_position_valid = false;
+                    StbGui.stbg_add_user_input_event_mouse_position(0, 0, false);
                     break;
+
+                case SDL.EventType.KeyDown:
+                case SDL.EventType.KeyUp:
+                    {
+                        var modifiers = StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.NONE;
+                        if ((e.Key.Mod & SDL.Keymod.Ctrl) != 0)
+                            modifiers |= StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.CONTROL;
+                        if ((e.Key.Mod & SDL.Keymod.Shift) != 0)
+                            modifiers |= StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.SHIFT;
+                        if ((e.Key.Mod & SDL.Keymod.Alt) != 0)
+                            modifiers |= StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.ALT;
+                        if ((e.Key.Mod & SDL.Keymod.GUI) != 0)
+                            modifiers |= StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.SUPER;
+
+                        var key = e.Key.Key;
+
+                        if ((key & SDL.Keycode.ExtendedMask) == 0 && key != SDL.Keycode.Unknown)
+                        {
+                            StbGui.stbg_add_user_input_event_keyboard_key_character((char)key, modifiers, e.Key.Down);
+                        }
+
+                        switch (e.Key.Scancode)
+                        {
+                            case SDL.Scancode.Left:
+                                StbGui.stbg_add_user_input_event_keyboard_key(StbGui.STBG_KEYBORD_KEY.LEFT, modifiers, e.Key.Down);
+                                break;
+                            case SDL.Scancode.Right:
+                                StbGui.stbg_add_user_input_event_keyboard_key(StbGui.STBG_KEYBORD_KEY.RIGHT, modifiers, e.Key.Down);
+                                break;
+                            case SDL.Scancode.Up:
+                                StbGui.stbg_add_user_input_event_keyboard_key(StbGui.STBG_KEYBORD_KEY.UP, modifiers, e.Key.Down);
+                                break;
+                            case SDL.Scancode.Down:
+                                StbGui.stbg_add_user_input_event_keyboard_key(StbGui.STBG_KEYBORD_KEY.DOWN, modifiers, e.Key.Down);
+                                break;
+                            case SDL.Scancode.Backspace:
+                                StbGui.stbg_add_user_input_event_keyboard_key(StbGui.STBG_KEYBORD_KEY.BACKSPACE, modifiers, e.Key.Down);
+                                break;
+                            case SDL.Scancode.Return:
+                            case SDL.Scancode.Return2:
+                            case SDL.Scancode.KpEnter:
+                                StbGui.stbg_add_user_input_event_keyboard_key(StbGui.STBG_KEYBORD_KEY.RETURN, modifiers, e.Key.Down);
+                                break;
+                        }
+                        break;
+                    }
 
                 case SDL.EventType.WindowResized:
                     if (e.Window.WindowID == SDL.GetWindowID(window))

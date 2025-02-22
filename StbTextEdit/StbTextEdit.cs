@@ -453,7 +453,7 @@ public class StbTextEdit
     }
 
 
-    struct STB_TexteditState
+    public struct STB_TexteditState
     {
         /////////////////////
         //

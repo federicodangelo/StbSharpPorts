@@ -13,7 +13,6 @@ public class StbGuiTestsBase : IDisposable
     protected TestRenderScreen test_render_screen = new TestRenderScreen(ScreenSizeWidth, ScreenSizeHeight);
     protected List<StbGui.stbg_render_command> render_commands_all = []; // All render commands
     protected List<StbGui.stbg_render_command> render_commands = []; // Exclude begin and end frame commands
-    protected StbGui.stbg_user_input user_input = new();
 
     public void Dispose()
     {
@@ -22,7 +21,6 @@ public class StbGuiTestsBase : IDisposable
         render_commands_all = [];
         render_commands = [];
         test_render_screen.Clear();
-        user_input = new();
     }
 
     private StbGui.stbg_external_dependencies BuildExternalDependencies()
@@ -403,34 +401,23 @@ public class StbGuiTestsBase : IDisposable
 
     protected void SetMousePosition(float x, float y)
     {
-        user_input.mouse_position = StbGui.stbg_build_position(x, y);
-        user_input.mouse_position_valid = true;
-        StbGui.stbg_set_user_input(user_input);
+        StbGui.stbg_add_user_input_event_mouse_position(x, y);
     }
 
     protected void SetMousePositionInvalid()
     {
-        user_input.mouse_position_valid = false;
-        StbGui.stbg_set_user_input(user_input);
+        StbGui.stbg_add_user_input_event_mouse_position(0, 0, false);
     }
 
     protected void SetMouseButton1(bool pressed)
     {
-        user_input.mouse_button_1 = pressed;
-        StbGui.stbg_set_user_input(user_input);
+        StbGui.stbg_add_user_input_event_mouse_button(1, pressed);
     }
 
     protected void SetMouseScrollWheelAmount(float x, float y)
     {
-        user_input.mouse_wheel_scroll_amount = StbGui.stbg_build_position(x, y);
-        StbGui.stbg_set_user_input(user_input);
-    } 
-
-    protected void SetMouseScrollWheelAmountZero()
-    {
-        user_input.mouse_wheel_scroll_amount = StbGui.stbg_build_position(0, 0);
-        StbGui.stbg_set_user_input(user_input);
-    } 
+        StbGui.stbg_add_user_input_event_mouse_wheel(x, y);
+    }
 
     protected void DestroyGui()
     {

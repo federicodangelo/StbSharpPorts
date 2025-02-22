@@ -40,6 +40,8 @@ public partial class StbGui
 
     public const int DEFAULT_STRING_MEMORY_POOL_SIZE = 1024 * 1024;
 
+    public const int DEFAULT_MAX_USER_INPUT_EVENTS_QUEUE_SIZE = 128;
+
     public struct stbg_init_options
     {
         /// <summary>
@@ -71,6 +73,11 @@ public partial class StbGui
         /// Size of render commands queue, defaults to DEFAULT_RENDER_QUEUE_SIZE
         /// </summary>
         public int render_commands_queue_size;
+
+        /// <summary>
+        /// Size of user input events queue, defaults to DEFAULT_MAX_USER_INPUT_EVENTS_QUEUE_SIZE
+        /// </summary>
+        public int max_user_input_events_queue_size;
 
         /// <summary>
         /// Disables the nesting of non window root elements into the debug window
@@ -521,6 +528,14 @@ public partial class StbGui
         public int offset;
     }
 
+    public struct stbg_text_edit
+    {
+        public widget_id widget_id;
+        public widget_hash widget_hash;
+        public StbTextEdit.STB_TexteditState state;
+        public StbTextEdit.STB_TEXTEDIT_STRING str;
+    }
+
     public struct stbg_context
     {
         public stbg_widget[] widgets;
@@ -560,7 +575,9 @@ public partial class StbGui
 
         public stbg_position next_new_window_position;
 
-        public stbg_user_input user_input;
+        public stbg_user_input_input_event[] user_input_evenets_queue;
+        
+        public int user_input_evenets_queue_offset;
 
         public stbg_input_derived input;
 
@@ -569,6 +586,8 @@ public partial class StbGui
         public STBG_ACTIVE_CURSOR_TYPE active_cursor;
 
         public stbg_string_memory_pool string_memory_pool;
+
+        public stbg_text_edit text_edit;
     }
 
     public enum STBG_ASSERT_BEHAVIOR
