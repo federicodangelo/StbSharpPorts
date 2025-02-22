@@ -19,12 +19,10 @@ public class StringMemoryPool
         int length = str1.Length + str2.Length;
         if (memoryPoolOffset + length >= memoryPool.Length)
             throw new InvalidOperationException("Memory pool exhausted");
-
         var result = memoryPool.Slice(memoryPoolOffset, length);
         str1.CopyTo(result.Span);
         str2.CopyTo(result.Span.Slice(str1.Length));
         memoryPoolOffset += length;
-
         return result.Span;
     }
 
@@ -32,50 +30,58 @@ public class StringMemoryPool
     {
         Span<char> val_str = stackalloc char[32];
         val.TryFormat(val_str, out var val_str_len);
-
-        int length = str1.Length + val_str.Length;
+        int length = str1.Length + val_str_len;
         if (memoryPoolOffset + length >= memoryPool.Length)
             throw new InvalidOperationException("Memory pool exhausted");
-
         var result = memoryPool.Slice(memoryPoolOffset, length);
         str1.CopyTo(result.Span);
-        val_str.CopyTo(result.Span.Slice(str1.Length));
+        val_str.Slice(0, val_str_len).CopyTo(result.Span.Slice(str1.Length));
         memoryPoolOffset += length;
-
         return result.Span;
+
     }
 
     public ReadOnlySpan<char> Concat(ReadOnlySpan<char> str1, long val)
     {
         Span<char> val_str = stackalloc char[32];
         val.TryFormat(val_str, out var val_str_len);
-
-        int length = str1.Length + val_str.Length;
+        int length = str1.Length + val_str_len;
         if (memoryPoolOffset + length >= memoryPool.Length)
             throw new InvalidOperationException("Memory pool exhausted");
-
         var result = memoryPool.Slice(memoryPoolOffset, length);
         str1.CopyTo(result.Span);
-        val_str.CopyTo(result.Span.Slice(str1.Length));
+        val_str.Slice(0, val_str_len).CopyTo(result.Span.Slice(str1.Length));
         memoryPoolOffset += length;
-
         return result.Span;
+
     }
 
     public ReadOnlySpan<char> Concat(ReadOnlySpan<char> str1, float val)
     {
         Span<char> val_str = stackalloc char[32];
         val.TryFormat(val_str, out var val_str_len);
-
-        int length = str1.Length + val_str.Length;
+        int length = str1.Length + val_str_len;
         if (memoryPoolOffset + length >= memoryPool.Length)
             throw new InvalidOperationException("Memory pool exhausted");
-
         var result = memoryPool.Slice(memoryPoolOffset, length);
         str1.CopyTo(result.Span);
-        val_str.CopyTo(result.Span.Slice(str1.Length));
+        val_str.Slice(0, val_str_len).CopyTo(result.Span.Slice(str1.Length));
         memoryPoolOffset += length;
+        return result.Span;
 
+    }
+
+    public ReadOnlySpan<char> Concat(ReadOnlySpan<char> str1, bool val)
+    {
+        Span<char> val_str = stackalloc char[32];
+        val.TryFormat(val_str, out var val_str_len);
+        int length = str1.Length + val_str_len;
+        if (memoryPoolOffset + length >= memoryPool.Length)
+            throw new InvalidOperationException("Memory pool exhausted");
+        var result = memoryPool.Slice(memoryPoolOffset, length);
+        str1.CopyTo(result.Span);
+        val_str.Slice(0, val_str_len).CopyTo(result.Span.Slice(str1.Length));
+        memoryPoolOffset += length;
         return result.Span;
     }
 

@@ -395,6 +395,7 @@ public partial class StbGui
     public struct stbg_widget_parameters
     {
         public int sub_type;
+        public int flags;
         public stbg_widget_value parameter1;
         public stbg_widget_value parameter2;
         public stbg_widget_value min_value;

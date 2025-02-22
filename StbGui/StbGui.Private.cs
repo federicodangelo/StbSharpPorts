@@ -102,7 +102,7 @@ public partial class StbGui
         ref var debug_window = ref stbg__add_widget(debug_window_hash, STBG_WIDGET_TYPE.WINDOW, context.root_widget_id, out var is_new, out var is_already_created_in_same_frame, STBG__WIDGET_ADD_OPTIONS.IGNORE_DUPLICATED);
 
         if (!is_already_created_in_same_frame)
-            stbg__window_init(ref debug_window, is_new, DEBUG_WINDOW_TITLE);
+            stbg__window_init(ref debug_window, is_new, DEBUG_WINDOW_TITLE, STBG_WINDOW_OPTIONS.DEFAULT);
 
         return ref debug_window;
     }

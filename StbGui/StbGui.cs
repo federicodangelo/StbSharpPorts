@@ -304,6 +304,18 @@ public partial class StbGui
         return ref stbg_get_widget_by_id(id);
     }
 
+    [Flags]
+    public enum STBG_WINDOW_OPTIONS
+    {
+        NONE = 0,
+        NO_MOVE = 1 << 0,
+        NO_RESIZE = 1 << 1,
+        NO_SCROLLBAR = 1 << 2,
+        NO_TITLE = 1 << 3,
+
+        DEFAULT = NONE,
+    }
+
     /// <summary>
     /// Begins a new window with the given title.
     /// Returns true if the window is visible, false otherwise.
@@ -320,9 +332,9 @@ public partial class StbGui
     /// </summary>
     /// <param name="title">Window title. Must be unique inside the parent container</param>
     /// <returns>Returns if the window is visible or not</returns>
-    public static bool stbg_begin_window(ReadOnlySpan<char> title)
+    public static bool stbg_begin_window(ReadOnlySpan<char> title, STBG_WINDOW_OPTIONS options = STBG_WINDOW_OPTIONS.DEFAULT)
     {
-        ref var window = ref stbg__window_create(title);
+        ref var window = ref stbg__window_create(title, options);
 
         bool visible = true; //TODO: Implement
 

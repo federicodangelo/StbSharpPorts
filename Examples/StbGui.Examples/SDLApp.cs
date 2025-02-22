@@ -15,7 +15,12 @@ public class SDLApp : SDLAppBase
     private int scrollbar_value_int = 50;
 
     private readonly StringMemoryPool mp = new StringMemoryPool();
-    
+
+    private bool show_title = true;
+    private bool resizable = true;
+    private bool show_scrollbars = true;
+    private bool movable = true;
+
     protected override void OnRenderStbGui()
     {
         mp.ResetPool();
@@ -26,10 +31,27 @@ public class SDLApp : SDLAppBase
         StbGui.stbg_label(mp.Concat("String Memory Pool Used Characters: ", StbGui.stbg_get_frame_stats().string_memory_pool_used_characters));
         StbGui.stbg_label(mp.Concat("String Memory Pool Overflown Characters: ", StbGui.stbg_get_frame_stats().string_memory_pool_overflowed_characters));
 
-        StbGui.stbg_begin_window("Window 1");
+        StbGui.stbg_begin_window("Window 1", 
+            (show_title ? 0 : StbGui.STBG_WINDOW_OPTIONS.NO_TITLE) |
+            (resizable ? 0 : StbGui.STBG_WINDOW_OPTIONS.NO_RESIZE) |
+            (show_scrollbars ? 0 : StbGui.STBG_WINDOW_OPTIONS.NO_SCROLLBAR) |
+            (movable ? 0 : StbGui.STBG_WINDOW_OPTIONS.NO_MOVE)
+        );
         {
             if (StbGui.stbg_get_last_widget_is_new())
                 StbGui.stbg_set_last_widget_position(100, 100);
+
+            if (StbGui.stbg_button(mp.Concat("Toggle Title: ", show_title)))
+                show_title = !show_title;
+
+            if (StbGui.stbg_button(mp.Concat("Toggle Resizable: ", resizable)))
+                resizable = !resizable;
+
+            if (StbGui.stbg_button(mp.Concat("Toggle Scrollbars: ", show_scrollbars)))
+                show_scrollbars = !show_scrollbars;
+
+            if (StbGui.stbg_button(mp.Concat("Toggle Movable: ", movable)))
+                movable = !movable;
 
             StbGui.stbg_button("Button 1");
             if (StbGui.stbg_button("Toggle Button 3"))
