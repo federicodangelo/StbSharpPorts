@@ -303,7 +303,8 @@ public partial class StbGui
         float title_height_total = has_title ? stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP, STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT, STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_BOTTOM, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_TOP) : 0;
 
         bool mouse_over_title = has_title && context.input.mouse_position.y < Math.Min(bounds.y1, bounds.y0 + title_height_total);
-        bool mouse_over_close_button = has_title && has_close_button && mouse_over_title && context.input.mouse_position.x > Math.Max(bounds.x0, bounds.x1 - stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_CLOSE_BUTTON_SIZE));
+        bool mouse_over_close_button = mouse_over_title && has_close_button && resize_x == 0 && resize_y == 0 &&
+            context.input.mouse_position.x > Math.Max(bounds.x0, bounds.x1 - stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_CLOSE_BUTTON_SIZE));
 
         context.input_feedback.hovered_sub_widget_part = mouse_over_close_button ? 1 : 0;
 
@@ -311,7 +312,13 @@ public partial class StbGui
         {
             if (context.input.mouse_button_1)
             {
-                if (allow_move && mouse_over_title || resize_x != 0 || resize_y != 0)
+                if (allow_move && mouse_over_title && context.input_feedback.pressed_sub_widget_part == 0)
+                {
+                    context.input_feedback.pressed_widget_id = window.id;
+                    context.input_feedback.hovered_widget_id = window.id;
+                    context.input_feedback.dragged_widget_id = window.id;
+                }
+                else if (allow_resize && (resize_x != 0 || resize_y != 0))
                 {
                     context.input_feedback.pressed_widget_id = window.id;
                     context.input_feedback.hovered_widget_id = window.id;
@@ -326,7 +333,7 @@ public partial class StbGui
                 }
                 context.input_feedback.pressed_widget_id = STBG_WIDGET_ID_NULL;
 
-                 if (has_close_button && context.input_feedback.pressed_sub_widget_part == 1)
+                 if (has_close_button && context.input_feedback.pressed_sub_widget_part == 1 && mouse_over_close_button)
                  {
                     // Close button pressed
                     window.properties.value.b = false;
@@ -595,8 +602,10 @@ public partial class StbGui
                     stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP, STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT)
                 );
 
-                stbg__rc_draw_text(close_button_bounds, stbg__build_text("X".AsMemory(), close_button_color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
+                stbg__rc_draw_text(close_button_bounds, stbg__build_text(STBG__WINDOW_CLOSE_BUTTON, close_button_color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
             }
         }
     }
+
+    static private ReadOnlyMemory<char> STBG__WINDOW_CLOSE_BUTTON = "X".AsMemory();
 }

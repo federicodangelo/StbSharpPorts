@@ -271,19 +271,24 @@ public partial class StbGui
             if (p == SUB_WIDGET_PART_MIN_BUTTON)
             {
                 if (parameters.direction == STBG_SCROLLBAR_DIRECTION.HORIZONTAL)
-                    stbg__rc_draw_text(rect, stbg__build_text("<".AsMemory(), color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
+                    stbg__rc_draw_text(rect, stbg__build_text(STBG__SCROLLBAR_ARROW_LEFT, color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
                 else
-                    stbg__rc_draw_text(rect, stbg__build_text("^".AsMemory(), color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
+                    stbg__rc_draw_text(rect, stbg__build_text(STBG__SCROLLBAR_ARROW_UP, color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
             }
             else if (p == SUB_WIDGET_PART_MAX_BUTTON)
             {
                 if (parameters.direction == STBG_SCROLLBAR_DIRECTION.HORIZONTAL)
-                    stbg__rc_draw_text(rect, stbg__build_text(">".AsMemory(), color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
+                    stbg__rc_draw_text(rect, stbg__build_text(STBG__SCROLLBAR_ARROW_RIGHT, color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
                 else
-                    stbg__rc_draw_text(rect, stbg__build_text("v".AsMemory(), color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
+                    stbg__rc_draw_text(rect, stbg__build_text(STBG__SCROLLBAR_ARROW_DOWN, color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
             }
         }
     }
+
+    static private ReadOnlyMemory<char> STBG__SCROLLBAR_ARROW_LEFT = "<".AsMemory();
+    static private ReadOnlyMemory<char> STBG__SCROLLBAR_ARROW_RIGHT = ">".AsMemory();
+    static private ReadOnlyMemory<char> STBG__SCROLLBAR_ARROW_UP = "^".AsMemory();
+    static private ReadOnlyMemory<char> STBG__SCROLLBAR_ARROW_DOWN = "v".AsMemory();
 
     private static void stbg__scrollbar_get_parts(stbg_widget scrollbar, stbg__scrollbar_parameters parameters, stbg_rect bounds, out stbg_rect min_button_rect, out stbg_rect max_button_rect, out stbg_rect thumb_rect)
     {
