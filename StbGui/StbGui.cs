@@ -163,6 +163,10 @@ public partial class StbGui
         SHIFT_RIGHT,
         ALT_LEFT,
         ALT_RIGHT,
+        HOME,
+        END,
+        PAGE_UP,
+        PAGE_DOWN,
     }
 
     public struct stbg_user_input_input_event

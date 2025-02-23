@@ -2,6 +2,8 @@ namespace StbSharp.Examples;
 
 using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Text.Unicode;
 using SDL3;
 using StbSharp;
 
@@ -250,11 +252,21 @@ public class SDLAppBase : IDisposable
         // Alt
         { SDL.Scancode.LAlt, StbGui.STBG_KEYBOARD_KEY.ALT_LEFT },
         { SDL.Scancode.RAlt, StbGui.STBG_KEYBOARD_KEY.ALT_RIGHT },
+
+        // Text navigation
+        { SDL.Scancode.Home, StbGui.STBG_KEYBOARD_KEY.HOME },
+        { SDL.Scancode.End, StbGui.STBG_KEYBOARD_KEY.END },
+        { SDL.Scancode.Pageup, StbGui.STBG_KEYBOARD_KEY.PAGE_UP },
+        { SDL.Scancode.Pagedown, StbGui.STBG_KEYBOARD_KEY.PAGE_DOWN },
     };
 
     private bool ProcessSDLEvents()
     {
         bool quit = false;
+
+        Span<byte> tmp_bytes = stackalloc byte[64];
+        Span<char> tmp_chars = stackalloc char[64];
+        int tmp_chars_length = 0;
 
         while (SDL.PollEvent(out var e) && !quit)
         {
@@ -288,9 +300,42 @@ public class SDLAppBase : IDisposable
                     break;
 
                 case SDL.EventType.TextInput:
-                    //StbGui.stbg_add_user_input_event_keyboard_key(mapped_key, modifiers, down);
-                    // TODO: Handle text input once e.Text.Text becomes a string pointer or similar
-                    // Console.WriteLine(e.Text.Text);
+                    if (e.Text.Text != 0)
+                    {
+                        var len = 0;
+                        for (int i = 0; i < tmp_bytes.Length; i++)
+                        {
+                            var b = Marshal.ReadByte(e.Text.Text, i);
+                            if (b == 0)
+                                break;
+                            tmp_bytes[i] = b;
+                            len++;
+                        }
+
+                        if (len == tmp_bytes.Length)
+                        {
+                            // We ran out of buffer, allocate manually..
+                            var text = Marshal.PtrToStringUTF8(e.Text.Text);
+                            if (text != null)
+                            {
+                                foreach (var c in text)
+                                {
+                                    StbGui.stbg_add_user_input_event_keyboard_key_character(c, StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.NONE, true);
+                                    StbGui.stbg_add_user_input_event_keyboard_key_character(c, StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.NONE, false);
+                                }
+                            }
+                        }
+                        else if (System.Text.Encoding.UTF8.TryGetChars(tmp_bytes.Slice(0, len), tmp_chars, out tmp_chars_length))
+                        {
+                            for (var i = 0; i < tmp_chars_length; i++)
+                            {
+                                var c = tmp_chars[i];
+                                Console.WriteLine(c);
+                                StbGui.stbg_add_user_input_event_keyboard_key_character(c, StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.NONE, true);
+                                StbGui.stbg_add_user_input_event_keyboard_key_character(c, StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.NONE, false);
+                            }
+                        }
+                    }
                     break;
 
                 case SDL.EventType.KeyDown:
@@ -316,13 +361,26 @@ public class SDLAppBase : IDisposable
                         }
                         else
                         {
+                            
                             var key = e.Key.Key;
                             bool is_extended = (key & SDL.Keycode.ExtendedMask) != 0;
                             bool is_scancode = (key & SDL.Keycode.ScanCodeMask) != 0;
 
                             if (!is_scancode && !is_extended && key != SDL.Keycode.Unknown)
                             {
-                                StbGui.stbg_add_user_input_event_keyboard_key_character((char)key, modifiers, e.Key.Down);
+                                char c = (char) key;
+                                if ((modifiers & StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.CONTROL) != 0 || 
+                                    (modifiers & StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.ALT) != 0)
+                                {
+                                    // keys pressed in combination with CONTROL or ALT are not received as TextInput texts, 
+                                    // since they represent possible keyboard shortcuts for other actions, so we deliver them
+                                    // here manually
+                                    StbGui.stbg_add_user_input_event_keyboard_key_character(c, modifiers, e.Key.Down);
+                                }
+                                else
+                                {
+                                    //Normal characters are handled as TextInput in case SDL.EventType.TextInput
+                                }
                             }
                         }
                         break;
@@ -368,11 +426,12 @@ public class SDLAppBase : IDisposable
                 if (options.enable)
                 {
                     SDL.SetTextInputArea(window,
-                        new SDL.Rect() {
-                            X = (int) options.editing_global_rect.x0,
-                            Y = (int) options.editing_global_rect.y0,
-                            W = (int) (options.editing_global_rect.x1 - options.editing_global_rect.x0),
-                            H = (int) (options.editing_global_rect.y1 - options.editing_global_rect.y0)
+                        new SDL.Rect()
+                        {
+                            X = (int)options.editing_global_rect.x0,
+                            Y = (int)options.editing_global_rect.y0,
+                            W = (int)(options.editing_global_rect.x1 - options.editing_global_rect.x0),
+                            H = (int)(options.editing_global_rect.y1 - options.editing_global_rect.y0)
                         },
                         (int)options.editing_cursor_global_x
                     );

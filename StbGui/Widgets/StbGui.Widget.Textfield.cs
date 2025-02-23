@@ -170,16 +170,37 @@ public partial class StbGui
 
                             if (user_event.key_pressed)
                             {
+                                bool shift = (user_event.key_modifiers & STBG_KEYBOARD_MODIFIER_FLAGS.SHIFT) != 0;
+                                bool control = (user_event.key_modifiers & STBG_KEYBOARD_MODIFIER_FLAGS.CONTROL) != 0;
+                                bool alt = (user_event.key_modifiers & STBG_KEYBOARD_MODIFIER_FLAGS.ALT) != 0;
+
                                 switch (user_event.key)
                                 {
                                     case STBG_KEYBOARD_KEY.CHARACTER:
-                                        textedit_key = user_event.key_character;
+                                        if (control || alt)
+                                        {
+                                            // Special keyboard shortcut, never a normal key
+                                            if (control && char.ToLowerInvariant(user_event.key_character) == 'z')
+                                                textedit_key = StbTextEdit.STB_TEXTEDIT_K_UNDO;
+                                            else if (control && char.ToLowerInvariant(user_event.key_character) == 'y')
+                                                textedit_key = StbTextEdit.STB_TEXTEDIT_K_REDO;
+                                        }
+                                        else
+                                        {
+                                            textedit_key = user_event.key_character;
+                                        }
                                         break;
                                     case STBG_KEYBOARD_KEY.LEFT:
-                                        textedit_key = StbTextEdit.STB_TEXTEDIT_K_LEFT;
+                                        if (control)
+                                            textedit_key = StbTextEdit.STB_TEXTEDIT_K_WORDLEFT;
+                                        else
+                                            textedit_key = StbTextEdit.STB_TEXTEDIT_K_LEFT;
                                         break;
                                     case STBG_KEYBOARD_KEY.RIGHT:
-                                        textedit_key = StbTextEdit.STB_TEXTEDIT_K_RIGHT;
+                                        if (control)
+                                            textedit_key = StbTextEdit.STB_TEXTEDIT_K_WORDRIGHT;
+                                        else
+                                            textedit_key = StbTextEdit.STB_TEXTEDIT_K_RIGHT;
                                         break;
                                     case STBG_KEYBOARD_KEY.UP:
                                         textedit_key = StbTextEdit.STB_TEXTEDIT_K_UP;
@@ -196,16 +217,37 @@ public partial class StbGui
                                     case STBG_KEYBOARD_KEY.RETURN:
                                         textedit_key = StbTextEdit.STB_TEXTEDIT_NEWLINE;
                                         break;
+                                    case STBG_KEYBOARD_KEY.PAGE_UP:
+                                        textedit_key = StbTextEdit.STB_TEXTEDIT_K_PGUP;
+                                        break;
+                                    case STBG_KEYBOARD_KEY.PAGE_DOWN:
+                                        textedit_key = StbTextEdit.STB_TEXTEDIT_K_PGDOWN;
+                                        break;
+                                    case STBG_KEYBOARD_KEY.HOME:
+                                        if (control)
+                                            textedit_key = StbTextEdit.STB_TEXTEDIT_K_TEXTSTART;
+                                        else
+                                            textedit_key = StbTextEdit.STB_TEXTEDIT_K_LINESTART;
+                                        break;
+                                    case STBG_KEYBOARD_KEY.END:
+                                        if (control)
+                                            textedit_key = StbTextEdit.STB_TEXTEDIT_K_TEXTEND;
+                                        else
+                                            textedit_key = StbTextEdit.STB_TEXTEDIT_K_LINEEND;
+                                        break;
                                 }
+                                
+                                if (textedit_key != 0)
+                                {
+                                    if (shift)
+                                        textedit_key |= StbTextEdit.STB_TEXTEDIT_K_SHIFT;
 
-                                if ((user_event.key_modifiers & STBG_KEYBOARD_MODIFIER_FLAGS.SHIFT) != 0)
-                                    textedit_key |= StbTextEdit.STB_TEXTEDIT_K_SHIFT;
+                                    StbTextEdit.stb_textedit_key(ref str, ref state, textedit_key);
 
-                                StbTextEdit.stb_textedit_key(ref str, ref state, textedit_key);
+                                    textfield.properties.text_editable_length = str.text_length;
 
-                                textfield.properties.text_editable_length = str.text_length;
-
-                                textfield.properties.input_flags |= STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED;
+                                    textfield.properties.input_flags |= STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED;
+                                }
                             }
                             break;
                         }
