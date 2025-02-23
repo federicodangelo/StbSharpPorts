@@ -330,7 +330,6 @@ public class SDLAppBase : IDisposable
                             for (var i = 0; i < tmp_chars_length; i++)
                             {
                                 var c = tmp_chars[i];
-                                Console.WriteLine(c);
                                 StbGui.stbg_add_user_input_event_keyboard_key_character(c, StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.NONE, true);
                                 StbGui.stbg_add_user_input_event_keyboard_key_character(c, StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.NONE, false);
                             }
