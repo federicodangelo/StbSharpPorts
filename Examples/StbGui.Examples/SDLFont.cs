@@ -192,6 +192,7 @@ public class SDLFont : IDisposable
 
         bool ignore_metrics = (options & StbGui.STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS) != 0;
         bool single_line = (options & StbGui.STBG_RENDER_TEXT_OPTIONS.SINGLE_LINE) != 0;
+        bool dont_clip = (options & StbGui.STBG_RENDER_TEXT_OPTIONS.DONT_CLIP) != 0;
 
         var center_y_offset = full_text_bounds.height < bounds_height ?
             MathF.Floor(((bounds_height - full_text_bounds.height) / 2) * (1 + vertical_alignment)) :
@@ -203,8 +204,9 @@ public class SDLFont : IDisposable
 
         var use_clipping = false;
 
-        if (full_text_bounds.height > bounds_height ||
-            full_text_bounds.width > bounds_width)
+        if (!dont_clip &&
+            (full_text_bounds.height > bounds_height ||
+            full_text_bounds.width > bounds_width))
         {
             use_clipping = true;
         }

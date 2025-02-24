@@ -15,10 +15,13 @@ public class SDLApp : SDLAppBase
 
     public SDLApp() : base(new SdlAppOptions() { WindowName = "Example App", DefaultFontName = "Font", DefaultFontPath = "Fonts/ProggyClean.ttf", DefaultFontSize = 13 })
     {
-        var txt = "Hello World";
-
+        var txt = "Hello World THIS IS A VERY LONG TEXT TO EDITTTT";
         txt.AsSpan().CopyTo(text_to_edit.Span);
         text_to_edit_length = txt.Length;
+
+        var txt2 = "Hello World THIS IS MULTILINE!\nYESSS!!!";
+        txt2.AsSpan().CopyTo(text_to_edit2.Span);
+        text_to_edit2_length = txt2.Length;
     }
 
     private bool showButton3 = true;
@@ -36,6 +39,9 @@ public class SDLApp : SDLAppBase
 
     private Memory<char> text_to_edit = new Memory<char>(new char[1024]);
     private int text_to_edit_length;
+
+    private Memory<char> text_to_edit2 = new Memory<char>(new char[1024]);
+    private int text_to_edit2_length;
 
     protected override void OnRenderStbGui()
     {
@@ -116,8 +122,9 @@ public class SDLApp : SDLAppBase
             if (StbGui.stbg_get_last_widget_is_new())
                 StbGui.stbg_set_last_widget_position(300, 250);
 
-            StbGui.stbg_textfield("textfield1", text_to_edit, ref text_to_edit_length);
-
+            StbGui.stbg_textbox("textbox1", text_to_edit, ref text_to_edit_length);
+            StbGui.stbg_textbox("textbox2", text_to_edit2, ref text_to_edit2_length, false);
+            
             for (int i = 0; i < 20; i++)
             {
                 StbGui.stbg_button(mp.Concat("Test Button ", i));

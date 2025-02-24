@@ -3,7 +3,6 @@ namespace StbSharp.Examples;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Text.Unicode;
 using SDL3;
 using StbSharp;
 
@@ -441,7 +440,14 @@ public class SDLAppBase : IDisposable
                 {
                     SDL.StopTextInput(window);
                 }
-
+            },
+            copy_text_to_clipboard = (text) =>
+            {
+                SDL.SetClipboardText(text.ToString());
+            },
+            get_clipboard_text = () =>
+            {
+                return SDL.GetClipboardText();
             }
         };
     }

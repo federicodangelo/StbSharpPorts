@@ -636,10 +636,10 @@ public partial class StbGui
     }
 
     /// <summary>
-    /// Creates an editable textfield
+    /// Creates an editable textbox
     /// </summary>
-    public static void stbg_textfield(ReadOnlySpan<char> identifier, Memory<char> text, ref int text_length)
+    public static void stbg_textbox(ReadOnlySpan<char> identifier, Memory<char> text, ref int text_length, bool single_line = true)
     {
-        stbg__textfield_create(identifier, text, ref text_length);
+        stbg__textbox_create(identifier, text, ref text_length, single_line);
     }
 }

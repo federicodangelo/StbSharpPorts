@@ -867,7 +867,7 @@ public class StbTextEdit
     }
 
     // API paste: replace existing selection with passed-in text
-    public static int stb_textedit_paste_internal(ref STB_TEXTEDIT_STRING str, ref STB_TexteditState state, ReadOnlySpan<STB_TEXTEDIT_CHARTYPE> text, int len)
+    private static int stb_textedit_paste_internal(ref STB_TEXTEDIT_STRING str, ref STB_TexteditState state, ReadOnlySpan<STB_TEXTEDIT_CHARTYPE> text, int len)
     {
         // if there's a selection, the paste should delete it
         stb_textedit_clamp(ref str, ref state);
@@ -1587,7 +1587,7 @@ public class StbTextEdit
     //#pragma GCC diagnostic ignored "-Wcast-qual"
     //#endif
 
-    static int stb_textedit_paste(ref STB_TEXTEDIT_STRING str, ref STB_TexteditState state, Span<STB_TEXTEDIT_CHARTYPE> ctext, int len)
+    public static int stb_textedit_paste(ref STB_TEXTEDIT_STRING str, ref STB_TexteditState state, ReadOnlySpan<STB_TEXTEDIT_CHARTYPE> ctext, int len)
     {
         return stb_textedit_paste_internal(ref str, ref state, ctext, len);
     }

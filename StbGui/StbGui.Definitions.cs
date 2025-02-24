@@ -231,18 +231,18 @@ public partial class StbGui
         SCROLLBAR_BUTTON_PRESSED_COLOR,
 
 
-        // Textfield styles
-        TEXTFIELD_PADDING_TOP,
-        TEXTFIELD_PADDING_BOTTOM,
-        TEXTFIELD_PADDING_LEFT,
-        TEXTFIELD_PADDING_RIGHT,
-        TEXTFIELD_BACKGROUND_COLOR,
-        TEXTFIELD_BORDER_COLOR,
-        TEXTFIELD_BORDER_SIZE,
-        TEXTFIELD_TEXT_COLOR,
-        TEXTFIELD_CURSOR_COLOR,
-        TEXTFIELD_CURSOR_HEIGHT,
-        TEXTFIELD_CURSOR_WIDTH,
+        // Textbox styles
+        TEXTBOX_PADDING_TOP,
+        TEXTBOX_PADDING_BOTTOM,
+        TEXTBOX_PADDING_LEFT,
+        TEXTBOX_PADDING_RIGHT,
+        TEXTBOX_BACKGROUND_COLOR,
+        TEXTBOX_BORDER_COLOR,
+        TEXTBOX_BORDER_SIZE,
+        TEXTBOX_TEXT_COLOR,
+        TEXTBOX_CURSOR_COLOR,
+        TEXTBOX_CURSOR_HEIGHT,
+        TEXTBOX_CURSOR_WIDTH,
 
         // ALWAYS LAST!!
         COUNT
@@ -387,7 +387,7 @@ public partial class StbGui
         BUTTON,
         LABEL,
         SCROLLBAR,
-        TEXTFIELD,
+        TEXTBOX,
         COUNT, // MUST BE LAST
     }
 
@@ -534,7 +534,7 @@ public partial class StbGui
         public widget_id editing_text_widget_id;
 
         public stbg_input_method_editor_info ime_info;
-        
+
         public int hovered_sub_widget_part;
         public int pressed_sub_widget_part;
         public float drag_resize_x;
@@ -631,8 +631,6 @@ public partial class StbGui
         NONE,
     }
 
-    public delegate stbg_size stbg_measure_text_delegate(ReadOnlySpan<char> text, stbg_font font, stbg_font_style style);
-
     public enum STBG_RENDER_COMMAND_TYPE
     {
         /// <summary>
@@ -684,7 +682,6 @@ public partial class StbGui
         public STBG_RENDER_TEXT_OPTIONS text_options;
     }
 
-    public delegate void stbg_render_delegate(Span<stbg_render_command> commands);
 
     public struct stbg_input_method_editor_info
     {
@@ -694,24 +691,37 @@ public partial class StbGui
         public widget_id widget_id;
     }
 
-    public delegate void stbg_set_input_method_editor_delegate(stbg_input_method_editor_info info);
-
     public struct stbg_external_dependencies
     {
         /// <summary>
         /// Measure text
         /// </summary>
+        public delegate stbg_size stbg_measure_text_delegate(ReadOnlySpan<char> text, stbg_font font, stbg_font_style style);
         public stbg_measure_text_delegate measure_text;
 
         /// <summary>
         /// Render
         /// </summary>
+        public delegate void stbg_render_delegate(Span<stbg_render_command> commands);
         public stbg_render_delegate render;
 
         /// <summary>
         /// Set input method editor (show keyboard)
         /// </summary>
+        public delegate void stbg_set_input_method_editor_delegate(stbg_input_method_editor_info info);
         public stbg_set_input_method_editor_delegate set_input_method_editor;
+
+        /// <summary>
+        /// Copy text to clipboard
+        /// </summary>
+        public delegate void stbg_copy_text_to_clipboard_delegate(ReadOnlySpan<char> text_to_copy);
+        public stbg_copy_text_to_clipboard_delegate copy_text_to_clipboard;
+
+        /// <summary>
+        /// Get text from clipboard
+        /// </summary>
+        public delegate ReadOnlySpan<char> stbg_get_clipboard_text_delegate();
+        public stbg_get_clipboard_text_delegate get_clipboard_text;
     }
 
 

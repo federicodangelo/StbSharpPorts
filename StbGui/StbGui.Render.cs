@@ -13,6 +13,7 @@ public partial class StbGui
         IGNORE_BASELINE = 1 << 0,
         IGNORE_METRICS = 1 << 1,
         SINGLE_LINE = 1 << 2,
+        DONT_CLIP = 1 << 3,
     }
 
     public struct stbg_render_context
