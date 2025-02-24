@@ -144,14 +144,20 @@ public partial class StbGui
 
                         var text = str.text.Slice(0, str.text_length).Slice(n);
 
-                        //TODO: Handle word-wrapping!!
-                        var size = stbg__measure_text(stbg__build_text(text), measure_text_options);
+                        var first_new_line = text.Span.IndexOf('\n');
+                        var has_new_line = false;
+                        if (first_new_line != -1)
+                        {
+                            text = text.Slice(0, first_new_line);
+                            has_new_line = true;
+                        }
 
+                        var size = stbg__measure_text(stbg__build_text(text), measure_text_options);
                         row.x0 = 0;
                         row.x1 = size.width;
                         row.ymin = 0;
                         row.ymax = size.height;
-                        row.num_chars = text.Length;
+                        row.num_chars = text.Length + (has_new_line ? 1 : 0);
 
                         return row;
                     }

@@ -124,6 +124,7 @@ public class SDLApp : SDLAppBase
 
             StbGui.stbg_textbox("textbox1", text_to_edit, ref text_to_edit_length);
             StbGui.stbg_textbox("textbox2", text_to_edit2, ref text_to_edit2_length, false);
+            StbGui.stbg_set_last_widget_size(300, 100);
             
             for (int i = 0; i < 20; i++)
             {
