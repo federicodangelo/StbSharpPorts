@@ -10,9 +10,6 @@ public partial class StbGui
     public enum STBG_RENDER_TEXT_OPTIONS
     {
         NONE,
-        IGNORE_BASELINE = 1 << 0,
-        IGNORE_METRICS = 1 << 1,
-        SINGLE_LINE = 1 << 2,
         DONT_CLIP = 1 << 3,
     }
 
@@ -42,9 +39,9 @@ public partial class StbGui
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static private void stbg__rc_draw_text(stbg_rect rect, stbg_text text, float horizontal_alignment = -1, float vertical_alignment = -1, STBG_RENDER_TEXT_OPTIONS options = STBG_RENDER_TEXT_OPTIONS.NONE)
+    static private void stbg__rc_draw_text(stbg_rect rect, stbg_text text, float horizontal_alignment = -1, float vertical_alignment = -1, STBG_MEASURE_TEXT_OPTIONS measure_options = STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE, STBG_RENDER_TEXT_OPTIONS render_options = STBG_RENDER_TEXT_OPTIONS.NONE)
     {
-        stbg__rc_enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.TEXT, bounds = rect, text = text, text_horizontal_alignment = horizontal_alignment, text_vertical_alignment = vertical_alignment, text_options = options });
+        stbg__rc_enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.TEXT, bounds = rect, text = text, text_horizontal_alignment = horizontal_alignment, text_vertical_alignment = vertical_alignment, text_measure_options = measure_options, text_render_options = render_options });
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

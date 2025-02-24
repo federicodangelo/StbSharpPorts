@@ -679,7 +679,8 @@ public partial class StbGui
         public stbg_text text;
         public float text_horizontal_alignment;
         public float text_vertical_alignment;
-        public STBG_RENDER_TEXT_OPTIONS text_options;
+        public STBG_MEASURE_TEXT_OPTIONS text_measure_options;
+        public STBG_RENDER_TEXT_OPTIONS text_render_options;
     }
 
 
@@ -691,13 +692,28 @@ public partial class StbGui
         public widget_id widget_id;
     }
 
+    [Flags]
+    public enum STBG_MEASURE_TEXT_OPTIONS
+    {
+        NONE = 0,
+        USE_ONLY_BASELINE_FOR_FIRST_LINE = 1 << 0,
+        IGNORE_METRICS = 1 << 1,
+        SINGLE_LINE = 1 << 2,
+    }
+
     public struct stbg_external_dependencies
     {
         /// <summary>
         /// Measure text
         /// </summary>
-        public delegate stbg_size stbg_measure_text_delegate(ReadOnlySpan<char> text, stbg_font font, stbg_font_style style);
+        public delegate stbg_size stbg_measure_text_delegate(ReadOnlySpan<char> text, stbg_font font, stbg_font_style style, STBG_MEASURE_TEXT_OPTIONS measure_options);
         public stbg_measure_text_delegate measure_text;
+
+        /// <summary>
+        /// Get character position in text
+        /// </summary>
+        public delegate stbg_position stbg_get_character_position_in_text_delegate(ReadOnlySpan<char> text, stbg_font font, stbg_font_style style, STBG_MEASURE_TEXT_OPTIONS options, int character_index);
+        public stbg_get_character_position_in_text_delegate get_character_position_in_text;
 
         /// <summary>
         /// Render

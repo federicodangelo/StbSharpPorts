@@ -413,7 +413,8 @@ public class SDLAppBase : IDisposable
     {
         return new StbGui.stbg_external_dependencies()
         {
-            measure_text = (text, font, style) => MeasureText(text, font, style),
+            measure_text = (text, font, style, options) => MeasureText(text, font, style, options),
+            get_character_position_in_text = (text, font, style, options, character_index) => GetCharacterPositionInText(text, font, style, options, character_index),
             render = (commands) =>
             {
                 foreach (var cmd in commands)
@@ -502,9 +503,10 @@ public class SDLAppBase : IDisposable
                     var text = cmd.text.text.Span;
                     var ha = cmd.text_horizontal_alignment;
                     var va = cmd.text_vertical_alignment;
-                    var options = cmd.text_options;
+                    var measure_options = cmd.text_measure_options;
+                    var render_options = cmd.text_render_options;
 
-                    DrawText(text, StbGui.stbg_get_font_by_id(cmd.text.font_id), cmd.text.style, bounds, ha, va, options);
+                    DrawText(text, StbGui.stbg_get_font_by_id(cmd.text.font_id), cmd.text.style, bounds, ha, va, measure_options, render_options);
                     break;
                 }
 
@@ -518,14 +520,19 @@ public class SDLAppBase : IDisposable
         }
     }
 
-    private StbGui.stbg_size MeasureText(ReadOnlySpan<char> text, StbGui.stbg_font _font, StbGui.stbg_font_style style)
+    private StbGui.stbg_size MeasureText(ReadOnlySpan<char> text, StbGui.stbg_font _, StbGui.stbg_font_style style, StbGui.STBG_MEASURE_TEXT_OPTIONS options)
     {
-        return mainFont.MeasureText(text, style);
+        return mainFont.MeasureText(text, style, options);
     }
 
-    private void DrawText(ReadOnlySpan<char> text, StbGui.stbg_font _font, StbGui.stbg_font_style style, StbGui.stbg_rect bounds, float horizontal_alignment, float vertical_alignment, StbGui.STBG_RENDER_TEXT_OPTIONS options)
+    private StbGui.stbg_position GetCharacterPositionInText(ReadOnlySpan<char> text, StbGui.stbg_font _, StbGui.stbg_font_style style, StbGui.STBG_MEASURE_TEXT_OPTIONS options, int character_index)
     {
-        mainFont.DrawText(text, style, bounds, horizontal_alignment, vertical_alignment, options);
+        return mainFont.GetCharacterPositionInText(text, style, options, character_index);
+    }
+
+    private void DrawText(ReadOnlySpan<char> text, StbGui.stbg_font _font, StbGui.stbg_font_style style, StbGui.stbg_rect bounds, float horizontal_alignment, float vertical_alignment, StbGui.STBG_MEASURE_TEXT_OPTIONS measure_options, StbGui.STBG_RENDER_TEXT_OPTIONS render_options)
+    {
+        mainFont.DrawText(text, style, bounds, horizontal_alignment, vertical_alignment, measure_options, render_options);
     }
 
     private void InitStbGui()

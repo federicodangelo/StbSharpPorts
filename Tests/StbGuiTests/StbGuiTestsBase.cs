@@ -27,12 +27,16 @@ public class StbGuiTestsBase : IDisposable
     {
         return new StbGui.stbg_external_dependencies()
         {
-            measure_text = (text, font, style) => new StbGui.stbg_size() { width = text.Length * style.size, height = style.size },
+            measure_text = (text, font, style, options) => new StbGui.stbg_size() { width = text.Length * style.size, height = style.size },
             render = (commands) =>
             {
                 render_commands_all.AddRange(commands);
                 render_commands.AddRange(commands.ToArray().Where(c => c.type != StbGui.STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME && c.type != StbGui.STBG_RENDER_COMMAND_TYPE.END_FRAME));
             },
+            copy_text_to_clipboard = (text) => { },
+            get_clipboard_text = () => "",
+            get_character_position_in_text = (text, font, style, options, character_index) => StbGui.stbg_build_position_zero(),
+            set_input_method_editor = (info) => { },
         };
     }
 

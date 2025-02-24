@@ -51,7 +51,8 @@ public partial class StbGui
     {
         ref var textbox = ref stbg__add_widget(STBG_WIDGET_TYPE.TEXTBOX, identifier, out var is_new);
 
-        var parameters = new stbg__textbox_parameters() {
+        var parameters = new stbg__textbox_parameters()
+        {
             single_line = single_line
         };
 
@@ -62,7 +63,7 @@ public partial class StbGui
         ref var layout = ref textbox.properties.layout;
 
         layout.constrains = stbg_build_constrains_unconstrained();
-        layout.constrains.min.height =  context.theme.default_font_style.size * (single_line ? 1 : 2) + stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP, STBG_WIDGET_STYLE.TEXTBOX_PADDING_BOTTOM);
+        layout.constrains.min.height = context.theme.default_font_style.size * (single_line ? 1 : 2) + stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP, STBG_WIDGET_STYLE.TEXTBOX_PADDING_BOTTOM);
         layout.constrains.min.width = stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT, STBG_WIDGET_STYLE.TEXTBOX_PADDING_RIGHT);
         layout.inner_padding = new stbg_padding()
         {
@@ -134,8 +135,8 @@ public partial class StbGui
 
                         // TODO: this can be optimized (we want the X difference between the last two consecutive characters)
 
-                        var w1 = stbg__measure_text(stbg__build_text(str.text.Slice(n, i))).width;
-                        var w2 = stbg__measure_text(stbg__build_text(str.text.Slice(n, i + 1))).width;
+                        var w1 = stbg__measure_text(stbg__build_text(str.text.Slice(n, i)), parameters.single_line ? STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE : STBG_MEASURE_TEXT_OPTIONS.NONE).width;
+                        var w2 = stbg__measure_text(stbg__build_text(str.text.Slice(n, i + 1)), parameters.single_line ? STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE : STBG_MEASURE_TEXT_OPTIONS.NONE).width;
                         return (int)(w2 - w1);
                     },
                     layout_row = (str, n) =>
@@ -145,7 +146,7 @@ public partial class StbGui
                         var text = str.text.Slice(0, str.text_length).Slice(n);
 
                         //TODO: Handle word-wrapping!!
-                        var size = stbg__measure_text(stbg__build_text(text));
+                        var size = stbg__measure_text(stbg__build_text(text), parameters.single_line ? STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE : STBG_MEASURE_TEXT_OPTIONS.NONE);
 
                         row.x0 = 0;
                         row.x1 = size.width;
@@ -354,6 +355,11 @@ public partial class StbGui
         var text = textbox.properties.text_editable.Slice(0, textbox.properties.text_editable_length);
         stbg__textbox_get_parameters(ref textbox, out var parameters);
 
+        var needs_clipping = editing;
+
+        var text_render_options = needs_clipping ? STBG_RENDER_TEXT_OPTIONS.DONT_CLIP : STBG_RENDER_TEXT_OPTIONS.NONE; // No need to use clipping IF we are already clipping the whole textbox
+        var text_measure_options = parameters.single_line ? STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE : STBG_MEASURE_TEXT_OPTIONS.NONE;
+
         float cursor_x, cursor_y;
 
         // We re-used the children offset values since a textbox can't have children..
@@ -362,9 +368,7 @@ public partial class StbGui
 
         if (editing)
         {
-            // TODO: This sucks! we are measuring the whole text only to get a simple cursor position?
-            var cursor_position_tmp = stbg__measure_text(stbg__build_text(text.Slice(0, Math.Min(context.text_edit.state.cursor, text.Length))));
-            var cursor_position = stbg_build_position(cursor_position_tmp.width, cursor_position_tmp.height);
+            var cursor_position = stbg__get_character_position_in_text(stbg__build_text(text.Slice(0, text.Length)), context.text_edit.state.cursor, text_measure_options);
 
             cursor_x = draw_offset_x + stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT) + cursor_position.x;
             cursor_y = draw_offset_y + stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP);
@@ -390,7 +394,6 @@ public partial class StbGui
 
         float border_size = stbg_get_widget_style(STBG_WIDGET_STYLE.TEXTBOX_BORDER_SIZE);
 
-        var needs_clipping = editing;
 
         stbg__rc_draw_border(
             stbg_build_rect(0, 0, size.width, size.height),
@@ -402,11 +405,6 @@ public partial class StbGui
         if (needs_clipping)
             stbg__rc_push_clipping_rect(stbg_build_rect(border_size, border_size, size.width - border_size, size.height - border_size));
 
-
-        var text_render_options = needs_clipping ? STBG_RENDER_TEXT_OPTIONS.DONT_CLIP : STBG_RENDER_TEXT_OPTIONS.NONE; // No need to use clipping IF we are already clipping the whole textbox
-        if (parameters.single_line)
-            text_render_options |= STBG_RENDER_TEXT_OPTIONS.SINGLE_LINE;
-
         stbg__rc_draw_text(
             stbg_build_rect(
                 draw_offset_x + stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT),
@@ -415,7 +413,8 @@ public partial class StbGui
                 size.height - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_BOTTOM)
             ),
             stbg__build_text(text, stbg_get_widget_style_color(STBG_WIDGET_STYLE.TEXTBOX_TEXT_COLOR)),
-            -1, -1, 
+            -1, -1,
+            text_measure_options,
             text_render_options
         );
 
@@ -439,8 +438,8 @@ public partial class StbGui
                 var select_end = Math.Clamp(Math.Max(context.text_edit.state.select_start, context.text_edit.state.select_end), 0, text.Length);
 
                 // Draw selection background
-                var select_start_position = stbg__measure_text(stbg__build_text(text.Slice(0, select_start)));
-                var select_end_position = stbg__measure_text(stbg__build_text(text.Slice(0, select_end)));
+                var select_start_position = stbg__measure_text(stbg__build_text(text.Slice(0, select_start)), text_measure_options);
+                var select_end_position = stbg__measure_text(stbg__build_text(text.Slice(0, select_end)), text_measure_options);
 
                 var select_start_position_x = stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT) + select_start_position.width;
                 var select_end_position_x = stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT) + select_end_position.width;
@@ -468,6 +467,7 @@ public partial class StbGui
                     ),
                     stbg__build_text(selected_text, stbg_get_widget_style_color(STBG_WIDGET_STYLE.TEXTBOX_BACKGROUND_COLOR)),
                     -1, -1,
+                    text_measure_options,
                     text_render_options
                 );
             }

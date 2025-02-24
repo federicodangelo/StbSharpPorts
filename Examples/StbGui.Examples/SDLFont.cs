@@ -35,7 +35,7 @@ public class SDLFont : IDisposable
         this.renderer = renderer;
 
         this.oversampling = oversampling;
-        this.oversampling_scale = 1.0f / (float) oversampling;
+        this.oversampling_scale = 1.0f / (float)oversampling;
         this.use_bilinear_filtering = use_bilinear_filtering;
 
         byte[] fontBytes = File.ReadAllBytes(fileName);
@@ -111,7 +111,7 @@ public class SDLFont : IDisposable
             SDL.SetTextureScaleMode(fontTexture, SDL.ScaleMode.Linear);
         else
             SDL.SetTextureScaleMode(fontTexture, SDL.ScaleMode.Nearest);
-            
+
         if (fontTexture == 0)
         {
             SDL.LogError(SDL.LogCategory.System, $"SDL failed to create texture: {SDL.GetError()}");
@@ -125,74 +125,168 @@ public class SDLFont : IDisposable
         }
     }
 
-    public StbGui.stbg_size MeasureText(ReadOnlySpan<char> text, StbGui.stbg_font_style style, StbGui.STBG_RENDER_TEXT_OPTIONS options = StbGui.STBG_RENDER_TEXT_OPTIONS.IGNORE_BASELINE)
+    private ref struct TextIterationData
     {
-        float scale = style.size / Size;
+        public float scale;
+        public char c;
+        public int c_index;
+        public ref StbTrueType.stbtt_packedchar c_data;
+        public float x;
+        public float y;
+        public float dx;
+        public float dy;
+        public int line_number;
+        public bool new_line;
+        public bool final;
+    }
 
-        int ch = 0;
-        float xpos = 0;
-        float line_height = 0;
-        int lines = 1;
-        var ignore_metrics = (options & StbGui.STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS) != 0;
-        var ignore_baseline = (options & StbGui.STBG_RENDER_TEXT_OPTIONS.IGNORE_BASELINE) != 0;
+    private delegate bool IterateTextInternalDelegate(ref TextIterationData data);
 
-        while (ch < text.Length)
+    private void IterateTextInternal(
+        ReadOnlySpan<char> text, StbGui.stbg_font_style style,
+        StbGui.STBG_MEASURE_TEXT_OPTIONS options,
+        IterateTextInternalDelegate callback)
+    {
+        TextIterationData iteration_data = new TextIterationData();
+        iteration_data.scale = style.size / Size;
+
+        float current_line_height = 0;
+
+        var ignore_metrics = (options & StbGui.STBG_MEASURE_TEXT_OPTIONS.IGNORE_METRICS) != 0;
+        var use_only_baseline_for_first_line = (options & StbGui.STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE) != 0;
+        var single_line = (options & StbGui.STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE) != 0;
+
+        float get_line_height(ref TextIterationData data)
         {
-            char c = text[ch];
+            return (ignore_metrics && current_line_height != 0) ? current_line_height :
+                (use_only_baseline_for_first_line && data.line_number == 0) ? Baseline * data.scale :
+                LineHeight * data.scale;
+        }
 
-            var charData = fontCharData[c];
+        bool stop = false;
 
-            float dx;
+        while (iteration_data.c_index < text.Length && !stop)
+        {
+            iteration_data.c = text[iteration_data.c_index];
+            iteration_data.new_line = false;
 
-            if (ignore_metrics)
+            if (iteration_data.c == '\n')
             {
-                line_height = Math.Max(line_height, (charData.y1 - charData.y0) * scale * oversampling_scale);
-                dx = ((charData.x1 - charData.x0) + 1) * scale * oversampling_scale;
+                if (!single_line)
+                {
+                    iteration_data.new_line = true;
+                    iteration_data.dx = 0;
+                    iteration_data.dy = get_line_height(ref iteration_data);
+                }
+                else
+                {
+                    iteration_data.dx = 0;
+                    iteration_data.dy = 0;
+                    // ignore the new line if we are in a single line scenario
+                }
             }
             else
             {
-                dx = charData.xadvance * scale;
-                if (ch + 1 < text.Length)
-                    dx += fontScale * StbTrueType.stbtt_GetCodepointKernAdvance(ref font, text[ch], text[ch + 1]) * scale;
+                iteration_data.c_data = ref fontCharData[iteration_data.c];
+
+                if (ignore_metrics)
+                {
+                    current_line_height = Math.Max(current_line_height, (iteration_data.c_data.y1 - iteration_data.c_data.y0) * iteration_data.scale * oversampling_scale);
+                    iteration_data.dx = ((iteration_data.c_data.x1 - iteration_data.c_data.x0) + 1) * iteration_data.scale * oversampling_scale;
+                }
+                else
+                {
+                    iteration_data.dx = iteration_data.c_data.xadvance * iteration_data.scale;
+                    if (iteration_data.c_index + 1 < text.Length)
+                        iteration_data.dx += fontScale * StbTrueType.stbtt_GetCodepointKernAdvance(ref font, iteration_data.c, text[iteration_data.c_index + 1]) * iteration_data.scale;
+                }
+
+                iteration_data.dy = 0;
             }
 
-            /*if (xpos + dx > bounds.x1)
+            if (iteration_data.new_line)
             {
-                ypos += FontSize * scale;
-                xpos = bounds.x0;
-                lines++;
-            }*/
+                iteration_data.y += iteration_data.dy;
+                iteration_data.x = 0;
 
-            xpos += dx;
+                current_line_height = 0;
 
-            ++ch;
+                iteration_data.line_number++;
+            }
+
+            stop = callback(ref iteration_data);
+
+            iteration_data.x += iteration_data.dx;
+            iteration_data.y += iteration_data.dy;
+
+            iteration_data.c_index++;
         }
 
-        return StbGui.stbg_build_size(
-            xpos,
-            ignore_metrics ?
-                line_height :
-            ignore_baseline ?
-                LineHeight * lines * scale :
-                (Baseline + (lines - 1) * LineHeight) * scale
-        );
+        if (!stop)
+        {
+            // Call callback one last time with the final X/Y position 
+            var last_line_height = get_line_height(ref iteration_data);
+            iteration_data.final = true;
+            iteration_data.y += last_line_height;
+            iteration_data.dy = last_line_height;
+            iteration_data.dx = 0;
+            iteration_data.new_line = false;
+
+            callback(ref iteration_data);
+        }
     }
 
-    public void DrawText(ReadOnlySpan<char> text, StbGui.stbg_font_style style, StbGui.stbg_rect bounds, float horizontal_alignment, float vertical_alignment, StbGui.STBG_RENDER_TEXT_OPTIONS options)
+
+    public StbGui.stbg_size MeasureText(ReadOnlySpan<char> text, StbGui.stbg_font_style style, StbGui.STBG_MEASURE_TEXT_OPTIONS options)
+    {
+        float width = 0, height = 0;
+
+        IterateTextInternal(text, style, options, (ref TextIterationData data) =>
+        {
+            if (data.new_line || data.final)
+            {
+                width = Math.Max(width, data.x);
+                height += data.dy;
+            }
+
+            return false;
+        });
+
+        return StbGui.stbg_build_size(width, height);
+    }
+
+    public StbGui.stbg_position GetCharacterPositionInText(ReadOnlySpan<char> text, StbGui.stbg_font_style style, StbGui.STBG_MEASURE_TEXT_OPTIONS options, int character_index)
+    {
+        StbGui.stbg_position position = StbGui.stbg_build_position_zero();
+
+        IterateTextInternal(text, style, options, (ref TextIterationData data) =>
+        {
+            if (data.c_index == character_index)
+            {
+                position.x = data.x;
+                position.y = data.y;
+                return true;
+            }
+
+            return false;
+        });
+
+        return position;
+    }
+
+    public void DrawText(ReadOnlySpan<char> text, StbGui.stbg_font_style style, StbGui.stbg_rect bounds, float horizontal_alignment, float vertical_alignment, StbGui.STBG_MEASURE_TEXT_OPTIONS measure_options, StbGui.STBG_RENDER_TEXT_OPTIONS render_options)
     {
         float scale = style.size / Size;
 
-        var bounds_width = (bounds.x1 - bounds.x0) * scale;
-        var bounds_height = (bounds.y1 - bounds.y0) * scale;
+        var bounds_width = bounds.x1 - bounds.x0;
+        var bounds_height = bounds.y1 - bounds.y0;
 
         if (bounds_width <= 0 || bounds_height <= 0)
             return;
 
-        var full_text_bounds = MeasureText(text, style, options | StbGui.STBG_RENDER_TEXT_OPTIONS.IGNORE_BASELINE);
+        var full_text_bounds = MeasureText(text, style, measure_options | StbGui.STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE);
 
-        bool ignore_metrics = (options & StbGui.STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS) != 0;
-        bool single_line = (options & StbGui.STBG_RENDER_TEXT_OPTIONS.SINGLE_LINE) != 0;
-        bool dont_clip = (options & StbGui.STBG_RENDER_TEXT_OPTIONS.DONT_CLIP) != 0;
+        bool dont_clip = (render_options & StbGui.STBG_RENDER_TEXT_OPTIONS.DONT_CLIP) != 0;
 
         var center_y_offset = full_text_bounds.height < bounds_height ?
             MathF.Floor(((bounds_height - full_text_bounds.height) / 2) * (1 + vertical_alignment)) :
@@ -202,84 +296,45 @@ public class SDLFont : IDisposable
             MathF.Floor(((bounds_width - full_text_bounds.width) / 2) * (1 + horizontal_alignment)) :
             0;
 
-        var use_clipping = false;
-
-        if (!dont_clip &&
-            (full_text_bounds.height > bounds_height ||
-            full_text_bounds.width > bounds_width))
-        {
-            use_clipping = true;
-        }
+        var ignore_metrics = (measure_options & StbGui.STBG_MEASURE_TEXT_OPTIONS.IGNORE_METRICS) != 0;
+        var use_clipping = !dont_clip && (full_text_bounds.height > bounds_height || full_text_bounds.width > bounds_width);
 
         if (use_clipping)
         {
             SDLHelper.PushClipRect(renderer, bounds);
         }
 
-        int ch = 0;
-        float xpos = bounds.x0 + center_x_offset;
-        float ypos = bounds.y0 + center_y_offset;
-
         SDL.SetTextureColorMod(fontTexture, style.color.r, style.color.g, style.color.b);
 
-        bool first_line = true;
-        var line_height = ignore_metrics ? 0 : LineHeight;
-
-        while (ch < text.Length)
+        IterateTextInternal(text, style, measure_options, (ref TextIterationData data) =>
         {
-            char c = text[ch];
-
-            var charData = fontCharData[c];
-
-            float dx;
-
-            if (ignore_metrics)
+            if (!data.new_line && !data.final)
             {
-                line_height = Math.Max(line_height, (charData.y1 - charData.y0) * scale * oversampling_scale);
-                dx = ((charData.x1 - charData.x0) + 1) * scale * oversampling_scale;
-            }
-            else
-            {
-                dx = charData.xadvance * scale;
-                if (ch + 1 < text.Length)
-                    dx += fontScale * StbTrueType.stbtt_GetCodepointKernAdvance(ref font, text[ch], text[ch + 1]) * scale;
-            }
+                ref var char_data = ref data.c_data;
 
-            if (xpos + dx > bounds.x1 && !first_line && !single_line)
-            {
-                ypos += LineHeight * scale;
-                xpos = bounds.x0 + center_x_offset;
+                var metricsX = (ignore_metrics ? 0 : char_data.xoff) * scale;
+                var metricsY = (ignore_metrics ? 0 : (Baseline + char_data.yoff)) * scale;
 
-                if (ypos + LineHeight * scale > bounds.y1)
-                    break;
+                float xpos = bounds.x0 + center_x_offset + data.x;
+                float ypos = bounds.y0 + center_y_offset + data.y;
+
+                var fromRect = new SDL.FRect() { X = char_data.x0, Y = char_data.y0, W = char_data.x1 - char_data.x0, H = char_data.y1 - char_data.y0 };
+                var toRect = new SDL.FRect() { X = xpos + metricsX, Y = ypos + metricsY, W = (char_data.x1 - char_data.x0) * scale * oversampling_scale, H = (char_data.y1 - char_data.y0) * scale * oversampling_scale };
+
+                if (!SDL.RenderTexture(renderer, fontTexture, fromRect, toRect))
+                {
+                    SDL.LogError(SDL.LogCategory.System, $"SDL failed to render texture: {SDL.GetError()}");
+                    return true;
+                }
             }
 
-            var metricsX = (ignore_metrics ? 0 : charData.xoff) * scale;
-            var metricsY = (ignore_metrics ? 0 : (Baseline + charData.yoff)) * scale;
-
-            var fromRect = new SDL.FRect() { X = charData.x0, Y = charData.y0, W = charData.x1 - charData.x0, H = charData.y1 - charData.y0 };
-            var toRect = new SDL.FRect() { X = xpos + metricsX, Y = ypos + metricsY, W = (charData.x1 - charData.x0) * scale * oversampling_scale, H = (charData.y1 - charData.y0) * scale * oversampling_scale };
-
-            if (!SDL.RenderTexture(renderer, fontTexture, fromRect, toRect))
-            {
-                SDL.LogError(SDL.LogCategory.System, $"SDL failed to render texture: {SDL.GetError()}");
-                break;
-            }
-
-            first_line = false;
-
-            xpos += dx;
-
-            ++ch;
-        }
+            return false;
+        });
 
         if (use_clipping)
         {
             SDLHelper.PopClipRect(renderer);
         }
-
-        SDL.SetTextureColorMod(fontTexture, 255, 255, 255);
-
     }
 
     public void Dispose()

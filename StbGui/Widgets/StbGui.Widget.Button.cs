@@ -72,9 +72,9 @@ public partial class StbGui
             context.input_feedback.pressed_widget_id = STBG_WIDGET_ID_NULL;
         }
 
-        return 
-            context.input.mouse_button_1_down || 
-            context.input.mouse_button_1_up || 
+        return
+            context.input.mouse_button_1_down ||
+            context.input.mouse_button_1_up ||
             context.input.mouse_button_1;
     }
 
@@ -103,7 +103,7 @@ public partial class StbGui
                 size.height - stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_PADDING_BOTTOM)
             ),
             stbg__build_text(button.properties.text, text_color),
-            0, 0, STBG_RENDER_TEXT_OPTIONS.SINGLE_LINE
+            0, 0, STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE
         );
     }
 }

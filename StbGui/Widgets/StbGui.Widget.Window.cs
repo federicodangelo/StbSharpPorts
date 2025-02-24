@@ -577,7 +577,7 @@ public partial class StbGui
                 ),
                 stbg__build_text(window.properties.text, title_text_color),
                 -1, 0, // center vertically
-                STBG_RENDER_TEXT_OPTIONS.SINGLE_LINE
+                STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE
             );
 
             if (has_close_button)
@@ -602,7 +602,7 @@ public partial class StbGui
                     stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP, STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT)
                 );
 
-                stbg__rc_draw_text(close_button_bounds, stbg__build_text(STBG__WINDOW_CLOSE_BUTTON, close_button_color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
+                stbg__rc_draw_text(close_button_bounds, stbg__build_text(STBG__WINDOW_CLOSE_BUTTON, close_button_color), 0, 0, STBG_MEASURE_TEXT_OPTIONS.IGNORE_METRICS);
             }
         }
     }

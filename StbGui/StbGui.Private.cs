@@ -14,8 +14,12 @@ public partial class StbGui
 
     private static void stbg_init_context(ref stbg_context context, stbg_external_dependencies external_dependencies, stbg_init_options options)
     {
-        stbg__assert(external_dependencies.measure_text != null, "Missing measure text function");
-        stbg__assert(external_dependencies.render != null, "Missing render function");
+        stbg__assert(external_dependencies.measure_text != null);
+        stbg__assert(external_dependencies.get_character_position_in_text != null);
+        stbg__assert(external_dependencies.render != null);
+        stbg__assert(external_dependencies.get_clipboard_text != null);
+        stbg__assert(external_dependencies.copy_text_to_clipboard != null);
+        stbg__assert(external_dependencies.set_input_method_editor != null);
 
         if (options.max_widgets == 0)
             options.max_widgets = DEFAULT_MAX_WIDGETS;
@@ -73,9 +77,14 @@ public partial class StbGui
         context.text_edit.state.undostate = new StbTextEdit.StbUndoState();
     }
 
-    private static stbg_size stbg__measure_text(stbg_text text)
+    private static stbg_size stbg__measure_text(stbg_text text, STBG_MEASURE_TEXT_OPTIONS options)
     {
-        return context.external_dependencies.measure_text(text.text.Span, stbg_get_font_by_id(text.font_id), text.style);
+        return context.external_dependencies.measure_text(text.text.Span, stbg_get_font_by_id(text.font_id), text.style, options);
+    }
+
+    private static stbg_position stbg__get_character_position_in_text(stbg_text text, int character_index, STBG_MEASURE_TEXT_OPTIONS options)
+    {
+        return context.external_dependencies.get_character_position_in_text(text.text.Span, stbg_get_font_by_id(text.font_id), text.style, options, character_index);
     }
 
     private static void stbg__destroy_unused_widgets(int amount_to_destroy)

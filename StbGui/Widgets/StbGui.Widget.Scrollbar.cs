@@ -272,16 +272,16 @@ public partial class StbGui
             if (p == SUB_WIDGET_PART_MIN_BUTTON)
             {
                 if (parameters.direction == STBG_SCROLLBAR_DIRECTION.HORIZONTAL)
-                    stbg__rc_draw_text(rect, stbg__build_text(STBG__SCROLLBAR_ARROW_LEFT, color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
+                    stbg__rc_draw_text(rect, stbg__build_text(STBG__SCROLLBAR_ARROW_LEFT, color), 0, 0, STBG_MEASURE_TEXT_OPTIONS.IGNORE_METRICS);
                 else
-                    stbg__rc_draw_text(rect, stbg__build_text(STBG__SCROLLBAR_ARROW_UP, color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
+                    stbg__rc_draw_text(rect, stbg__build_text(STBG__SCROLLBAR_ARROW_UP, color), 0, 0, STBG_MEASURE_TEXT_OPTIONS.IGNORE_METRICS);
             }
             else if (p == SUB_WIDGET_PART_MAX_BUTTON)
             {
                 if (parameters.direction == STBG_SCROLLBAR_DIRECTION.HORIZONTAL)
-                    stbg__rc_draw_text(rect, stbg__build_text(STBG__SCROLLBAR_ARROW_RIGHT, color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
+                    stbg__rc_draw_text(rect, stbg__build_text(STBG__SCROLLBAR_ARROW_RIGHT, color), 0, 0, STBG_MEASURE_TEXT_OPTIONS.IGNORE_METRICS);
                 else
-                    stbg__rc_draw_text(rect, stbg__build_text(STBG__SCROLLBAR_ARROW_DOWN, color), 0, 0, STBG_RENDER_TEXT_OPTIONS.IGNORE_METRICS);
+                    stbg__rc_draw_text(rect, stbg__build_text(STBG__SCROLLBAR_ARROW_DOWN, color), 0, 0, STBG_MEASURE_TEXT_OPTIONS.IGNORE_METRICS);
             }
         }
     }
