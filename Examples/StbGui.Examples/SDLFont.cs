@@ -140,12 +140,13 @@ public class SDLFont : IDisposable
         public bool final;
     }
 
-    private delegate bool IterateTextInternalDelegate(ref TextIterationData data);
+    private delegate bool IterateTextInternalDelegate<T>(ref TextIterationData data, ref T user_data);
 
-    private void IterateTextInternal(
+    private void IterateTextInternal<T>(
         ReadOnlySpan<char> text, StbGui.stbg_font_style style,
         StbGui.STBG_MEASURE_TEXT_OPTIONS options,
-        IterateTextInternalDelegate callback)
+        ref T user_data,
+        IterateTextInternalDelegate<T> callback)
     {
         TextIterationData iteration_data = new TextIterationData();
         iteration_data.scale = style.size / Size;
@@ -169,19 +170,18 @@ public class SDLFont : IDisposable
         {
             iteration_data.c = text[iteration_data.c_index];
             iteration_data.new_line = false;
+            iteration_data.dy = 0;
+            iteration_data.dx = 0;
 
             if (iteration_data.c == '\n')
             {
                 if (!single_line)
                 {
                     iteration_data.new_line = true;
-                    iteration_data.dx = 0;
                     iteration_data.dy = get_line_height(ref iteration_data);
                 }
                 else
                 {
-                    iteration_data.dx = 0;
-                    iteration_data.dy = 0;
                     // ignore the new line if we are in a single line scenario
                 }
             }
@@ -200,11 +200,7 @@ public class SDLFont : IDisposable
                     if (iteration_data.c_index + 1 < text.Length)
                         iteration_data.dx += fontScale * StbTrueType.stbtt_GetCodepointKernAdvance(ref font, iteration_data.c, text[iteration_data.c_index + 1]) * iteration_data.scale;
                 }
-
-                iteration_data.dy = 0;
             }
-
-            stop = callback(ref iteration_data);
 
             if (iteration_data.new_line)
             {
@@ -213,10 +209,13 @@ public class SDLFont : IDisposable
                 current_line_height = 0;
 
                 iteration_data.line_number++;
+
+                iteration_data.y += iteration_data.dy;
             }
 
+            stop = callback(ref iteration_data, ref user_data);
+
             iteration_data.x += iteration_data.dx;
-            iteration_data.y += iteration_data.dy;
 
             iteration_data.c_index++;
         }
@@ -231,52 +230,101 @@ public class SDLFont : IDisposable
             iteration_data.dx = 0;
             iteration_data.new_line = false;
 
-            callback(ref iteration_data);
+            callback(ref iteration_data, ref user_data);
         }
+    }
+
+    static private bool MeasureTextCallback(ref TextIterationData data, ref StbGui.stbg_size size)
+    {
+        if (data.new_line || data.final)
+        {
+            size.width = Math.Max(size.width, data.x);
+            size.height += data.dy;
+        }
+
+        return false;
     }
 
 
     public StbGui.stbg_size MeasureText(ReadOnlySpan<char> text, StbGui.stbg_font_style style, StbGui.STBG_MEASURE_TEXT_OPTIONS options)
     {
-        float width = 0, height = 0;
+        StbGui.stbg_size size = new StbGui.stbg_size();
 
-        IterateTextInternal(text, style, options, (ref TextIterationData data) =>
+        IterateTextInternal(text, style, options, ref size, MeasureTextCallback);
+
+        return StbGui.stbg_build_size(size.width, size.height);
+    }
+
+    private struct GetCharacterPositionInTextCallbackData
+    {
+        public int character_index;
+        public StbGui.stbg_position position;
+        public bool is_last;
+    }
+
+    static private bool GetCharacterPositionInTextCallback(ref TextIterationData data, ref GetCharacterPositionInTextCallbackData callback_data)
+    {
+        if (data.c_index + 1 == callback_data.character_index)
         {
-            if (data.new_line || data.final)
-            {
-                width = Math.Max(width, data.x);
-                height += data.dy;
-            }
+            callback_data.position.x = data.x + data.dx;
+            callback_data.position.y = data.y;
+            return true;
+        }
 
-            return false;
-        });
-
-        return StbGui.stbg_build_size(width, height);
+        return false;
     }
 
     public StbGui.stbg_position GetCharacterPositionInText(ReadOnlySpan<char> text, StbGui.stbg_font_style style, StbGui.STBG_MEASURE_TEXT_OPTIONS options, int character_index)
     {
-        StbGui.stbg_position position = StbGui.stbg_build_position_zero();
+        GetCharacterPositionInTextCallbackData callback_data = new GetCharacterPositionInTextCallbackData();
+        callback_data.is_last = character_index == text.Length;
+        callback_data.character_index = character_index;
+        callback_data.position = new StbGui.stbg_position();
 
-        bool is_last = character_index == text.Length;
+        IterateTextInternal(text, style, options, ref callback_data, GetCharacterPositionInTextCallback);
 
-        IterateTextInternal(text, style, options, (ref TextIterationData data) =>
+        return callback_data.position;
+    }
+
+    private struct DrawTextCallbackData
+    {
+        public StbGui.stbg_rect bounds;
+        public float horizontal_alignment;
+        public float vertical_alignment;
+        public StbGui.stbg_position position;
+        public bool ignore_metrics;
+        public float scale;
+        public float Baseline;
+        public float center_x_offset;
+        public float center_y_offset;
+        public float oversampling_scale;
+        public nint renderer;
+        public nint fontTexture;
+    }
+
+    static private bool DrawTextCallback(ref TextIterationData data, ref DrawTextCallbackData callback_data)
+    {
+        if (!data.new_line && !data.final)
         {
-            if (data.c_index == character_index || (is_last && data.c_index + 1 == character_index))
+            ref var char_data = ref data.c_data;
+
+            var metricsX = (callback_data.ignore_metrics ? 0 : char_data.xoff) * callback_data.scale;
+            var metricsY = (callback_data.ignore_metrics ? 0 : (callback_data.Baseline + char_data.yoff)) * callback_data.scale;
+
+            float xpos = callback_data.bounds.x0 + callback_data.center_x_offset + data.x;
+            float ypos = callback_data.bounds.y0 + callback_data.center_y_offset + data.y;
+
+            var fromRect = new SDL.FRect() { X = char_data.x0, Y = char_data.y0, W = char_data.x1 - char_data.x0, H = char_data.y1 - char_data.y0 };
+            var toRect = new SDL.FRect() { X = xpos + metricsX, Y = ypos + metricsY, W = (char_data.x1 - char_data.x0) * callback_data.scale * callback_data.oversampling_scale, H = (char_data.y1 - char_data.y0) * callback_data.scale * callback_data.oversampling_scale };
+
+            if (!SDL.RenderTexture(callback_data.renderer, callback_data.fontTexture, fromRect, toRect))
             {
-                position.x = data.x;
-                position.y = data.y;
-                if (is_last)
-                {
-                    position.x += data.dx;
-                }
+                SDL.LogError(SDL.LogCategory.System, $"SDL failed to render texture: {SDL.GetError()}");
                 return true;
             }
+        }
 
-            return false;
-        });
-
-        return position;
+        return false;
     }
 
     public void DrawText(ReadOnlySpan<char> text, StbGui.stbg_font_style style, StbGui.stbg_rect bounds, float horizontal_alignment, float vertical_alignment, StbGui.STBG_MEASURE_TEXT_OPTIONS measure_options, StbGui.STBG_RENDER_TEXT_OPTIONS render_options)
@@ -311,30 +359,21 @@ public class SDLFont : IDisposable
 
         SDL.SetTextureColorMod(fontTexture, style.color.r, style.color.g, style.color.b);
 
-        IterateTextInternal(text, style, measure_options, (ref TextIterationData data) =>
-        {
-            if (!data.new_line && !data.final)
-            {
-                ref var char_data = ref data.c_data;
-
-                var metricsX = (ignore_metrics ? 0 : char_data.xoff) * scale;
-                var metricsY = (ignore_metrics ? 0 : (Baseline + char_data.yoff)) * scale;
-
-                float xpos = bounds.x0 + center_x_offset + data.x;
-                float ypos = bounds.y0 + center_y_offset + data.y;
-
-                var fromRect = new SDL.FRect() { X = char_data.x0, Y = char_data.y0, W = char_data.x1 - char_data.x0, H = char_data.y1 - char_data.y0 };
-                var toRect = new SDL.FRect() { X = xpos + metricsX, Y = ypos + metricsY, W = (char_data.x1 - char_data.x0) * scale * oversampling_scale, H = (char_data.y1 - char_data.y0) * scale * oversampling_scale };
-
-                if (!SDL.RenderTexture(renderer, fontTexture, fromRect, toRect))
-                {
-                    SDL.LogError(SDL.LogCategory.System, $"SDL failed to render texture: {SDL.GetError()}");
-                    return true;
-                }
-            }
-
-            return false;
-        });
+        DrawTextCallbackData callback_data = new DrawTextCallbackData();
+        callback_data.bounds = bounds;
+        callback_data.horizontal_alignment = horizontal_alignment;
+        callback_data.vertical_alignment = vertical_alignment;
+        callback_data.position = new StbGui.stbg_position();
+        callback_data.ignore_metrics = ignore_metrics;
+        callback_data.scale = scale;
+        callback_data.Baseline = Baseline;
+        callback_data.center_x_offset = center_x_offset;
+        callback_data.center_y_offset = center_y_offset;
+        callback_data.oversampling_scale = oversampling_scale;
+        callback_data.renderer = renderer;
+        callback_data.fontTexture = fontTexture;
+        
+        IterateTextInternal(text, style, measure_options, ref callback_data, DrawTextCallback);
 
         if (use_clipping)
         {

@@ -75,6 +75,9 @@ public partial class StbGui
 
         // This is the only field in text_edit that requires manual instantiation
         context.text_edit.state.undostate = new StbTextEdit.StbUndoState();
+
+        for (var i = 0; i < STBG__WIDGET_INIT_CONTEXT_LIST.Length; i++)
+            STBG__WIDGET_INIT_CONTEXT_LIST[i](ref context);
     }
 
     private static stbg_size stbg__measure_text(stbg_text text, STBG_MEASURE_TEXT_OPTIONS options)

@@ -36,6 +36,13 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.TEXTBOX_CURSOR_HEIGHT, font_style.size);
     }
 
+    private static void stbg__textbox_init_context(ref stbg_context context)
+    {
+        ref var str = ref context.text_edit.str;
+        str.get_width = stbg__textbox_text_edit_get_width;
+        str.layout_row = stbg__textbox_text_edit_layout_row;
+    }
+
     private static void stbg__textbox_set_parameters(ref stbg_widget widget, stbg__textbox_parameters parameters)
     {
         widget.properties.parameters.parameter1.b = parameters.single_line;
@@ -87,6 +94,51 @@ public partial class StbGui
         return ref textbox;
     }
 
+    private static int stbg__textbox_text_edit_get_width(StbTextEdit.STB_TEXTEDIT_STRING str, int n, int i)
+    {
+        ref var textbox = ref stbg_get_widget_by_id(context.text_edit.widget_id);
+        stbg__assert_internal(textbox.type == STBG_WIDGET_TYPE.TEXTBOX);
+        stbg__textbox_get_parameters(ref textbox, out var parameters);
+        var measure_text_options = parameters.single_line ? STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE : STBG_MEASURE_TEXT_OPTIONS.NONE;
+
+        if (str.text.Span[n + i] == '\n')
+            return StbTextEdit.STB_TEXTEDIT_GETWIDTH_NEWLINE;
+
+        var w1 = stbg__get_character_position_in_text(stbg__build_text(str.text.Slice(n)), i, measure_text_options).x;
+        var w2 = stbg__get_character_position_in_text(stbg__build_text(str.text.Slice(n)), i + 1, measure_text_options).x;
+        return (int)(w2 - w1);
+    }
+
+    private static StbTextEdit.StbTexteditRow stbg__textbox_text_edit_layout_row(StbTextEdit.STB_TEXTEDIT_STRING str, int n)
+    {
+        ref var textbox = ref stbg_get_widget_by_id(context.text_edit.widget_id);
+        stbg__assert_internal(textbox.type == STBG_WIDGET_TYPE.TEXTBOX);
+        stbg__textbox_get_parameters(ref textbox, out var parameters);
+        var measure_text_options = parameters.single_line ? STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE : STBG_MEASURE_TEXT_OPTIONS.NONE;
+
+        var row = new StbTextEdit.StbTexteditRow();
+
+        var text = str.text.Slice(0, str.text_length).Slice(n);
+
+        var first_new_line = text.Span.IndexOf('\n');
+        var has_new_line = false;
+        if (first_new_line != -1)
+        {
+            text = text.Slice(0, first_new_line);
+            has_new_line = true;
+        }
+
+        var size = stbg__measure_text(stbg__build_text(text), measure_text_options);
+        row.x0 = 0;
+        row.x1 = size.width;
+        row.ymin = 0;
+        row.ymax = size.height;
+        row.baseline_y_delta = size.height / 2;
+        row.num_chars = text.Length + (has_new_line ? 1 : 0);
+
+        return row;
+    }
+
     private static bool stbg__textbox_update_input(ref stbg_widget textbox)
     {
         if (context.input_feedback.hovered_widget_id == textbox.id && context.input.mouse_button_1_down)
@@ -123,47 +175,9 @@ public partial class StbGui
                 context.text_edit.widget_id = textbox.id;
                 context.text_edit.widget_hash = textbox.hash;
                 stbg__textbox_get_parameters(ref textbox, out var parameters);
-                var measure_text_options = parameters.single_line ? STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE : STBG_MEASURE_TEXT_OPTIONS.NONE;
-
-                str = new StbTextEdit.STB_TEXTEDIT_STRING()
-                {
-                    text = textbox.properties.text_editable,
-                    text_length = textbox.properties.text_editable_length,
-                    get_width = (str, n, i) =>
-                    {
-                        if (str.text.Span[n + i] == '\n')
-                            return StbTextEdit.STB_TEXTEDIT_GETWIDTH_NEWLINE;
-
-                        var w1 = stbg__get_character_position_in_text(stbg__build_text(str.text.Slice(n)), i, measure_text_options).x;
-                        var w2 = stbg__get_character_position_in_text(stbg__build_text(str.text.Slice(n)), i + 1, measure_text_options).x;
-                        return (int)(w2 - w1);
-                    },
-                    layout_row = (str, n) =>
-                    {
-                        var row = new StbTextEdit.StbTexteditRow();
-
-                        var text = str.text.Slice(0, str.text_length).Slice(n);
-
-                        var first_new_line = text.Span.IndexOf('\n');
-                        var has_new_line = false;
-                        if (first_new_line != -1)
-                        {
-                            text = text.Slice(0, first_new_line);
-                            has_new_line = true;
-                        }
-
-                        var size = stbg__measure_text(stbg__build_text(text), measure_text_options);
-                        row.x0 = 0;
-                        row.x1 = size.width;
-                        row.ymin = 0;
-                        row.ymax = size.height;
-                        row.baseline_y_delta = size.height / 2;
-                        row.num_chars = text.Length + (has_new_line ? 1 : 0);
-
-                        return row;
-                    }
-
-                };
+                
+                str.text = textbox.properties.text_editable;
+                str.text_length = textbox.properties.text_editable_length;
 
                 StbTextEdit.stb_textedit_initialize_state(ref state, parameters.single_line);
             }
@@ -398,7 +412,7 @@ public partial class StbGui
             if (cursor_y + line_height > size.height - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_BOTTOM))
             {
                 cursor_y = size.height - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_BOTTOM) - line_height;
-                draw_offset_y =  cursor_y - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP) - cursor_position.y;
+                draw_offset_y = cursor_y - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP) - cursor_position.y;
                 textbox.properties.layout.children_offset.y = draw_offset_y;
             }
             else if (cursor_y < stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP))

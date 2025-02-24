@@ -12,6 +12,7 @@ public partial class StbGui
     private delegate void stbg__widget_render_delegate(ref stbg_widget widget);
     private delegate bool stbg__widget_update_input_delegate(ref stbg_widget widget);
     private delegate void stbg__widget_init_default_theme_delegate();
+    private delegate void stbg__widget_init_context_delegate(ref stbg_context context);
 
     static private Dictionary<STBG_WIDGET_TYPE, stbg__widget_render_delegate> STBG__WIDGET_RENDER_DICTIONARY = new() {
         { STBG_WIDGET_TYPE.WINDOW, stbg__window_render },
@@ -35,6 +36,10 @@ public partial class StbGui
         stbg__label_init_default_theme,
         stbg__scrollbar_init_default_theme,
         stbg__textbox_init_default_theme,
+    ];
+
+    static private stbg__widget_init_context_delegate[] STBG__WIDGET_INIT_CONTEXT_LIST = [
+        stbg__textbox_init_context,
     ];
 
     static private stbg__widget_render_delegate?[] STBG__WIDGET_RENDER_MAP = new stbg__widget_render_delegate[(int)STBG_WIDGET_TYPE.COUNT];

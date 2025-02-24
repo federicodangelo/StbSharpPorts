@@ -17,6 +17,7 @@
         "stbiw",
         "stbrp",
         "stbtt",
+        "Textedit",
         "vsync"
     ]
 }

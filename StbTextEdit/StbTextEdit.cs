@@ -359,7 +359,7 @@ public class StbTextEdit
     {
         // TODO: Validation for bounds?
         str.text.Slice(i, str.text_length).CopyTo(str.text.Slice(i + n));
-        c.CopyTo(str.text.Slice(i).Span);
+        c.Slice(0, n).CopyTo(str.text.Slice(i).Span);
         str.text_length += n;
 
         return true;
