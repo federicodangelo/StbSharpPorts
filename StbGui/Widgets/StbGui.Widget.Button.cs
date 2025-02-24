@@ -103,7 +103,8 @@ public partial class StbGui
                 size.height - stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_PADDING_BOTTOM)
             ),
             stbg__build_text(button.properties.text, text_color),
-            0, 0, STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE
+            0, 0, 
+            STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE | STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE
         );
     }
 }

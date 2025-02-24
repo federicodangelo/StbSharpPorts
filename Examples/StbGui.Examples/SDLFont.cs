@@ -204,17 +204,16 @@ public class SDLFont : IDisposable
                 iteration_data.dy = 0;
             }
 
+            stop = callback(ref iteration_data);
+
             if (iteration_data.new_line)
             {
-                iteration_data.y += iteration_data.dy;
                 iteration_data.x = 0;
 
                 current_line_height = 0;
 
                 iteration_data.line_number++;
             }
-
-            stop = callback(ref iteration_data);
 
             iteration_data.x += iteration_data.dx;
             iteration_data.y += iteration_data.dy;
@@ -259,12 +258,18 @@ public class SDLFont : IDisposable
     {
         StbGui.stbg_position position = StbGui.stbg_build_position_zero();
 
+        bool is_last = character_index == text.Length;
+
         IterateTextInternal(text, style, options, (ref TextIterationData data) =>
         {
-            if (data.c_index == character_index)
+            if (data.c_index == character_index || (is_last && data.c_index + 1 == character_index))
             {
                 position.x = data.x;
                 position.y = data.y;
+                if (is_last)
+                {
+                    position.x += data.dx;
+                }
                 return true;
             }
 
@@ -284,7 +289,7 @@ public class SDLFont : IDisposable
         if (bounds_width <= 0 || bounds_height <= 0)
             return;
 
-        var full_text_bounds = MeasureText(text, style, measure_options | StbGui.STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE);
+        var full_text_bounds = MeasureText(text, style, measure_options);
 
         bool dont_clip = (render_options & StbGui.STBG_RENDER_TEXT_OPTIONS.DONT_CLIP) != 0;
 

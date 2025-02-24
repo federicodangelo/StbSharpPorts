@@ -577,7 +577,7 @@ public partial class StbGui
                 ),
                 stbg__build_text(window.properties.text, title_text_color),
                 -1, 0, // center vertically
-                STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE
+                STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE | STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE
             );
 
             if (has_close_button)

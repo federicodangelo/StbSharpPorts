@@ -123,6 +123,7 @@ public partial class StbGui
                 context.text_edit.widget_id = textbox.id;
                 context.text_edit.widget_hash = textbox.hash;
                 stbg__textbox_get_parameters(ref textbox, out var parameters);
+                var measure_text_options = parameters.single_line ? STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE : STBG_MEASURE_TEXT_OPTIONS.NONE;
 
                 str = new StbTextEdit.STB_TEXTEDIT_STRING()
                 {
@@ -133,10 +134,8 @@ public partial class StbGui
                         if (i == 1 && str.text.Span[n] == '\n')
                             return StbTextEdit.STB_TEXTEDIT_GETWIDTH_NEWLINE;
 
-                        // TODO: this can be optimized (we want the X difference between the last two consecutive characters)
-
-                        var w1 = stbg__measure_text(stbg__build_text(str.text.Slice(n, i)), parameters.single_line ? STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE : STBG_MEASURE_TEXT_OPTIONS.NONE).width;
-                        var w2 = stbg__measure_text(stbg__build_text(str.text.Slice(n, i + 1)), parameters.single_line ? STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE : STBG_MEASURE_TEXT_OPTIONS.NONE).width;
+                        var w1 = stbg__get_character_position_in_text(stbg__build_text(str.text.Slice(n)), i, measure_text_options).x;
+                        var w2 = stbg__get_character_position_in_text(stbg__build_text(str.text.Slice(n)), i + 1, measure_text_options).x;
                         return (int)(w2 - w1);
                     },
                     layout_row = (str, n) =>
@@ -146,7 +145,7 @@ public partial class StbGui
                         var text = str.text.Slice(0, str.text_length).Slice(n);
 
                         //TODO: Handle word-wrapping!!
-                        var size = stbg__measure_text(stbg__build_text(text), parameters.single_line ? STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE : STBG_MEASURE_TEXT_OPTIONS.NONE);
+                        var size = stbg__measure_text(stbg__build_text(text), measure_text_options);
 
                         row.x0 = 0;
                         row.x1 = size.width;
@@ -361,6 +360,8 @@ public partial class StbGui
         var text_measure_options = parameters.single_line ? STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE : STBG_MEASURE_TEXT_OPTIONS.NONE;
 
         float cursor_x, cursor_y;
+        float line_height = context.theme.default_font_style.size;
+        float character_width = context.theme.default_font_style.size;
 
         // We re-used the children offset values since a textbox can't have children..
         float draw_offset_x = editing ? textbox.properties.layout.children_offset.x : 0;
@@ -371,19 +372,33 @@ public partial class StbGui
             var cursor_position = stbg__get_character_position_in_text(stbg__build_text(text.Slice(0, text.Length)), context.text_edit.state.cursor, text_measure_options);
 
             cursor_x = draw_offset_x + stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT) + cursor_position.x;
-            cursor_y = draw_offset_y + stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP);
+            cursor_y = draw_offset_y + stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP) + cursor_position.y;
 
-            if (cursor_x >= size.width - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_RIGHT))
+            if (cursor_x > size.width - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_RIGHT))
             {
-                draw_offset_x = size.width - cursor_position.x - context.theme.default_font_style.size;
-                cursor_x = draw_offset_x + stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT) + cursor_position.x;
+                cursor_x = size.width - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_RIGHT);
+                draw_offset_x = cursor_x - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT) - cursor_position.x;
+
                 textbox.properties.layout.children_offset.x = draw_offset_x;
             }
-            else if (cursor_x < 0)
+            else if (cursor_x < stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT))
             {
-                draw_offset_x = -cursor_position.x;
-                cursor_x = draw_offset_x + stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT) + cursor_position.x;
+                cursor_x = stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT);
+                draw_offset_x = cursor_x - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT) - cursor_position.x;
                 textbox.properties.layout.children_offset.x = draw_offset_x;
+            }
+
+            if (cursor_y + line_height > size.height - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_BOTTOM))
+            {
+                cursor_y = size.height - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_BOTTOM) - line_height;
+                draw_offset_y =  cursor_y - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP) - cursor_position.y;
+                textbox.properties.layout.children_offset.y = draw_offset_y;
+            }
+            else if (cursor_y < stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP))
+            {
+                cursor_y = stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP);
+                draw_offset_y = cursor_y - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP) - cursor_position.y;
+                textbox.properties.layout.children_offset.y = draw_offset_y;
             }
         }
         else
@@ -393,7 +408,6 @@ public partial class StbGui
         }
 
         float border_size = stbg_get_widget_style(STBG_WIDGET_STYLE.TEXTBOX_BORDER_SIZE);
-
 
         stbg__rc_draw_border(
             stbg_build_rect(0, 0, size.width, size.height),

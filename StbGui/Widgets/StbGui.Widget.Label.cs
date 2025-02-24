@@ -65,7 +65,9 @@ public partial class StbGui
                 size.width - stbg__sum_styles(STBG_WIDGET_STYLE.LABEL_PADDING_RIGHT),
                 size.height - stbg__sum_styles(STBG_WIDGET_STYLE.LABEL_PADDING_BOTTOM)
             ),
-            stbg__build_text(label.properties.text, text_color)
+            stbg__build_text(label.properties.text, text_color),
+            -1, -1,
+            STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE
         );
     }
 }
