@@ -131,7 +131,7 @@ public partial class StbGui
                     text_length = textbox.properties.text_editable_length,
                     get_width = (str, n, i) =>
                     {
-                        if (i == 1 && str.text.Span[n] == '\n')
+                        if (str.text.Span[n + i] == '\n')
                             return StbTextEdit.STB_TEXTEDIT_GETWIDTH_NEWLINE;
 
                         var w1 = stbg__get_character_position_in_text(stbg__build_text(str.text.Slice(n)), i, measure_text_options).x;
@@ -157,6 +157,7 @@ public partial class StbGui
                         row.x1 = size.width;
                         row.ymin = 0;
                         row.ymax = size.height;
+                        row.baseline_y_delta = size.height / 2;
                         row.num_chars = text.Length + (has_new_line ? 1 : 0);
 
                         return row;
@@ -458,18 +459,18 @@ public partial class StbGui
                 var select_end = Math.Clamp(Math.Max(context.text_edit.state.select_start, context.text_edit.state.select_end), 0, text.Length);
 
                 // Draw selection background
-                var select_start_position = stbg__measure_text(stbg__build_text(text.Slice(0, select_start)), text_measure_options);
-                var select_end_position = stbg__measure_text(stbg__build_text(text.Slice(0, select_end)), text_measure_options);
+                var select_start_position = stbg__get_character_position_in_text(stbg__build_text(text), select_start, text_measure_options);
+                var select_end_position = stbg__get_character_position_in_text(stbg__build_text(text), select_end, text_measure_options);
 
-                var select_start_position_x = stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT) + select_start_position.width;
-                var select_end_position_x = stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT) + select_end_position.width;
-                var select_y = stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP);
-                var select_y_end = stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP) + Math.Max(select_start_position.height, select_start_position.height);
+                var select_start_position_x = stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT) + select_start_position.x;
+                var select_end_position_x = stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT) + select_end_position.x;
+                var select_y_start = stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP) + Math.Min(select_start_position.y, select_start_position.y);
+                var select_y_end = stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP) + Math.Max(select_start_position.y, select_start_position.y) + line_height;
 
                 stbg__rc_draw_rectangle(
                     stbg_build_rect(
                         draw_offset_x + select_start_position_x,
-                        draw_offset_y + select_y - 1,
+                        draw_offset_y + select_y_start - 1,
                         draw_offset_x + select_end_position_x,
                         draw_offset_y + select_y_end + 1
                     ),
@@ -481,7 +482,7 @@ public partial class StbGui
                 stbg__rc_draw_text(
                     stbg_build_rect(
                         draw_offset_x + select_start_position_x,
-                        draw_offset_y + select_y,
+                        draw_offset_y + select_y_start,
                         size.width - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_RIGHT),
                         size.height - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_BOTTOM)
                     ),
