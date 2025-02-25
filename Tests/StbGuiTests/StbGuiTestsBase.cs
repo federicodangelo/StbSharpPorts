@@ -199,7 +199,7 @@ public class StbGuiTestsBase : IDisposable
 
         Console.Error.WriteLine($"{assertCode}");
 
-        Assert.Fail($"Expected screen doesn't match actual screen\nExpected screen (without colors):\n{joinedExpectedLines}\nActual screen (without colors):\n{joinedActualLines}");
+        Assert.Fail($"Expected screen doesn't match actual screen\nExpected screen (without colors):\n{joinedExpectedLines}\nActual screen (without colors):\n{joinedActualLines}\nAssert Code:\n{assertCode}");
     }
 
     private string AddGuideLines(string[] expectedLines, string[] expectedLinesWithColor)

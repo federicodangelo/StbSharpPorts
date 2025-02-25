@@ -548,9 +548,9 @@ public class StbGuiWindowTests : StbGuiTestsBase
         RenderCommandsToTestScreen();
 
         AssertScreenEqual([
-            ["""/----------------------------\""", "MW30"],
-            ["""|Window 1                    |""", "MW9MT20MW1"],
-            ["""\----------------------------/""", "MW30"],
+            ["""/----------------------------\""", "WW30"],
+            ["""|Window 1                    |""", "WW1WM8WT20WW1"],
+            ["""\----------------------------/""", "WW30"],
             ["""|                           ^|""", "BW1BT27BW2"],
             ["""|                            |""", "BW1BT27CT1BW1"],
             ["""| \----------/               |""", "BW1BT1CB12BT14CT1BW1"],
@@ -616,9 +616,9 @@ public class StbGuiWindowTests : StbGuiTestsBase
         RenderCommandsToTestScreen();
 
         AssertScreenEqual([
-            ["""/----------------------------\""", "WW30"],
-            ["""|Window 1                    |""", "WW1WM8WT20WW1"],
-            ["""\----------------------------/""", "WW30"],
+            ["""/----------------------------\""", "MW30"],
+            ["""|Window 1                    |""", "MW9MT20MW1"],
+            ["""\----------------------------/""", "MW30"],
             ["""|                           ^|""", "BW1BT27BW2"],
             ["""|                            |""", "BW1BT27CT1BW1"],
             ["""| \----------/               |""", "BW1BT1CB12BT14CT1BW1"],
@@ -815,9 +815,9 @@ public class StbGuiWindowTests : StbGuiTestsBase
         RenderCommandsToTestScreen();
 
         AssertScreenEqual([
-            ["""/----------------------------\""", "MW30"],
-            ["""|Window 1                    |""", "MW9MT20MW1"],
-            ["""\----------------------------/""", "MW30"],
+            ["""/----------------------------\""", "WW30"],
+            ["""|Window 1                    |""", "WW1WM8WT20WW1"],
+            ["""\----------------------------/""", "WW30"],
             ["""|                            |""", "BW1BT28BW1"],
             ["""|                            |""", "BW1BT28BW1"],
             ["""| --\/----------\/---------- |""", "BW1BT1CB26BT1BW1"],
@@ -887,9 +887,9 @@ public class StbGuiWindowTests : StbGuiTestsBase
         RenderCommandsToTestScreen();
 
         AssertScreenEqual([
-            ["""/----------------------------\""", "WW30"],
-            ["""|Window 1                    |""", "WW1WM8WT20WW1"],
-            ["""\----------------------------/""", "WW30"],
+            ["""/----------------------------\""", "MW30"],
+            ["""|Window 1                    |""", "MW9MT20MW1"],
+            ["""\----------------------------/""", "MW30"],
             ["""|                            |""", "BW1BT28BW1"],
             ["""|                            |""", "BW1BT28BW1"],
             ["""| --\/----------\/---------- |""", "BW1BT1CB26BT1BW1"],
@@ -1024,9 +1024,9 @@ public class StbGuiWindowTests : StbGuiTestsBase
         RenderCommandsToTestScreen();
 
         AssertScreenEqual([
-            ["""/----------------\""", "WW18"],
-            ["""|Window 1        |""", "WW1WM8WT8WW1"],
-            ["""\----------------/""", "WW18"],
+            ["""/----------------\""", "MW18"],
+            ["""|Window 1        |""", "MW9MT8MW1"],
+            ["""\----------------/""", "MW18"],
             ["""|                |""", "BW1BT16BW1"],
             ["""|                |""", "BW1BT16BW1"],
             ["""|                |""", "BW1BT16BW1"],
