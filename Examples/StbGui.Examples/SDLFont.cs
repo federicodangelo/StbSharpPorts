@@ -173,6 +173,14 @@ public class SDLFont : IDisposable
             iteration_data.dy = 0;
             iteration_data.dx = 0;
 
+            if (iteration_data.c < 0 || iteration_data.c > fontCharData.Length)
+            {
+                // Replace characters in unknown range with space character
+                iteration_data.c = ' ';
+            }
+
+            iteration_data.c_data = ref fontCharData[iteration_data.c];
+
             if (iteration_data.c == '\n')
             {
                 if (!single_line)
@@ -187,8 +195,6 @@ public class SDLFont : IDisposable
             }
             else
             {
-                iteration_data.c_data = ref fontCharData[iteration_data.c];
-
                 if (ignore_metrics)
                 {
                     current_line_height = Math.Max(current_line_height, (iteration_data.c_data.y1 - iteration_data.c_data.y0) * iteration_data.scale * oversampling_scale);
@@ -259,7 +265,6 @@ public class SDLFont : IDisposable
     {
         public int character_index;
         public StbGui.stbg_position position;
-        public bool is_last;
     }
 
     static private bool GetCharacterPositionInTextCallback(ref TextIterationData data, ref GetCharacterPositionInTextCallbackData callback_data)
@@ -276,10 +281,11 @@ public class SDLFont : IDisposable
 
     public StbGui.stbg_position GetCharacterPositionInText(ReadOnlySpan<char> text, StbGui.stbg_font_style style, StbGui.STBG_MEASURE_TEXT_OPTIONS options, int character_index)
     {
-        GetCharacterPositionInTextCallbackData callback_data = new GetCharacterPositionInTextCallbackData();
-        callback_data.is_last = character_index == text.Length;
-        callback_data.character_index = character_index;
-        callback_data.position = new StbGui.stbg_position();
+        GetCharacterPositionInTextCallbackData callback_data = new()
+        {
+            character_index = character_index,
+            position = new StbGui.stbg_position()
+        };
 
         IterateTextInternal(text, style, options, ref callback_data, GetCharacterPositionInTextCallback);
 
@@ -359,20 +365,22 @@ public class SDLFont : IDisposable
 
         SDL.SetTextureColorMod(fontTexture, style.color.r, style.color.g, style.color.b);
 
-        DrawTextCallbackData callback_data = new DrawTextCallbackData();
-        callback_data.bounds = bounds;
-        callback_data.horizontal_alignment = horizontal_alignment;
-        callback_data.vertical_alignment = vertical_alignment;
-        callback_data.position = new StbGui.stbg_position();
-        callback_data.ignore_metrics = ignore_metrics;
-        callback_data.scale = scale;
-        callback_data.Baseline = Baseline;
-        callback_data.center_x_offset = center_x_offset;
-        callback_data.center_y_offset = center_y_offset;
-        callback_data.oversampling_scale = oversampling_scale;
-        callback_data.renderer = renderer;
-        callback_data.fontTexture = fontTexture;
-        
+        DrawTextCallbackData callback_data = new()
+        {
+            bounds = bounds,
+            horizontal_alignment = horizontal_alignment,
+            vertical_alignment = vertical_alignment,
+            position = new StbGui.stbg_position(),
+            ignore_metrics = ignore_metrics,
+            scale = scale,
+            Baseline = Baseline,
+            center_x_offset = center_x_offset,
+            center_y_offset = center_y_offset,
+            oversampling_scale = oversampling_scale,
+            renderer = renderer,
+            fontTexture = fontTexture
+        };
+
         IterateTextInternal(text, style, measure_options, ref callback_data, DrawTextCallback);
 
         if (use_clipping)

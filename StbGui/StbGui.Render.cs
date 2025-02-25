@@ -61,9 +61,6 @@ public partial class StbGui
     {
         ref var render_context = ref context.render_context;
 
-        if (render_context.render_commands_queue_index + 1 == render_context.render_commands_queue.Length)
-            stbg__rc_flush_queue();
-
         if (command.type != STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME &&
             command.type != STBG_RENDER_COMMAND_TYPE.END_FRAME &&
             command.type != STBG_RENDER_COMMAND_TYPE.POP_CLIPPING_RECT)
@@ -76,6 +73,9 @@ public partial class StbGui
 
         render_context.render_commands_queue[render_context.render_commands_queue_index] = command;
         render_context.render_commands_queue_index++;
+
+        if (render_context.render_commands_queue_index == render_context.render_commands_queue.Length)
+            stbg__rc_flush_queue();
     }
 
     static private void stbg__rc_flush_queue()
