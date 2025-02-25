@@ -638,8 +638,9 @@ public partial class StbGui
     /// <summary>
     /// Creates an editable textbox
     /// </summary>
-    public static void stbg_textbox(ReadOnlySpan<char> identifier, Memory<char> text, ref int text_length, bool single_line = true)
+    public static void stbg_textbox(ReadOnlySpan<char> identifier, Memory<char> text, ref int text_length, int visible_lines = 1)
     {
-        stbg__textbox_create(identifier, text, ref text_length, single_line);
+        stbg__assert(visible_lines >= 1);
+        stbg__textbox_create(identifier, text, ref text_length, visible_lines);
     }
 }

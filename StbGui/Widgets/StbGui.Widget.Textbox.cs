@@ -54,13 +54,13 @@ public partial class StbGui
         parameters.single_line = widget.properties.parameters.parameter1.b;
     }
 
-    private static ref stbg_widget stbg__textbox_create(ReadOnlySpan<char> identifier, Memory<char> text, ref int text_length, bool single_line)
+    private static ref stbg_widget stbg__textbox_create(ReadOnlySpan<char> identifier, Memory<char> text, ref int text_length, int visible_lines)
     {
         ref var textbox = ref stbg__add_widget(STBG_WIDGET_TYPE.TEXTBOX, identifier, out var is_new);
 
         var parameters = new stbg__textbox_parameters()
         {
-            single_line = single_line
+            single_line = visible_lines == 1
         };
 
         textbox.properties.text_editable = text;
@@ -70,7 +70,7 @@ public partial class StbGui
         ref var layout = ref textbox.properties.layout;
 
         layout.constrains = stbg_build_constrains_unconstrained();
-        layout.constrains.min.height = context.theme.default_font_style.size * (single_line ? 1 : 2) + stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP, STBG_WIDGET_STYLE.TEXTBOX_PADDING_BOTTOM);
+        layout.constrains.min.height = context.theme.default_font_style.size * visible_lines + stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP, STBG_WIDGET_STYLE.TEXTBOX_PADDING_BOTTOM);
         layout.constrains.min.width = stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT, STBG_WIDGET_STYLE.TEXTBOX_PADDING_RIGHT);
         layout.inner_padding = new stbg_padding()
         {
@@ -114,13 +114,14 @@ public partial class StbGui
         ref var textbox = ref stbg_get_widget_by_id(context.text_edit.widget_id);
         stbg__assert_internal(textbox.type == STBG_WIDGET_TYPE.TEXTBOX);
         stbg__textbox_get_parameters(ref textbox, out var parameters);
-        var measure_text_options = parameters.single_line ? STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE : STBG_MEASURE_TEXT_OPTIONS.NONE;
+        var single_line = parameters.single_line;
+        var measure_text_options = single_line ? STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE : STBG_MEASURE_TEXT_OPTIONS.NONE;
 
         var row = new StbTextEdit.StbTexteditRow();
 
         var text = str.text.Slice(0, str.text_length).Slice(n);
 
-        var first_new_line = text.Span.IndexOf('\n');
+        var first_new_line = single_line == false ? text.Span.IndexOf('\n') : -1;
         var has_new_line = false;
         if (first_new_line != -1)
         {
@@ -141,7 +142,9 @@ public partial class StbGui
 
     private static bool stbg__textbox_update_input(ref stbg_widget textbox)
     {
-        if (context.input_feedback.hovered_widget_id == textbox.id && context.input.mouse_button_1_down)
+        if (context.input_feedback.hovered_widget_id == textbox.id && 
+            context.input.mouse_button_1_down &&
+            context.input_feedback.editing_text_widget_id != textbox.id)
         {
             // Start edit
             context.input_feedback.editing_text_widget_id = textbox.id;
@@ -175,7 +178,7 @@ public partial class StbGui
                 context.text_edit.widget_id = textbox.id;
                 context.text_edit.widget_hash = textbox.hash;
                 stbg__textbox_get_parameters(ref textbox, out var parameters);
-                
+
                 str.text = textbox.properties.text_editable;
                 str.text_length = textbox.properties.text_editable_length;
 
@@ -188,170 +191,7 @@ public partial class StbGui
             {
                 var user_event = context.user_input_events_queue[i];
 
-                switch (user_event.type)
-                {
-                    case STBG_INPUT_EVENT_TYPE.MOUSE_BUTTON:
-                        if (user_event.mouse_button == 1 && user_event.mouse_button_pressed)
-                        {
-                            if (!stbg_rect_is_position_inside(textbox.properties.computed_bounds.global_rect, context.input.mouse_position))
-                            {
-                                stop_editing = true;
-                                break;
-                            }
-
-                            var textbox_local_position = stbg_offset_position(context.input.mouse_position, -textbox.properties.computed_bounds.global_rect.x0 - stbg_get_widget_style(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT), -textbox.properties.computed_bounds.global_rect.y0 - stbg_get_widget_style(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP));
-                            StbTextEdit.stb_textedit_click(ref str, ref state, textbox_local_position.x, textbox_local_position.y);
-                        }
-                        break;
-
-                    case STBG_INPUT_EVENT_TYPE.MOUSE_POSITION:
-                        if (context.input.mouse_button_1)
-                        {
-                            var textbox_local_position = stbg_offset_position(context.input.mouse_position, -textbox.properties.computed_bounds.global_rect.x0 - stbg_get_widget_style(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT), -textbox.properties.computed_bounds.global_rect.y0 - stbg_get_widget_style(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP));
-                            StbTextEdit.stb_textedit_drag(ref str, ref state, textbox_local_position.x, textbox_local_position.y);
-                        }
-                        break;
-
-                    case STBG_INPUT_EVENT_TYPE.KEYBOARD_KEY:
-                        {
-                            int textedit_key = 0;
-
-                            if (user_event.key_pressed)
-                            {
-                                bool shift = (user_event.key_modifiers & STBG_KEYBOARD_MODIFIER_FLAGS.SHIFT) != 0;
-                                bool control = (user_event.key_modifiers & STBG_KEYBOARD_MODIFIER_FLAGS.CONTROL) != 0;
-                                bool alt = (user_event.key_modifiers & STBG_KEYBOARD_MODIFIER_FLAGS.ALT) != 0;
-                                bool edited = false;
-
-                                switch (user_event.key)
-                                {
-                                    case STBG_KEYBOARD_KEY.CHARACTER:
-                                        if (control || alt)
-                                        {
-                                            var c = char.ToLowerInvariant(user_event.key_character);
-
-                                            // Special keyboard shortcut, never a normal key
-                                            if (control && c == 'z')
-                                            {
-                                                // Undo
-                                                textedit_key = StbTextEdit.STB_TEXTEDIT_K_UNDO;
-                                            }
-                                            else if (control && c == 'y')
-                                            {
-                                                // Redo
-                                                textedit_key = StbTextEdit.STB_TEXTEDIT_K_REDO;
-                                            }
-                                            else if (control && c == 'c')
-                                            {
-                                                // Copy
-                                                if (state.select_start != state.select_end)
-                                                {
-                                                    var start = Math.Min(state.select_start, state.select_end);
-                                                    var end = Math.Max(state.select_start, state.select_end);
-
-                                                    var text_to_copy = str.text.Slice(start, end - start);
-
-                                                    context.external_dependencies.copy_text_to_clipboard(text_to_copy.Span);
-                                                }
-                                            }
-                                            else if (control && c == 'x')
-                                            {
-                                                // Cut
-                                                if (state.select_start != state.select_end)
-                                                {
-                                                    var start = Math.Min(state.select_start, state.select_end);
-                                                    var end = Math.Max(state.select_start, state.select_end);
-
-                                                    var text_to_copy = str.text.Slice(start, end - start);
-
-                                                    context.external_dependencies.copy_text_to_clipboard(text_to_copy.Span);
-
-                                                    StbTextEdit.stb_textedit_cut(ref str, ref state);
-                                                }
-                                            }
-                                            else if (control && c == 'v')
-                                            {
-                                                // Paste
-                                                var text_to_paste = context.external_dependencies.get_clipboard_text();
-
-                                                if (text_to_paste.Length > 0)
-                                                {
-                                                    StbTextEdit.stb_textedit_paste(ref str, ref state, text_to_paste, text_to_paste.Length);
-                                                    edited = true;
-                                                }
-                                            }
-                                        }
-                                        else
-                                        {
-                                            textedit_key = user_event.key_character;
-                                        }
-                                        break;
-                                    case STBG_KEYBOARD_KEY.LEFT:
-                                        if (control)
-                                            textedit_key = StbTextEdit.STB_TEXTEDIT_K_WORDLEFT;
-                                        else
-                                            textedit_key = StbTextEdit.STB_TEXTEDIT_K_LEFT;
-                                        break;
-                                    case STBG_KEYBOARD_KEY.RIGHT:
-                                        if (control)
-                                            textedit_key = StbTextEdit.STB_TEXTEDIT_K_WORDRIGHT;
-                                        else
-                                            textedit_key = StbTextEdit.STB_TEXTEDIT_K_RIGHT;
-                                        break;
-                                    case STBG_KEYBOARD_KEY.UP:
-                                        textedit_key = StbTextEdit.STB_TEXTEDIT_K_UP;
-                                        break;
-                                    case STBG_KEYBOARD_KEY.DOWN:
-                                        textedit_key = StbTextEdit.STB_TEXTEDIT_K_DOWN;
-                                        break;
-                                    case STBG_KEYBOARD_KEY.BACKSPACE:
-                                        textedit_key = StbTextEdit.STB_TEXTEDIT_K_BACKSPACE;
-                                        break;
-                                    case STBG_KEYBOARD_KEY.DELETE:
-                                        textedit_key = StbTextEdit.STB_TEXTEDIT_K_DELETE;
-                                        break;
-                                    case STBG_KEYBOARD_KEY.RETURN:
-                                        textedit_key = StbTextEdit.STB_TEXTEDIT_NEWLINE;
-                                        break;
-                                    case STBG_KEYBOARD_KEY.PAGE_UP:
-                                        textedit_key = StbTextEdit.STB_TEXTEDIT_K_PGUP;
-                                        break;
-                                    case STBG_KEYBOARD_KEY.PAGE_DOWN:
-                                        textedit_key = StbTextEdit.STB_TEXTEDIT_K_PGDOWN;
-                                        break;
-                                    case STBG_KEYBOARD_KEY.HOME:
-                                        if (control)
-                                            textedit_key = StbTextEdit.STB_TEXTEDIT_K_TEXTSTART;
-                                        else
-                                            textedit_key = StbTextEdit.STB_TEXTEDIT_K_LINESTART;
-                                        break;
-                                    case STBG_KEYBOARD_KEY.END:
-                                        if (control)
-                                            textedit_key = StbTextEdit.STB_TEXTEDIT_K_TEXTEND;
-                                        else
-                                            textedit_key = StbTextEdit.STB_TEXTEDIT_K_LINEEND;
-                                        break;
-                                }
-
-                                if (textedit_key != 0)
-                                {
-                                    if (shift)
-                                        textedit_key |= StbTextEdit.STB_TEXTEDIT_K_SHIFT;
-
-                                    StbTextEdit.stb_textedit_key(ref str, ref state, textedit_key);
-
-                                    edited = true;
-                                }
-
-                                if (edited)
-                                {
-                                    textbox.properties.text_editable_length = str.text_length;
-                                    textbox.properties.input_flags |= STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED;
-                                }
-                            }
-                            break;
-                        }
-                }
+                stop_editing = stbg__textbox_handle_user_event(ref textbox, ref str, ref state, user_event);
             }
 
             if (stop_editing)
@@ -366,6 +206,192 @@ public partial class StbGui
         }
 
         return false;
+    }
+
+    private static bool stbg__textbox_handle_user_event(ref stbg_widget textbox, ref StbTextEdit.STB_TEXTEDIT_STRING str, ref StbTextEdit.STB_TexteditState state, stbg_user_input_input_event user_event)
+    {
+        var stop_editing = false;
+        float draw_offset_x = textbox.properties.layout.children_offset.x;
+        float draw_offset_y = textbox.properties.layout.children_offset.y;
+
+        switch (user_event.type)
+        {
+            case STBG_INPUT_EVENT_TYPE.MOUSE_BUTTON:
+                if (user_event.mouse_button == 1 && user_event.mouse_button_pressed)
+                {
+                    if (!stbg_rect_is_position_inside(textbox.properties.computed_bounds.global_rect, context.input.mouse_position))
+                    {
+                        stop_editing = true;
+                        break;
+                    }
+
+                    var textbox_local_position = stbg_offset_position(context.input.mouse_position,
+                        -textbox.properties.computed_bounds.global_rect.x0 - stbg_get_widget_style(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT) - draw_offset_x,
+                        -textbox.properties.computed_bounds.global_rect.y0 - stbg_get_widget_style(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP) - draw_offset_y
+                    );
+                    StbTextEdit.stb_textedit_click(ref str, ref state, textbox_local_position.x, textbox_local_position.y);
+                }
+                break;
+
+            case STBG_INPUT_EVENT_TYPE.MOUSE_POSITION:
+                if (context.input.mouse_button_1)
+                {
+                    var textbox_local_position = stbg_offset_position(context.input.mouse_position,
+                        -textbox.properties.computed_bounds.global_rect.x0 - stbg_get_widget_style(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT) - draw_offset_x,
+                        -textbox.properties.computed_bounds.global_rect.y0 - stbg_get_widget_style(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP) - draw_offset_y
+                    );
+                    StbTextEdit.stb_textedit_drag(ref str, ref state, textbox_local_position.x, textbox_local_position.y);
+                }
+                break;
+
+            case STBG_INPUT_EVENT_TYPE.KEYBOARD_KEY:
+                {
+                    int textedit_key = 0;
+
+                    if (user_event.key_pressed)
+                    {
+                        bool shift = (user_event.key_modifiers & STBG_KEYBOARD_MODIFIER_FLAGS.SHIFT) != 0;
+                        bool control = (user_event.key_modifiers & STBG_KEYBOARD_MODIFIER_FLAGS.CONTROL) != 0;
+                        bool alt = (user_event.key_modifiers & STBG_KEYBOARD_MODIFIER_FLAGS.ALT) != 0;
+                        bool edited = false;
+
+                        switch (user_event.key)
+                        {
+                            case STBG_KEYBOARD_KEY.CHARACTER:
+                                if (control || alt)
+                                {
+                                    var c = char.ToLowerInvariant(user_event.key_character);
+
+                                    // Special keyboard shortcut, never a normal key
+                                    if (control && c == 'a')
+                                    {
+                                        // Select all
+                                        state.select_start = 0;
+                                        state.select_end = str.text_length;
+                                    }
+                                    else if (control && c == 'z')
+                                    {
+                                        // Undo
+                                        textedit_key = StbTextEdit.STB_TEXTEDIT_K_UNDO;
+                                    }
+                                    else if (control && c == 'y')
+                                    {
+                                        // Redo
+                                        textedit_key = StbTextEdit.STB_TEXTEDIT_K_REDO;
+                                    }
+                                    else if (control && c == 'c')
+                                    {
+                                        // Copy
+                                        if (state.select_start != state.select_end)
+                                        {
+                                            var start = Math.Min(state.select_start, state.select_end);
+                                            var end = Math.Max(state.select_start, state.select_end);
+
+                                            var text_to_copy = str.text.Slice(start, end - start);
+
+                                            context.external_dependencies.copy_text_to_clipboard(text_to_copy.Span);
+                                        }
+                                    }
+                                    else if (control && c == 'x')
+                                    {
+                                        // Cut
+                                        if (state.select_start != state.select_end)
+                                        {
+                                            var start = Math.Min(state.select_start, state.select_end);
+                                            var end = Math.Max(state.select_start, state.select_end);
+
+                                            var text_to_copy = str.text.Slice(start, end - start);
+
+                                            context.external_dependencies.copy_text_to_clipboard(text_to_copy.Span);
+
+                                            StbTextEdit.stb_textedit_cut(ref str, ref state);
+                                        }
+                                    }
+                                    else if (control && c == 'v')
+                                    {
+                                        // Paste
+                                        var text_to_paste = context.external_dependencies.get_clipboard_text();
+
+                                        if (text_to_paste.Length > 0)
+                                        {
+                                            StbTextEdit.stb_textedit_paste(ref str, ref state, text_to_paste, text_to_paste.Length);
+                                            edited = true;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    textedit_key = user_event.key_character;
+                                }
+                                break;
+                            case STBG_KEYBOARD_KEY.LEFT:
+                                if (control)
+                                    textedit_key = StbTextEdit.STB_TEXTEDIT_K_WORDLEFT;
+                                else
+                                    textedit_key = StbTextEdit.STB_TEXTEDIT_K_LEFT;
+                                break;
+                            case STBG_KEYBOARD_KEY.RIGHT:
+                                if (control)
+                                    textedit_key = StbTextEdit.STB_TEXTEDIT_K_WORDRIGHT;
+                                else
+                                    textedit_key = StbTextEdit.STB_TEXTEDIT_K_RIGHT;
+                                break;
+                            case STBG_KEYBOARD_KEY.UP:
+                                textedit_key = StbTextEdit.STB_TEXTEDIT_K_UP;
+                                break;
+                            case STBG_KEYBOARD_KEY.DOWN:
+                                textedit_key = StbTextEdit.STB_TEXTEDIT_K_DOWN;
+                                break;
+                            case STBG_KEYBOARD_KEY.BACKSPACE:
+                                textedit_key = StbTextEdit.STB_TEXTEDIT_K_BACKSPACE;
+                                break;
+                            case STBG_KEYBOARD_KEY.DELETE:
+                                textedit_key = StbTextEdit.STB_TEXTEDIT_K_DELETE;
+                                break;
+                            case STBG_KEYBOARD_KEY.RETURN:
+                                textedit_key = StbTextEdit.STB_TEXTEDIT_NEWLINE;
+                                break;
+                            case STBG_KEYBOARD_KEY.PAGE_UP:
+                                textedit_key = StbTextEdit.STB_TEXTEDIT_K_PGUP;
+                                break;
+                            case STBG_KEYBOARD_KEY.PAGE_DOWN:
+                                textedit_key = StbTextEdit.STB_TEXTEDIT_K_PGDOWN;
+                                break;
+                            case STBG_KEYBOARD_KEY.HOME:
+                                if (control)
+                                    textedit_key = StbTextEdit.STB_TEXTEDIT_K_TEXTSTART;
+                                else
+                                    textedit_key = StbTextEdit.STB_TEXTEDIT_K_LINESTART;
+                                break;
+                            case STBG_KEYBOARD_KEY.END:
+                                if (control)
+                                    textedit_key = StbTextEdit.STB_TEXTEDIT_K_TEXTEND;
+                                else
+                                    textedit_key = StbTextEdit.STB_TEXTEDIT_K_LINEEND;
+                                break;
+                        }
+
+                        if (textedit_key != 0)
+                        {
+                            if (shift)
+                                textedit_key |= StbTextEdit.STB_TEXTEDIT_K_SHIFT;
+
+                            StbTextEdit.stb_textedit_key(ref str, ref state, textedit_key);
+
+                            edited = true;
+                        }
+
+                        if (edited)
+                        {
+                            textbox.properties.text_editable_length = str.text_length;
+                            textbox.properties.input_flags |= STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED;
+                        }
+                    }
+                    break;
+                }
+        }
+
+        return stop_editing;
     }
 
     private static void stbg__textbox_render(ref stbg_widget textbox)
