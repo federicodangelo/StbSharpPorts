@@ -344,7 +344,6 @@ public partial class StbGui
         else if (context.input.mouse_button_1_down)
         {
             context.input_feedback.pressed_widget_id = window.id;
-            context.input_feedback.active_widget_id = window.id;
             context.input_feedback.drag_resize_x = resize_x;
             context.input_feedback.drag_resize_y = resize_y;
             context.input_feedback.drag_from_widget_x = mouse_position.x - bounds.x0;
@@ -535,7 +534,7 @@ public partial class StbGui
 
         var size = window.properties.computed_bounds.size;
 
-        bool active = context.input_feedback.hovered_widget_id == window.id || context.input_feedback.pressed_widget_id == window.id || context.input_feedback.active_widget_id == window.id;
+        bool active = context.input_feedback.active_window_id == window.id;
 
         var title_background_color = stbg_get_widget_style_color(active ? STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR : STBG_WIDGET_STYLE.WINDOW_TITLE_BACKGROUND_COLOR);
         var title_text_color = stbg_get_widget_style_color(active ? STBG_WIDGET_STYLE.WINDOW_TITLE_ACTIVE_TEXT_COLOR : STBG_WIDGET_STYLE.WINDOW_TITLE_TEXT_COLOR);

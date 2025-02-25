@@ -383,8 +383,8 @@ public partial class StbGui
             context.input_feedback.hovered_widget_id = STBG_WIDGET_ID_NULL;
         if (context.input_feedback.pressed_widget_id == widget.id)
             context.input_feedback.pressed_widget_id = STBG_WIDGET_ID_NULL;
-        if (context.input_feedback.active_widget_id == widget.id)
-            context.input_feedback.active_widget_id = STBG_WIDGET_ID_NULL;
+        if (context.input_feedback.active_window_id == widget.id)
+            context.input_feedback.active_window_id = STBG_WIDGET_ID_NULL;
         if (context.input_feedback.editing_text_widget_id == widget.id)
             context.input_feedback.editing_text_widget_id = STBG_WIDGET_ID_NULL;
         if (context.input_feedback.ime_info.widget_id == widget.id)

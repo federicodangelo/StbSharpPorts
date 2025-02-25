@@ -530,7 +530,8 @@ public partial class StbGui
         public widget_id hovered_widget_id;
         public widget_id pressed_widget_id;
         public widget_id dragged_widget_id;
-        public widget_id active_widget_id;
+        
+        public widget_id active_window_id;
         public widget_id editing_text_widget_id;
 
         public stbg_input_method_editor_info ime_info;

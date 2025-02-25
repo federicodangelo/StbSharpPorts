@@ -54,6 +54,7 @@ public partial class StbGui
             // Try to bring the window related to the widget (if there is any) to the top
             if (stbg__find_widget_parent_by_type(context.input_feedback.hovered_widget_id, STBG_WIDGET_TYPE.WINDOW, out var parent_window))
             {
+                context.input_feedback.active_window_id = parent_window;
                 stbg_get_widget_by_id(parent_window).properties.layout.intrinsic_sorting_index = int.MaxValue;
             }
         }
