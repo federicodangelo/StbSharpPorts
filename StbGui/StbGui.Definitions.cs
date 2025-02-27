@@ -710,6 +710,7 @@ public partial class StbGui
         public float vertical_alignment;
         public STBG_MEASURE_TEXT_OPTIONS measure_options;
         public STBG_RENDER_TEXT_OPTIONS render_options;
+        public bool skip_render;
 
     }
 

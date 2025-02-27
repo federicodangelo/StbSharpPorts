@@ -1,20 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <OptimizationPreference>Speed</OptimizationPreference>
-    <PublishAot>true</PublishAot>
-    <TrimMode>full</TrimMode>
-    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
-    
-    <!-- Use Invariant Globalization only -->
-    <InvariantGlobalization>true</InvariantGlobalization>
-
-    <!-- Remove stack trace info from AOT builds-->
-    <StackTraceSupport>false</StackTraceSupport>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,17 +15,16 @@
     <None Include="dlls\SDL3.dll" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Include="Fonts\*.ttf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>  
-  </ItemGroup>
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\StbGui\StbGui.csproj" />
     <ProjectReference Include="..\..\StbCommon\StbCommon.csproj" />
     <ProjectReference Include="..\..\StbTrueType\StbTrueType.csproj" />
-    <ProjectReference Include="..\StbGui.SDLSupport\StbGui.SDLSupport.csproj" />
   </ItemGroup>
 
   <ItemGroup>

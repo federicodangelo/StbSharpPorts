@@ -146,7 +146,7 @@ public class SDLFont : IDisposable
     private delegate bool IterateTextInternalDelegate<T>(ref TextIterationData data, ref T user_data);
 
     private void IterateTextInternal<T>(
-        ReadOnlySpan<char> text, 
+        ReadOnlySpan<char> text,
         float font_size,
         ReadOnlySpan<StbGui.stbg_render_text_style_range> style_ranges,
         StbGui.STBG_MEASURE_TEXT_OPTIONS options,
@@ -157,12 +157,12 @@ public class SDLFont : IDisposable
         {
             var empty = new TextIterationData
             {
-                c_data = ref fontCharData[(int) ' '],
+                c_data = ref fontCharData[(int)' '],
                 final = true
             };
             callback(ref empty, ref user_data);
             return;
-        }            
+        }
 
         Debug.Assert(style_ranges.Length > 0);
 
@@ -348,11 +348,12 @@ public class SDLFont : IDisposable
         public nint font_texture;
         public VertexBuffer text_vertex_buffer;
         public VertexBuffer background_vertex_buffer;
+        public bool skip_render;
     }
 
     static private SDL.Vertex[] draw_text_vertices_buffer = new SDL.Vertex[8192];
     static private SDL.Vertex[] draw_text_vertices_buffer2 = new SDL.Vertex[8192];
-    
+
 
     private const int RECTANGLE_VERTEX_COUNT = 6;
 
@@ -457,8 +458,16 @@ public class SDLFont : IDisposable
 
             if (callback_data.text_vertex_buffer.index + RECTANGLE_VERTEX_COUNT > callback_data.text_vertex_buffer.buffer.Length)
             {
-                FlushRenderBuffer(ref callback_data.background_vertex_buffer, callback_data.renderer, 0);
-                FlushRenderBuffer(ref callback_data.text_vertex_buffer, callback_data.renderer, callback_data.font_texture);
+                if (!callback_data.skip_render)
+                {
+                    FlushRenderBuffer(ref callback_data.background_vertex_buffer, callback_data.renderer, 0);
+                    FlushRenderBuffer(ref callback_data.text_vertex_buffer, callback_data.renderer, callback_data.font_texture);
+                }
+                else
+                {
+                    callback_data.background_vertex_buffer.index = 0;
+                    callback_data.text_vertex_buffer.index = 0;
+                }
             }
 
             AddDrawTextureToVertexBuffer(ref callback_data.text_vertex_buffer, fromRect, toRect, new SDL.FColor() { R = data.text_color.r / 255.0f, G = data.text_color.g / 255.0f, B = data.text_color.b / 255.0f, A = data.text_color.a / 255.0f });
@@ -471,8 +480,16 @@ public class SDLFont : IDisposable
         }
         else if (data.final)
         {
-            FlushRenderBuffer(ref callback_data.background_vertex_buffer, callback_data.renderer, 0);
-            FlushRenderBuffer(ref callback_data.text_vertex_buffer, callback_data.renderer, callback_data.font_texture);
+            if (!callback_data.skip_render)
+            {
+                FlushRenderBuffer(ref callback_data.background_vertex_buffer, callback_data.renderer, 0);
+                FlushRenderBuffer(ref callback_data.text_vertex_buffer, callback_data.renderer, callback_data.font_texture);
+            }
+            else
+            {
+                callback_data.background_vertex_buffer.index = 0;
+                callback_data.text_vertex_buffer.index = 0;
+            }
         }
 
         return false;
@@ -488,9 +505,9 @@ public class SDLFont : IDisposable
         if (bounds_width <= 0 || bounds_height <= 0)
             return;
 
-        ReadOnlySpan<StbGui.stbg_render_text_style_range> style_ranges = 
-            parameters.style_ranges.Length > 0 ? 
-                parameters.style_ranges.Span : 
+        ReadOnlySpan<StbGui.stbg_render_text_style_range> style_ranges =
+            parameters.style_ranges.Length > 0 ?
+                parameters.style_ranges.Span :
                 stackalloc StbGui.stbg_render_text_style_range[1] { parameters.single_style };
 
         var full_text_bounds = MeasureText(parameters.text.Span, parameters.font_size, style_ranges, parameters.measure_options);
@@ -510,7 +527,8 @@ public class SDLFont : IDisposable
 
         if (use_clipping)
         {
-            SDLHelper.PushClipRect(renderer, bounds);
+            if (!parameters.skip_render)
+                SDLHelper.PushClipRect(renderer, bounds);
         }
 
         DrawTextCallbackData callback_data = new()
@@ -538,13 +556,15 @@ public class SDLFont : IDisposable
                 buffer = draw_text_vertices_buffer2,
                 index = 0
             },
+            skip_render = parameters.skip_render
         };
 
         IterateTextInternal(parameters.text.Span, parameters.font_size, style_ranges, parameters.measure_options, ref callback_data, DrawTextCallback);
 
         if (use_clipping)
         {
-            SDLHelper.PopClipRect(renderer);
+            if (!parameters.skip_render)
+                SDLHelper.PopClipRect(renderer);
         }
     }
 
