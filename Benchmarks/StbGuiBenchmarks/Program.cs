@@ -1,3 +1,3 @@
 using BenchmarkDotNet.Running;
 
-BenchmarkRunner.Run<SDLFontBenchmark>();
+BenchmarkRunner.Run<FontBenchmark>();
