@@ -7,6 +7,7 @@ using widget_id = int;
 using widget_hash = int;
 using font_id = int;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 public partial class StbGui
 {
@@ -75,6 +76,8 @@ public partial class StbGui
 
         // This is the only field in text_edit that requires manual instantiation
         context.text_edit.state.undostate = new StbTextEdit.StbUndoState();
+        
+        context.text_edit_textbox_style_ranges = new stbg_render_text_style_range[3];
 
         for (var i = 0; i < STBG__WIDGET_INIT_CONTEXT_LIST.Length; i++)
             STBG__WIDGET_INIT_CONTEXT_LIST[i](ref context);
@@ -475,5 +478,33 @@ public partial class StbGui
         widget_hash outputHash = BitConverter.ToInt32(output);
 
         return outputHash;
+    }
+
+    private static long stbg__get_time_milliseconds()
+    {
+        return context.external_dependencies.get_time_milliseconds();
+    }
+
+    private static long stbg__get_performance_counter()
+    {
+        return context.external_dependencies.get_performance_counter();
+    }
+
+    private static long stbg__get_performance_counter_frequency()
+    {
+        return context.external_dependencies.get_performance_counter_frequency();
+    }
+
+    private static void stbg__update_average_performance_metrics()
+    {
+        if (context.time_beween_frames_milliseconds == 0)
+            return;
+
+        int instant_fps = 1000 / (int) context.time_beween_frames_milliseconds;
+        int smoothing_factor = Math.Max(instant_fps / 2, 1);
+
+        context.performance_metrics.process_input_time_us += (context.performance_metrics.process_input_time_us - context.frame_stats.performance.process_input_time_us) / smoothing_factor;
+        context.performance_metrics.layout_widgets_time_us += (context.frame_stats.performance.layout_widgets_time_us - context.performance_metrics.layout_widgets_time_us) / smoothing_factor;
+        context.performance_metrics.render_time_us += (context.frame_stats.performance.render_time_us - context.performance_metrics.render_time_us) / smoothing_factor;
     }
 }

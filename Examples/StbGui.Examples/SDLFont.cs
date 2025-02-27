@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using SDL3;
 
 namespace StbSharp.Examples;
@@ -138,18 +139,35 @@ public class SDLFont : IDisposable
         public int line_number;
         public bool new_line;
         public bool final;
+        public StbGui.stbg_color text_color;
+        public StbGui.stbg_color background_color;
     }
 
     private delegate bool IterateTextInternalDelegate<T>(ref TextIterationData data, ref T user_data);
 
     private void IterateTextInternal<T>(
-        ReadOnlySpan<char> text, StbGui.stbg_font_style style,
+        ReadOnlySpan<char> text, 
+        float font_size,
+        ReadOnlySpan<StbGui.stbg_render_text_style_range> style_ranges,
         StbGui.STBG_MEASURE_TEXT_OPTIONS options,
         ref T user_data,
         IterateTextInternalDelegate<T> callback)
     {
+        if (text.Length == 0)
+        {
+            var empty = new TextIterationData
+            {
+                c_data = ref fontCharData[(int) ' '],
+                final = true
+            };
+            callback(ref empty, ref user_data);
+            return;
+        }            
+
+        Debug.Assert(style_ranges.Length > 0);
+
         TextIterationData iteration_data = new TextIterationData();
-        iteration_data.scale = style.size / Size;
+        iteration_data.scale = font_size / Size;
 
         float current_line_height = 0;
 
@@ -166,12 +184,27 @@ public class SDLFont : IDisposable
 
         bool stop = false;
 
+        int style_index = 0;
+        var style = style_ranges[style_index];
+        var next_style_start_index = style_index + 1 < style_ranges.Length ? style_ranges[style_index + 1].start_index : int.MaxValue;
+        iteration_data.text_color = style.text_color;
+        iteration_data.background_color = style.background_color;
+
         while (iteration_data.c_index < text.Length && !stop)
         {
             iteration_data.c = text[iteration_data.c_index];
             iteration_data.new_line = false;
             iteration_data.dy = 0;
             iteration_data.dx = 0;
+
+            if (iteration_data.c_index == next_style_start_index)
+            {
+                style_index++;
+                style = style_ranges[style_index];
+                next_style_start_index = style_index + 1 < style_ranges.Length ? style_ranges[style_index + 1].start_index : int.MaxValue;
+                iteration_data.text_color = style.text_color;
+                iteration_data.background_color = style.background_color;
+            }
 
             if (iteration_data.c < 0 || iteration_data.c > fontCharData.Length)
             {
@@ -252,11 +285,11 @@ public class SDLFont : IDisposable
     }
 
 
-    public StbGui.stbg_size MeasureText(ReadOnlySpan<char> text, StbGui.stbg_font_style style, StbGui.STBG_MEASURE_TEXT_OPTIONS options)
+    public StbGui.stbg_size MeasureText(ReadOnlySpan<char> text, float font_size, ReadOnlySpan<StbGui.stbg_render_text_style_range> style_ranges, StbGui.STBG_MEASURE_TEXT_OPTIONS options)
     {
         StbGui.stbg_size size = new StbGui.stbg_size();
 
-        IterateTextInternal(text, style, options, ref size, MeasureTextCallback);
+        IterateTextInternal(text, font_size, style_ranges, options, ref size, MeasureTextCallback);
 
         return StbGui.stbg_build_size(size.width, size.height);
     }
@@ -279,7 +312,7 @@ public class SDLFont : IDisposable
         return false;
     }
 
-    public StbGui.stbg_position GetCharacterPositionInText(ReadOnlySpan<char> text, StbGui.stbg_font_style style, StbGui.STBG_MEASURE_TEXT_OPTIONS options, int character_index)
+    public StbGui.stbg_position GetCharacterPositionInText(ReadOnlySpan<char> text, float font_size, ReadOnlySpan<StbGui.stbg_render_text_style_range> style_ranges, StbGui.STBG_MEASURE_TEXT_OPTIONS options, int character_index)
     {
         GetCharacterPositionInTextCallbackData callback_data = new()
         {
@@ -287,9 +320,15 @@ public class SDLFont : IDisposable
             position = new StbGui.stbg_position()
         };
 
-        IterateTextInternal(text, style, options, ref callback_data, GetCharacterPositionInTextCallback);
+        IterateTextInternal(text, font_size, style_ranges, options, ref callback_data, GetCharacterPositionInTextCallback);
 
         return callback_data.position;
+    }
+
+    private struct VertexBuffer
+    {
+        public SDL.Vertex[] buffer;
+        public int index;
     }
 
     private struct DrawTextCallbackData
@@ -300,12 +339,105 @@ public class SDLFont : IDisposable
         public StbGui.stbg_position position;
         public bool ignore_metrics;
         public float scale;
-        public float Baseline;
+        public float line_height;
+        public float baseline;
         public float center_x_offset;
         public float center_y_offset;
         public float oversampling_scale;
         public nint renderer;
-        public nint fontTexture;
+        public nint font_texture;
+        public VertexBuffer text_vertex_buffer;
+        public VertexBuffer background_vertex_buffer;
+    }
+
+    static private SDL.Vertex[] draw_text_vertices_buffer = new SDL.Vertex[8192];
+    static private SDL.Vertex[] draw_text_vertices_buffer2 = new SDL.Vertex[8192];
+    
+
+    private const int RECTANGLE_VERTEX_COUNT = 6;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static private void AddVerticesToVertexBuffer(ref VertexBuffer vertex_buffer, SDL.Vertex v0, SDL.Vertex v1, SDL.Vertex v2, SDL.Vertex v3)
+    {
+        vertex_buffer.buffer[vertex_buffer.index++] = v0;
+        vertex_buffer.buffer[vertex_buffer.index++] = v1;
+        vertex_buffer.buffer[vertex_buffer.index++] = v2;
+        vertex_buffer.buffer[vertex_buffer.index++] = v0;
+        vertex_buffer.buffer[vertex_buffer.index++] = v2;
+        vertex_buffer.buffer[vertex_buffer.index++] = v3;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static private void AddDrawTextureToVertexBuffer(ref VertexBuffer vertex_buffer, SDL.FRect fromRect, SDL.FRect toRect, SDL.FColor color)
+    {
+        SDL.Vertex v0 =
+        new()
+        {
+            Position = new SDL.FPoint() { X = toRect.X, Y = toRect.Y },
+            TexCoord = new SDL.FPoint() { X = fromRect.X / FONT_BITMAP_SIZE, Y = fromRect.Y / FONT_BITMAP_SIZE },
+            Color = color
+        };
+        SDL.Vertex v1 =
+        new()
+        {
+            Position = new SDL.FPoint() { X = toRect.X + toRect.W, Y = toRect.Y },
+            TexCoord = new SDL.FPoint() { X = (fromRect.X + fromRect.W) / FONT_BITMAP_SIZE, Y = fromRect.Y / FONT_BITMAP_SIZE },
+            Color = color
+        };
+        SDL.Vertex v2 = new()
+        {
+            Position = new SDL.FPoint() { X = toRect.X + toRect.W, Y = toRect.Y + toRect.H },
+            TexCoord = new SDL.FPoint() { X = (fromRect.X + fromRect.W) / FONT_BITMAP_SIZE, Y = (fromRect.Y + fromRect.H) / FONT_BITMAP_SIZE },
+            Color = color
+        };
+        SDL.Vertex v3 = new()
+        {
+            Position = new SDL.FPoint() { X = toRect.X, Y = toRect.Y + toRect.H },
+            TexCoord = new SDL.FPoint() { X = fromRect.X / FONT_BITMAP_SIZE, Y = (fromRect.Y + fromRect.H) / FONT_BITMAP_SIZE },
+            Color = color
+        };
+
+        AddVerticesToVertexBuffer(ref vertex_buffer, v0, v1, v2, v3);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static private void AddDrawRectToVertexBuffer(ref VertexBuffer vertex_buffer, SDL.FRect toRect, SDL.FColor color)
+    {
+        SDL.Vertex v0 =
+        new()
+        {
+            Position = new SDL.FPoint() { X = toRect.X, Y = toRect.Y },
+            Color = color
+        };
+        SDL.Vertex v1 =
+        new()
+        {
+            Position = new SDL.FPoint() { X = toRect.X + toRect.W, Y = toRect.Y },
+            Color = color
+        };
+        SDL.Vertex v2 = new()
+        {
+            Position = new SDL.FPoint() { X = toRect.X + toRect.W, Y = toRect.Y + toRect.H },
+            Color = color
+        };
+        SDL.Vertex v3 = new()
+        {
+            Position = new SDL.FPoint() { X = toRect.X, Y = toRect.Y + toRect.H },
+            Color = color
+        };
+
+        AddVerticesToVertexBuffer(ref vertex_buffer, v0, v1, v2, v3);
+    }
+    static private void FlushRenderBuffer(ref VertexBuffer vertex_buffer, nint renderer, nint texture)
+    {
+        if (vertex_buffer.index > 0)
+        {
+            if (!SDL.RenderGeometry(renderer, texture, vertex_buffer.buffer, vertex_buffer.index, 0, 0))
+            {
+                SDL.LogError(SDL.LogCategory.System, $"SDL failed to render geometry: {SDL.GetError()}");
+            }
+            vertex_buffer.index = 0;
+        }
     }
 
     static private bool DrawTextCallback(ref TextIterationData data, ref DrawTextCallbackData callback_data)
@@ -315,7 +447,7 @@ public class SDLFont : IDisposable
             ref var char_data = ref data.c_data;
 
             var metricsX = (callback_data.ignore_metrics ? 0 : char_data.xoff) * callback_data.scale;
-            var metricsY = (callback_data.ignore_metrics ? 0 : (callback_data.Baseline + char_data.yoff)) * callback_data.scale;
+            var metricsY = (callback_data.ignore_metrics ? 0 : (callback_data.baseline + char_data.yoff)) * callback_data.scale;
 
             float xpos = callback_data.bounds.x0 + callback_data.center_x_offset + data.x;
             float ypos = callback_data.bounds.y0 + callback_data.center_y_offset + data.y;
@@ -323,19 +455,32 @@ public class SDLFont : IDisposable
             var fromRect = new SDL.FRect() { X = char_data.x0, Y = char_data.y0, W = char_data.x1 - char_data.x0, H = char_data.y1 - char_data.y0 };
             var toRect = new SDL.FRect() { X = xpos + metricsX, Y = ypos + metricsY, W = (char_data.x1 - char_data.x0) * callback_data.scale * callback_data.oversampling_scale, H = (char_data.y1 - char_data.y0) * callback_data.scale * callback_data.oversampling_scale };
 
-            if (!SDL.RenderTexture(callback_data.renderer, callback_data.fontTexture, fromRect, toRect))
+            if (callback_data.text_vertex_buffer.index + RECTANGLE_VERTEX_COUNT > callback_data.text_vertex_buffer.buffer.Length)
             {
-                SDL.LogError(SDL.LogCategory.System, $"SDL failed to render texture: {SDL.GetError()}");
-                return true;
+                FlushRenderBuffer(ref callback_data.background_vertex_buffer, callback_data.renderer, 0);
+                FlushRenderBuffer(ref callback_data.text_vertex_buffer, callback_data.renderer, callback_data.font_texture);
             }
+
+            AddDrawTextureToVertexBuffer(ref callback_data.text_vertex_buffer, fromRect, toRect, new SDL.FColor() { R = data.text_color.r / 255.0f, G = data.text_color.g / 255.0f, B = data.text_color.b / 255.0f, A = data.text_color.a / 255.0f });
+            if (data.background_color.a > 0)
+            {
+                var background_rect = new SDL.FRect() { X = xpos, Y = ypos - 1, W = data.dx, H = callback_data.line_height + 2 };
+
+                AddDrawRectToVertexBuffer(ref callback_data.background_vertex_buffer, background_rect, new SDL.FColor() { R = data.background_color.r / 255.0f, G = data.background_color.g / 255.0f, B = data.background_color.b / 255.0f, A = data.background_color.a / 255.0f });
+            }
+        }
+        else if (data.final)
+        {
+            FlushRenderBuffer(ref callback_data.background_vertex_buffer, callback_data.renderer, 0);
+            FlushRenderBuffer(ref callback_data.text_vertex_buffer, callback_data.renderer, callback_data.font_texture);
         }
 
         return false;
     }
 
-    public void DrawText(ReadOnlySpan<char> text, StbGui.stbg_font_style style, StbGui.stbg_rect bounds, float horizontal_alignment, float vertical_alignment, StbGui.STBG_MEASURE_TEXT_OPTIONS measure_options, StbGui.STBG_RENDER_TEXT_OPTIONS render_options)
+    public void DrawText(StbGui.stbg_render_text_parameters parameters, StbGui.stbg_rect bounds)
     {
-        float scale = style.size / Size;
+        float scale = parameters.font_size / Size;
 
         var bounds_width = bounds.x1 - bounds.x0;
         var bounds_height = bounds.y1 - bounds.y0;
@@ -343,19 +488,24 @@ public class SDLFont : IDisposable
         if (bounds_width <= 0 || bounds_height <= 0)
             return;
 
-        var full_text_bounds = MeasureText(text, style, measure_options);
+        ReadOnlySpan<StbGui.stbg_render_text_style_range> style_ranges = 
+            parameters.style_ranges.Length > 0 ? 
+                parameters.style_ranges.Span : 
+                stackalloc StbGui.stbg_render_text_style_range[1] { parameters.single_style };
 
-        bool dont_clip = (render_options & StbGui.STBG_RENDER_TEXT_OPTIONS.DONT_CLIP) != 0;
+        var full_text_bounds = MeasureText(parameters.text.Span, parameters.font_size, style_ranges, parameters.measure_options);
+
+        bool dont_clip = (parameters.render_options & StbGui.STBG_RENDER_TEXT_OPTIONS.DONT_CLIP) != 0;
 
         var center_y_offset = full_text_bounds.height < bounds_height ?
-            MathF.Floor(((bounds_height - full_text_bounds.height) / 2) * (1 + vertical_alignment)) :
+            MathF.Floor(((bounds_height - full_text_bounds.height) / 2) * (1 + parameters.vertical_alignment)) :
             0;
 
         var center_x_offset = full_text_bounds.width < bounds_width ?
-            MathF.Floor(((bounds_width - full_text_bounds.width) / 2) * (1 + horizontal_alignment)) :
+            MathF.Floor(((bounds_width - full_text_bounds.width) / 2) * (1 + parameters.horizontal_alignment)) :
             0;
 
-        var ignore_metrics = (measure_options & StbGui.STBG_MEASURE_TEXT_OPTIONS.IGNORE_METRICS) != 0;
+        var ignore_metrics = (parameters.measure_options & StbGui.STBG_MEASURE_TEXT_OPTIONS.IGNORE_METRICS) != 0;
         var use_clipping = !dont_clip && (full_text_bounds.height > bounds_height || full_text_bounds.width > bounds_width);
 
         if (use_clipping)
@@ -363,25 +513,34 @@ public class SDLFont : IDisposable
             SDLHelper.PushClipRect(renderer, bounds);
         }
 
-        SDL.SetTextureColorMod(fontTexture, style.color.r, style.color.g, style.color.b);
-
         DrawTextCallbackData callback_data = new()
         {
             bounds = bounds,
-            horizontal_alignment = horizontal_alignment,
-            vertical_alignment = vertical_alignment,
+            horizontal_alignment = parameters.horizontal_alignment,
+            vertical_alignment = parameters.vertical_alignment,
             position = new StbGui.stbg_position(),
             ignore_metrics = ignore_metrics,
             scale = scale,
-            Baseline = Baseline,
+            baseline = Baseline,
             center_x_offset = center_x_offset,
             center_y_offset = center_y_offset,
             oversampling_scale = oversampling_scale,
             renderer = renderer,
-            fontTexture = fontTexture
+            font_texture = fontTexture,
+            line_height = parameters.font_size,
+            text_vertex_buffer = new VertexBuffer()
+            {
+                buffer = draw_text_vertices_buffer,
+                index = 0
+            },
+            background_vertex_buffer = new VertexBuffer()
+            {
+                buffer = draw_text_vertices_buffer2,
+                index = 0
+            },
         };
 
-        IterateTextInternal(text, style, measure_options, ref callback_data, DrawTextCallback);
+        IterateTextInternal(parameters.text.Span, parameters.font_size, style_ranges, parameters.measure_options, ref callback_data, DrawTextCallback);
 
         if (use_clipping)
         {

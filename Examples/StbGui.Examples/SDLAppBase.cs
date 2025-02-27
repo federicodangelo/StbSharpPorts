@@ -98,7 +98,7 @@ public class SDLAppBase : IDisposable
 
             UpdateMetrics(ref frames_count_ticks, ref frames_count);
 
-            // Screen presenting is handled by STBG_RENDER_COMMAND_TYPE.END_FRAME
+            SDL.RenderPresent(renderer);
 
             ulong frame_end_ns = SDL.GetTicksNS();
 
@@ -359,15 +359,15 @@ public class SDLAppBase : IDisposable
                         }
                         else
                         {
-                            
+
                             var key = e.Key.Key;
                             bool is_extended = (key & SDL.Keycode.ExtendedMask) != 0;
                             bool is_scancode = (key & SDL.Keycode.ScanCodeMask) != 0;
 
                             if (!is_scancode && !is_extended && key != SDL.Keycode.Unknown)
                             {
-                                char c = (char) key;
-                                if ((modifiers & StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.CONTROL) != 0 || 
+                                char c = (char)key;
+                                if ((modifiers & StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.CONTROL) != 0 ||
                                     (modifiers & StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.ALT) != 0)
                                 {
                                     // keys pressed in combination with CONTROL or ALT are not received as TextInput texts, 
@@ -449,7 +449,19 @@ public class SDLAppBase : IDisposable
             get_clipboard_text = () =>
             {
                 return SDL.GetClipboardText();
-            }
+            },
+            get_time_milliseconds = () =>
+            {
+                return (long) SDL.GetTicks();
+            },
+            get_performance_counter = () =>
+            {
+                return (long) SDL.GetPerformanceCounter();
+            },
+            get_performance_counter_frequency = () =>
+            {
+                return (long) SDL.GetPerformanceFrequency();
+            },
         };
     }
 
@@ -468,7 +480,6 @@ public class SDLAppBase : IDisposable
 
             case StbGui.STBG_RENDER_COMMAND_TYPE.END_FRAME:
                 Debug.Assert(SDLHelper.HasClipping() == false);
-                SDL.RenderPresent(renderer);
                 break;
 
 
@@ -500,13 +511,9 @@ public class SDLAppBase : IDisposable
             case StbGui.STBG_RENDER_COMMAND_TYPE.TEXT:
                 {
                     var bounds = cmd.bounds;
-                    var text = cmd.text.text.Span;
-                    var ha = cmd.text_horizontal_alignment;
-                    var va = cmd.text_vertical_alignment;
-                    var measure_options = cmd.text_measure_options;
-                    var render_options = cmd.text_render_options;
+                    var text = cmd.text;
 
-                    DrawText(text, StbGui.stbg_get_font_by_id(cmd.text.font_id), cmd.text.style, bounds, ha, va, measure_options, render_options);
+                    DrawText(cmd.text, bounds);
                     break;
                 }
 
@@ -522,17 +529,36 @@ public class SDLAppBase : IDisposable
 
     private StbGui.stbg_size MeasureText(ReadOnlySpan<char> text, StbGui.stbg_font _, StbGui.stbg_font_style style, StbGui.STBG_MEASURE_TEXT_OPTIONS options)
     {
-        return mainFont.MeasureText(text, style, options);
+        Span<StbGui.stbg_render_text_style_range> tmp_styles = stackalloc StbGui.stbg_render_text_style_range[1];
+
+        tmp_styles[0] = new StbGui.stbg_render_text_style_range()
+        {
+            start_index = 0,
+            text_color = style.color,
+            font_style = style.style
+        };
+
+        return mainFont.MeasureText(text, style.size, tmp_styles, options);
     }
 
     private StbGui.stbg_position GetCharacterPositionInText(ReadOnlySpan<char> text, StbGui.stbg_font _, StbGui.stbg_font_style style, StbGui.STBG_MEASURE_TEXT_OPTIONS options, int character_index)
     {
-        return mainFont.GetCharacterPositionInText(text, style, options, character_index);
+        Span<StbGui.stbg_render_text_style_range> tmp_styles = stackalloc StbGui.stbg_render_text_style_range[1];
+
+        tmp_styles[0] = new StbGui.stbg_render_text_style_range()
+        {
+            start_index = 0,
+            text_color = style.color,
+            font_style = style.style
+        };
+
+        return mainFont.GetCharacterPositionInText(text, style.size, tmp_styles, options, character_index);
     }
 
-    private void DrawText(ReadOnlySpan<char> text, StbGui.stbg_font _font, StbGui.stbg_font_style style, StbGui.stbg_rect bounds, float horizontal_alignment, float vertical_alignment, StbGui.STBG_MEASURE_TEXT_OPTIONS measure_options, StbGui.STBG_RENDER_TEXT_OPTIONS render_options)
+    private void DrawText(StbGui.stbg_render_text_parameters text, StbGui.stbg_rect bounds)
     {
-        mainFont.DrawText(text, style, bounds, horizontal_alignment, vertical_alignment, measure_options, render_options);
+        var font = StbGui.stbg_get_font_by_id(text.font_id);
+        mainFont.DrawText(text, bounds);
     }
 
     private void InitStbGui()

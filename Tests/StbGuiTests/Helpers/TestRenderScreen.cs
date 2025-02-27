@@ -135,15 +135,27 @@ public class TestRenderScreen
                 {
                     var bounds = cmd.bounds;
                     var text = cmd.text.text.Span;
-                    var color = cmd.text.style.color;
+                    var style_ranges = cmd.text.style_ranges.Length > 0 ? cmd.text.style_ranges.Span : [ cmd.text.single_style ];
                     int text_index = 0;
 
+                    int style_index = 0;
+                    var style = style_ranges[style_index];
+                    var next_style_start_index = style_index + 1 < style_ranges.Length ? style_ranges[style_index + 1].start_index : int.MaxValue;
+                    
                     for (int y = (int)bounds.y0; y < (int)bounds.y1 && text_index < text.Length; y++)
                     {
                         for (int x = (int)bounds.x0; x < (int)bounds.x1 && text_index < text.Length; x++)
                         {
+                            if (text_index == next_style_start_index)
+                            {
+                                style_index++;
+                                style = style_ranges[style_index];
+                                next_style_start_index = style_index + 1 < style_ranges.Length ? style_ranges[style_index + 1].start_index : int.MaxValue;
+                            }
+
                             char character = text[text_index++];
-                            SetTestRenderScreenPixelCharacterAndColor(x, y, character, color);
+
+                            SetTestRenderScreenPixelCharacterAndColor(x, y, character, style.text_color);
                         }
                     }
                     break;

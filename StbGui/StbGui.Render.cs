@@ -4,6 +4,8 @@ using System.Runtime.CompilerServices;
 
 namespace StbSharp;
 
+using font_id = int;
+
 public partial class StbGui
 {
     [Flags]
@@ -41,9 +43,50 @@ public partial class StbGui
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static private void stbg__rc_draw_text(stbg_rect rect, stbg_text text, float horizontal_alignment = -1, float vertical_alignment = -1, STBG_MEASURE_TEXT_OPTIONS measure_options = STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE, STBG_RENDER_TEXT_OPTIONS render_options = STBG_RENDER_TEXT_OPTIONS.NONE)
     {
-        stbg__rc_enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.TEXT, bounds = rect, text = text, text_horizontal_alignment = horizontal_alignment, text_vertical_alignment = vertical_alignment, text_measure_options = measure_options, text_render_options = render_options });
+        stbg__rc_enqueue_command(new()
+        {
+            type = STBG_RENDER_COMMAND_TYPE.TEXT,
+            bounds = rect,
+            text = new stbg_render_text_parameters
+            {
+                text = text.text,
+                font_size = text.style.size,
+                font_id = text.font_id,
+                horizontal_alignment = horizontal_alignment,
+                vertical_alignment = vertical_alignment,
+                measure_options = measure_options,
+                render_options = render_options,
+                single_style = new stbg_render_text_style_range()
+                {
+                    start_index = 0,
+                    text_color = text.style.color,
+                    font_style = text.style.style,
+                }
+            },
+        });
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static private void stbg__rc_draw_text(stbg_rect rect, ReadOnlyMemory<char> text, font_id font_id, float font_size, ReadOnlyMemory<stbg_render_text_style_range> style_ranges, float horizontal_alignment = -1, float vertical_alignment = -1, STBG_MEASURE_TEXT_OPTIONS measure_options = STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE, STBG_RENDER_TEXT_OPTIONS render_options = STBG_RENDER_TEXT_OPTIONS.NONE)
+    {
+        stbg__rc_enqueue_command(new()
+        {
+            type = STBG_RENDER_COMMAND_TYPE.TEXT,
+            bounds = rect,
+            text = new stbg_render_text_parameters
+            {
+                text = text,
+                font_id = font_id,
+                font_size = font_size,
+                horizontal_alignment = horizontal_alignment,
+                vertical_alignment = vertical_alignment,
+                measure_options = measure_options,
+                render_options = render_options,
+                style_ranges = style_ranges,
+            }
+        });
+    }
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static private void stbg__rc_push_clipping_rect(stbg_rect rect)
     {

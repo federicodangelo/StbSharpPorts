@@ -37,6 +37,9 @@ public class StbGuiTestsBase : IDisposable
             get_clipboard_text = () => "",
             get_character_position_in_text = (text, font, style, options, character_index) => StbGui.stbg_build_position_zero(),
             set_input_method_editor = (info) => { },
+            get_time_milliseconds = () => 0,
+            get_performance_counter = () => 0,
+            get_performance_counter_frequency = () => 1,
         };
     }
 

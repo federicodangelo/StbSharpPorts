@@ -6,6 +6,7 @@ using System;
 using widget_id = int;
 using widget_hash = int;
 using font_id = int;
+using System.Diagnostics;
 
 public partial class StbGui
 {
@@ -34,6 +35,7 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.TEXTBOX_CURSOR_COLOR, rgb(44, 62, 80));
         stbg_set_widget_style(STBG_WIDGET_STYLE.TEXTBOX_CURSOR_WIDTH, 1);
         stbg_set_widget_style(STBG_WIDGET_STYLE.TEXTBOX_CURSOR_HEIGHT, font_style.size);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.TEXTBOX_CURSOR_BLINKING_RATE, 500);
     }
 
     private static void stbg__textbox_init_context(ref stbg_context context)
@@ -142,7 +144,7 @@ public partial class StbGui
 
     private static bool stbg__textbox_update_input(ref stbg_widget textbox)
     {
-        if (context.input_feedback.hovered_widget_id == textbox.id && 
+        if (context.input_feedback.hovered_widget_id == textbox.id &&
             context.input.mouse_button_1_down &&
             context.input_feedback.editing_text_widget_id != textbox.id)
         {
@@ -329,18 +331,22 @@ public partial class StbGui
                                     textedit_key = StbTextEdit.STB_TEXTEDIT_K_WORDLEFT;
                                 else
                                     textedit_key = StbTextEdit.STB_TEXTEDIT_K_LEFT;
+                                context.text_edit_last_cusor_moved_time = context.current_time_milliseconds;
                                 break;
                             case STBG_KEYBOARD_KEY.RIGHT:
                                 if (control)
                                     textedit_key = StbTextEdit.STB_TEXTEDIT_K_WORDRIGHT;
                                 else
                                     textedit_key = StbTextEdit.STB_TEXTEDIT_K_RIGHT;
+                                context.text_edit_last_cusor_moved_time = context.current_time_milliseconds;
                                 break;
                             case STBG_KEYBOARD_KEY.UP:
                                 textedit_key = StbTextEdit.STB_TEXTEDIT_K_UP;
+                                context.text_edit_last_cusor_moved_time = context.current_time_milliseconds;
                                 break;
                             case STBG_KEYBOARD_KEY.DOWN:
                                 textedit_key = StbTextEdit.STB_TEXTEDIT_K_DOWN;
+                                context.text_edit_last_cusor_moved_time = context.current_time_milliseconds;
                                 break;
                             case STBG_KEYBOARD_KEY.BACKSPACE:
                                 textedit_key = StbTextEdit.STB_TEXTEDIT_K_BACKSPACE;
@@ -466,70 +472,74 @@ public partial class StbGui
         if (needs_clipping)
             stbg__rc_push_clipping_rect(stbg_build_rect(border_size, border_size, size.width - border_size, size.height - border_size));
 
-        stbg__rc_draw_text(
-            stbg_build_rect(
-                draw_offset_x + stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT),
-                draw_offset_y + stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP),
-                size.width - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_RIGHT),
-                size.height - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_BOTTOM)
-            ),
-            stbg__build_text(text, stbg_get_widget_style_color(STBG_WIDGET_STYLE.TEXTBOX_TEXT_COLOR)),
-            -1, -1,
-            text_measure_options,
-            text_render_options
-        );
-
-        if (editing)
+        if (editing && context.text_edit.state.select_start != context.text_edit.state.select_end)
         {
-            // Draw cursor
-            stbg__rc_draw_rectangle(
+            // Draw text normally with selection background
+            var select_start = Math.Clamp(Math.Min(context.text_edit.state.select_start, context.text_edit.state.select_end), 0, text.Length);
+            var select_end = Math.Clamp(Math.Max(context.text_edit.state.select_start, context.text_edit.state.select_end), 0, text.Length);
+
+            var style_ranges = context.text_edit_textbox_style_ranges.Span;
+
+            style_ranges[0].start_index = 0;
+            style_ranges[0].text_color = stbg_get_widget_style_color(STBG_WIDGET_STYLE.TEXTBOX_TEXT_COLOR);
+            style_ranges[0].background_color = STBG_COLOR_TRANSPARENT;
+            style_ranges[0].font_style = context.theme.default_font_style.style;
+
+            style_ranges[1].start_index = select_start;
+            style_ranges[1].text_color = stbg_get_widget_style_color(STBG_WIDGET_STYLE.TEXTBOX_BACKGROUND_COLOR);
+            style_ranges[1].background_color = stbg_get_widget_style_color(STBG_WIDGET_STYLE.TEXTBOX_CURSOR_COLOR);
+            style_ranges[1].font_style = context.theme.default_font_style.style;
+
+            style_ranges[2] = style_ranges[0];
+            style_ranges[2].start_index = select_end;
+
+            stbg__rc_draw_text(
                 stbg_build_rect(
-                    cursor_x,
-                    cursor_y - 1,
-                    cursor_x + stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_CURSOR_WIDTH),
-                    cursor_y + stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_CURSOR_HEIGHT) + 1
+                    draw_offset_x + stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT),
+                    draw_offset_y + stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP),
+                    size.width - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_RIGHT),
+                    size.height - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_BOTTOM)
                 ),
-                stbg_get_widget_style_color(STBG_WIDGET_STYLE.TEXTBOX_CURSOR_COLOR)
+                text, context.theme.default_font_id, context.theme.default_font_style.size,
+                context.text_edit_textbox_style_ranges,
+                -1, -1,
+                text_measure_options,
+                text_render_options
             );
+        }
+        else
+        {
+            // Draw text normally
+            stbg__rc_draw_text(
+                stbg_build_rect(
+                    draw_offset_x + stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT),
+                    draw_offset_y + stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP),
+                    size.width - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_RIGHT),
+                    size.height - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_BOTTOM)
+                ),
+                stbg__build_text(text, stbg_get_widget_style_color(STBG_WIDGET_STYLE.TEXTBOX_TEXT_COLOR)),
+                -1, -1,
+                text_measure_options,
+                text_render_options
+            );
+        }
 
-            // Draw selected text background
-            if (context.text_edit.state.select_start != context.text_edit.state.select_end)
+        // Draw blinking cursor if we are editing and there is no selection visible (blinking cursor is not visible when there is a selection)
+        if (editing && context.text_edit.state.select_start == context.text_edit.state.select_end)
+        {
+            var blinking_rate = Math.Max((int)stbg_get_widget_style(STBG_WIDGET_STYLE.TEXTBOX_CURSOR_BLINKING_RATE), 100);
+            var blinking_state_visible = (((context.current_time_milliseconds - context.text_edit_last_cusor_moved_time) % (blinking_rate * 2)) / blinking_rate) == 0;
+
+            if (blinking_state_visible)
             {
-                var select_start = Math.Clamp(Math.Min(context.text_edit.state.select_start, context.text_edit.state.select_end), 0, text.Length);
-                var select_end = Math.Clamp(Math.Max(context.text_edit.state.select_start, context.text_edit.state.select_end), 0, text.Length);
-
-                // Draw selection background
-                var select_start_position = stbg__get_character_position_in_text(stbg__build_text(text), select_start, text_measure_options);
-                var select_end_position = stbg__get_character_position_in_text(stbg__build_text(text), select_end, text_measure_options);
-
-                var select_start_position_x = stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT) + select_start_position.x;
-                var select_end_position_x = stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT) + select_end_position.x;
-                var select_y_start = stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP) + Math.Min(select_start_position.y, select_start_position.y);
-                var select_y_end = stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP) + Math.Max(select_start_position.y, select_start_position.y) + line_height;
-
                 stbg__rc_draw_rectangle(
                     stbg_build_rect(
-                        draw_offset_x + select_start_position_x,
-                        draw_offset_y + select_y_start - 1,
-                        draw_offset_x + select_end_position_x,
-                        draw_offset_y + select_y_end + 1
+                        cursor_x,
+                        cursor_y - 1,
+                        cursor_x + stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_CURSOR_WIDTH),
+                        cursor_y + stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_CURSOR_HEIGHT) + 1
                     ),
                     stbg_get_widget_style_color(STBG_WIDGET_STYLE.TEXTBOX_CURSOR_COLOR)
-                );
-
-                // Draw text in inverted color over the selection background
-                var selected_text = text.Slice(select_start, select_end - select_start);
-                stbg__rc_draw_text(
-                    stbg_build_rect(
-                        draw_offset_x + select_start_position_x,
-                        draw_offset_y + select_y_start,
-                        size.width - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_RIGHT),
-                        size.height - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_BOTTOM)
-                    ),
-                    stbg__build_text(selected_text, stbg_get_widget_style_color(STBG_WIDGET_STYLE.TEXTBOX_BACKGROUND_COLOR)),
-                    -1, -1,
-                    text_measure_options,
-                    text_render_options
                 );
             }
         }

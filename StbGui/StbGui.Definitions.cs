@@ -13,6 +13,8 @@ public partial class StbGui
 
     public const font_id STBG_FONT_ID_NULL = 0;
 
+    private const long MICROSECONDS = 1_000_000;
+
     public record struct stbg_size
     {
         public float width;
@@ -243,6 +245,7 @@ public partial class StbGui
         TEXTBOX_CURSOR_COLOR,
         TEXTBOX_CURSOR_HEIGHT,
         TEXTBOX_CURSOR_WIDTH,
+        TEXTBOX_CURSOR_BLINKING_RATE, // how often (in milliseconds) the cursor blinks
 
         // ALWAYS LAST!!
         COUNT
@@ -515,6 +518,13 @@ public partial class StbGui
         public widget_id first_widget_in_bucket;
     }
 
+    public struct stbg_performance_metrics
+    {
+        public long process_input_time_us; // microseconds (1.000.000 us = 1 second)
+        public long layout_widgets_time_us; // microseconds (1.000.000 us = 1 second)
+        public long render_time_us; // microseconds (1.000.000 us = 1 second)
+    }
+
     public struct stbg_context_frame_stats
     {
         public int new_widgets;
@@ -523,6 +533,7 @@ public partial class StbGui
         public int duplicated_widgets_ids;
         public int string_memory_pool_used_characters;
         public int string_memory_pool_overflowed_characters;
+        public stbg_performance_metrics performance;
     }
 
     public struct stbg_context_input_feedback
@@ -530,7 +541,7 @@ public partial class StbGui
         public widget_id hovered_widget_id;
         public widget_id pressed_widget_id;
         public widget_id dragged_widget_id;
-        
+
         public widget_id active_window_id;
         public widget_id editing_text_widget_id;
 
@@ -573,6 +584,10 @@ public partial class StbGui
 
         public int current_frame;
 
+        public long current_time_milliseconds;
+
+        public long time_beween_frames_milliseconds;
+
         public widget_id current_widget_id;
 
         public widget_id last_widget_id;
@@ -584,6 +599,8 @@ public partial class StbGui
         public stbg_context_frame_stats frame_stats;
 
         public stbg_context_frame_stats prev_frame_stats;
+
+        public stbg_performance_metrics performance_metrics;
 
         public stbg_init_options init_options;
 
@@ -610,6 +627,10 @@ public partial class StbGui
         public stbg_string_memory_pool string_memory_pool;
 
         public stbg_text_edit text_edit;
+
+        public long text_edit_last_cusor_moved_time;
+
+        public Memory<stbg_render_text_style_range> text_edit_textbox_style_ranges;
     }
 
     public enum STBG_ASSERT_BEHAVIOR
@@ -670,6 +691,28 @@ public partial class StbGui
         POP_CLIPPING_RECT,
     }
 
+    public struct stbg_render_text_style_range
+    {
+        public int start_index;
+        public stbg_color text_color;
+        public stbg_color background_color;
+        public STBG_FONT_STYLE_FLAGS font_style;
+    }
+
+    public record struct stbg_render_text_parameters
+    {
+        public font_id font_id;
+        public float font_size;
+        public ReadOnlyMemory<char> text;
+        public ReadOnlyMemory<stbg_render_text_style_range> style_ranges;
+        public stbg_render_text_style_range single_style;
+        public float horizontal_alignment;
+        public float vertical_alignment;
+        public STBG_MEASURE_TEXT_OPTIONS measure_options;
+        public STBG_RENDER_TEXT_OPTIONS render_options;
+
+    }
+
     public record struct stbg_render_command
     {
         public STBG_RENDER_COMMAND_TYPE type;
@@ -677,11 +720,7 @@ public partial class StbGui
         public stbg_rect bounds;
         public stbg_color color;
         public stbg_color background_color;
-        public stbg_text text;
-        public float text_horizontal_alignment;
-        public float text_vertical_alignment;
-        public STBG_MEASURE_TEXT_OPTIONS text_measure_options;
-        public STBG_RENDER_TEXT_OPTIONS text_render_options;
+        public stbg_render_text_parameters text;
     }
 
 
@@ -739,6 +778,24 @@ public partial class StbGui
         /// </summary>
         public delegate ReadOnlySpan<char> stbg_get_clipboard_text_delegate();
         public stbg_get_clipboard_text_delegate get_clipboard_text;
+
+        /// <summary>
+        /// Returns the time in milliseconds since application started
+        /// </summary>
+        public delegate long get_time_milliseconds_delegate();
+        public get_time_milliseconds_delegate get_time_milliseconds;
+
+        /// <summary>
+        /// Return high performance counter value, used for benchmarking
+        /// </summary>
+        public delegate long get_performance_counter_delegate();
+        public get_performance_counter_delegate get_performance_counter;
+
+        /// <summary>
+        /// Returns high performance counter frequency, used for benchmarking
+        /// </summary>
+        public delegate long get_performance_counter_frequency_delegate();
+        public get_performance_counter_frequency_delegate get_performance_counter_frequency;
     }
 
 

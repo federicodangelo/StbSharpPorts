@@ -68,7 +68,6 @@ public class StringMemoryPool
         val_str.Slice(0, val_str_len).CopyTo(result.Span.Slice(str1.Length));
         memoryPoolOffset += length;
         return result.Span;
-
     }
 
     public ReadOnlySpan<char> Concat(ReadOnlySpan<char> str1, bool val)
