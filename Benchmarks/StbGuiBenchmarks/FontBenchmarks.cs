@@ -7,38 +7,10 @@ using StbSharp.Examples;
 
 //[MemoryDiagnoser]
 //[HardwareCounters(HardwareCounter.BranchMispredictions, HardwareCounter.BranchInstructions, HardwareCounter.CacheMisses)]
-public class SDLFontBenchmark
+public class FontBenchmark
 {
-    private SDLFont font;
-    private nint window;
-    private nint renderer;
+    private Font font = new Font("ProggyClean", "Fonts/ProggyClean.ttf", 13, 1);
     private StbGui.stbg_render_text_style_range[] styleRanges = new StbGui.stbg_render_text_style_range[1];
-
-    [GlobalSetup]
-    public void Setup()
-    {
-        if (!SDL.Init(SDL.InitFlags.Video))
-        {
-            SDL.LogError(SDL.LogCategory.System, $"SDL could not initialize: {SDL.GetError()}");
-            throw new Exception(SDL.GetError());
-        }
-
-        if (!SDL.CreateWindowAndRenderer("Benchmark", 100, 100, 0, out window, out renderer))
-        {
-            SDL.LogError(SDL.LogCategory.Application, $"Error creating window and rendering: {SDL.GetError()}");
-            throw new Exception(SDL.GetError());
-        }
-
-        font = new SDLFont("ProggyClean", "Fonts/ProggyClean.ttf", 13, 1, false, renderer);
-
-        styleRanges[0].start_index = 0;
-    }
-
-    [GlobalCleanup]
-    public void Cleanup()
-    {
-        font.Dispose();
-    }
 
     public string FullText = @"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum sit amet nisl a urna bibendum tincidunt. Fusce rhoncus, ex eu lobortis tempor, ligula orci porta lectus, at ultricies dui lorem in lectus. Morbi lacinia odio fringilla metus molestie rhoncus. Vestibulum condimentum arcu orci. Nullam maximus ultricies dictum. Etiam nec accumsan quam. Maecenas ultrices tellus quis nunc volutpat cursus. Aenean pellentesque ipsum nec fermentum mattis. Curabitur varius feugiat odio, at tristique neque porttitor quis.
 Nulla quis tincidunt sapien. Ut ut purus justo. Suspendisse et nulla sed lorem blandit mollis. Integer placerat mi justo, vel sodales erat gravida vitae. Etiam nec feugiat mi. Aenean vel suscipit orci, in convallis dolor. Ut vel egestas odio. Integer quis ante id dolor laoreet egestas. Phasellus fermentum tincidunt laoreet. Curabitur felis magna, tristique eget molestie tincidunt, posuere sed quam. Integer nulla sapien, volutpat placerat tellus quis, feugiat dictum neque. Quisque eu turpis eleifend, mollis sem et, mollis nunc. Fusce ornare velit eu tincidunt blandit.
@@ -71,7 +43,6 @@ Ut egestas sagittis libero in convallis. Aliquam sed ex et sapien iaculis aliqua
             style_ranges = styleRanges.AsMemory(),
             horizontal_alignment = -1,
             vertical_alignment = -1,
-            skip_render = true,
         };
 
         font.DrawText(parameters, bounds);
@@ -91,7 +62,6 @@ Ut egestas sagittis libero in convallis. Aliquam sed ex et sapien iaculis aliqua
             style_ranges = styleRanges.AsMemory(),
             horizontal_alignment = -1,
             vertical_alignment = -1,
-            skip_render = true,
         };
 
         font.DrawText(parameters, bounds);
