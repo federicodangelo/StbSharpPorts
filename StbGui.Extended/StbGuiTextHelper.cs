@@ -7,7 +7,7 @@ namespace StbSharp;
 
 public class StbGuiTextHelper
 {
-    public const int MAX_VERTEX_COUNT = 8192;
+    public const int MAX_RECTS_COUNT = 1024;
 
     private ref struct TextIterationData
     {
@@ -211,9 +211,9 @@ public class StbGuiTextHelper
         return callback_data.position;
     }
 
-    private struct VertexBuffer
+    private struct RectsBuffer
     {
-        public Vertex[] buffer;
+        public StbGuiRenderAdapter.Rect[] buffer;
         public int index;
     }
 
@@ -231,14 +231,15 @@ public class StbGuiTextHelper
         public float center_y_offset;
         public float oversampling_scale;
         public nint font_texture_id;
-        public VertexBuffer text_vertex_buffer;
-        public VertexBuffer background_vertex_buffer;
+        public RectsBuffer text_rect_buffer;
+        public RectsBuffer background_rect_buffer;
         public StbGuiRenderAdapter render_adapter;
     }
 
-    static private Vertex[] draw_text_vertices_buffer = new Vertex[MAX_VERTEX_COUNT];
-    static private Vertex[] draw_text_vertices_buffer2 = new Vertex[MAX_VERTEX_COUNT];
+    static private StbGuiRenderAdapter.Rect[] draw_text_rects_buffer = new StbGuiRenderAdapter.Rect[MAX_RECTS_COUNT];
+    static private StbGuiRenderAdapter.Rect[] draw_text_rects_buffer2 = new StbGuiRenderAdapter.Rect[MAX_RECTS_COUNT];
 
+    /*
     private const int RECTANGLE_VERTEX_COUNT = 6;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -318,6 +319,37 @@ public class StbGuiTextHelper
             render_adapter.draw_vertices(vertex_buffer.buffer, vertex_buffer.index, texture_id);
             vertex_buffer.index = 0;
         }
+    }*/
+
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static private void add_draw_texture_to_rect_buffer(ref RectsBuffer rect_buffer, StbGui.stbg_rect tex_coords_rect, StbGui.stbg_rect rect, StbGui.stbg_color color)
+    {
+        rect_buffer.buffer[rect_buffer.index++] = new StbGuiRenderAdapter.Rect()
+        {
+            rect = rect,
+            tex_coord_rect = tex_coords_rect,
+            color = color
+        };
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static private void add_draw_rect_to_rect_buffer(ref RectsBuffer rect_buffer, StbGui.stbg_rect rect, StbGui.stbg_color color)
+    {
+        rect_buffer.buffer[rect_buffer.index++] = new StbGuiRenderAdapter.Rect()
+        {
+            rect = rect,
+            color = color
+        };
+    }
+
+    static private void flush_render_buffer(ref RectsBuffer rects_buffer, nint texture_id, StbGuiRenderAdapter render_adapter)
+    {
+        if (rects_buffer.index > 0)
+        {
+            render_adapter.draw_rects(rects_buffer.buffer, rects_buffer.index, texture_id);
+            rects_buffer.index = 0;
+        }
     }
 
     static private bool draw_text_callback(ref TextIterationData data, ref DrawTextCallbackData callback_data)
@@ -335,24 +367,24 @@ public class StbGuiTextHelper
             var fromRect = StbGui.stbg_build_rect(char_data.x0, char_data.y0, char_data.x1, char_data.y1);
             var toRect = StbGui.stbg_build_rect(xpos + metricsX, ypos + metricsY, xpos + metricsX + (char_data.x1 - char_data.x0) * callback_data.scale * callback_data.oversampling_scale, ypos + metricsY + (char_data.y1 - char_data.y0) * callback_data.scale * callback_data.oversampling_scale);
 
-            if (callback_data.text_vertex_buffer.index + RECTANGLE_VERTEX_COUNT > callback_data.text_vertex_buffer.buffer.Length)
+            if (callback_data.text_rect_buffer.index + 1 == callback_data.text_rect_buffer.buffer.Length)
             {
-                flush_render_buffer(ref callback_data.background_vertex_buffer, 0, callback_data.render_adapter);
-                flush_render_buffer(ref callback_data.text_vertex_buffer, callback_data.font_texture_id, callback_data.render_adapter);
+                flush_render_buffer(ref callback_data.background_rect_buffer, 0, callback_data.render_adapter);
+                flush_render_buffer(ref callback_data.text_rect_buffer, callback_data.font_texture_id, callback_data.render_adapter);
             }
 
-            add_draw_texture_to_vertex_buffer(ref callback_data.text_vertex_buffer, fromRect, toRect, data.text_color);
+            add_draw_texture_to_rect_buffer(ref callback_data.text_rect_buffer, fromRect, toRect, data.text_color);
             if (data.background_color.a > 0)
             {
                 var background_rect = StbGui.stbg_build_rect(xpos, ypos - 1, xpos + data.dx, ypos + callback_data.line_height + 1);
 
-                add_draw_rect_to_vertex_buffer(ref callback_data.background_vertex_buffer, background_rect, data.background_color);
+                add_draw_rect_to_rect_buffer(ref callback_data.background_rect_buffer, background_rect, data.background_color);
             }
         }
         else if (data.final)
         {
-            flush_render_buffer(ref callback_data.background_vertex_buffer, 0, callback_data.render_adapter);
-            flush_render_buffer(ref callback_data.text_vertex_buffer, callback_data.font_texture_id, callback_data.render_adapter);
+            flush_render_buffer(ref callback_data.background_rect_buffer, 0, callback_data.render_adapter);
+            flush_render_buffer(ref callback_data.text_rect_buffer, callback_data.font_texture_id, callback_data.render_adapter);
         }
 
         return false;
@@ -406,14 +438,14 @@ public class StbGuiTextHelper
             center_y_offset = center_y_offset,
             oversampling_scale = font.oversampling_scale,
             line_height = parameters.font_size,
-            text_vertex_buffer = new VertexBuffer()
+            text_rect_buffer = new RectsBuffer()
             {
-                buffer = draw_text_vertices_buffer,
+                buffer = draw_text_rects_buffer,
                 index = 0
             },
-            background_vertex_buffer = new VertexBuffer()
+            background_rect_buffer = new RectsBuffer()
             {
-                buffer = draw_text_vertices_buffer2,
+                buffer = draw_text_rects_buffer2,
                 index = 0
             },
             font_texture_id = font.texture_id,

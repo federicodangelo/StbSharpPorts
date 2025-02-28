@@ -1,10 +1,15 @@
+using System.Diagnostics;
 using SDL3;
 
 namespace StbSharp.Examples;
 
 public class SDLRenderAdapter : StbGuiRenderAdapter
 {
-    static private SDL.Vertex[] tmp_vertex = new SDL.Vertex[StbGuiTextHelper.MAX_VERTEX_COUNT];
+    private const int RECTANGLE_VERTEX_COUNT = 4;
+    private const int RECTANGLE_INDICES_COUNT = 6;
+
+    static private SDL.Vertex[] tmp_vertex = new SDL.Vertex[StbGuiTextHelper.MAX_RECTS_COUNT * RECTANGLE_VERTEX_COUNT];
+    static private int[] tmp_indices = new int[StbGuiTextHelper.MAX_RECTS_COUNT * RECTANGLE_INDICES_COUNT];
     private nint renderer;
 
     public SDLRenderAdapter(nint renderer)
@@ -44,9 +49,14 @@ public class SDLRenderAdapter : StbGuiRenderAdapter
         SDL.DestroyTexture(texture_id);
     }
 
-    public void draw_vertices(Vertex[] vertices, int count, nint texture_id)
+    public void draw_rects(StbGuiRenderAdapter.Rect[] rects, int count, nint texture_id)
     {
-        var tmp = tmp_vertex.AsSpan(0, count);
+        Debug.Assert(count * RECTANGLE_VERTEX_COUNT <= tmp_vertex.Length, "Vertex count exceeds temporary vertex buffer size.");
+        
+        var tmp_v = tmp_vertex;
+        var tmp_i = tmp_indices;
+        int vertex_index = 0;
+        int indices_index = 0;
 
         if (texture_id != 0)
         {
@@ -56,22 +66,135 @@ public class SDLRenderAdapter : StbGuiRenderAdapter
                 return;
             }
 
-            for (int i = 0; i < tmp.Length; i++)
+            for (int i = 0; i < count; i++)
             {
-                var c = vertices[i].color;
-                var t = vertices[i].tex_coord;
-                tmp[i].Color = new SDL.FColor() { R = c.r / 255.0f, G = c.g / 255.0f, B = c.b / 255.0f, A = c.a / 255.0f };
-                tmp[i].TexCoord = new SDL.FPoint() { X = t.x / pixels_width, Y = t.y / pixels_height };
-                tmp[i].Position = new SDL.FPoint() { X = vertices[i].position.x, Y = vertices[i].position.y };
+                ref var r = ref rects[i];
+
+                var rect = r.rect;
+                var tex_coord_rect = r.tex_coord_rect;
+                var color = new SDL.FColor() { R = r.color.r / 255.0f, G = r.color.g / 255.0f, B = r.color.b / 255.0f, A = r.color.a / 255.0f };
+
+                SDL.Vertex v0 = new()
+                {
+                    Position = new SDL.FPoint() { X = rect.x0, Y = rect.y0 },
+                    TexCoord = new SDL.FPoint() { X = tex_coord_rect.x0 / pixels_width, Y = tex_coord_rect.y0 / pixels_height },
+                    Color = color,
+                };
+                SDL.Vertex v1 = new()
+                {
+                    Position = new SDL.FPoint() { X = rect.x1, Y = rect.y0 },
+                    TexCoord = new SDL.FPoint() { X = tex_coord_rect.x1 / pixels_width, Y = tex_coord_rect.y0 / pixels_height },
+                    Color = color,
+                };
+                SDL.Vertex v2 = new()
+                {
+                    Position = new SDL.FPoint() { X = rect.x1, Y = rect.y1 },
+                    TexCoord = new SDL.FPoint() { X = tex_coord_rect.x1 / pixels_width, Y = tex_coord_rect.y1 / pixels_height },
+                    Color = color,
+                };
+                SDL.Vertex v3 = new()
+                {
+                    Position = new SDL.FPoint() { X = rect.x0, Y = rect.y1 },
+                    TexCoord = new SDL.FPoint() { X = tex_coord_rect.x0 / pixels_width, Y = tex_coord_rect.y1 / pixels_height },
+                    Color = color,
+                };
+
+                tmp_v[vertex_index + 0] = v0;
+                tmp_v[vertex_index + 1] = v1;
+                tmp_v[vertex_index + 2] = v2;
+                tmp_v[vertex_index + 3] = v3;
+
+                tmp_i[indices_index + 0] = vertex_index + 0;
+                tmp_i[indices_index + 1] = vertex_index + 1;
+                tmp_i[indices_index + 2] = vertex_index + 2;
+                tmp_i[indices_index + 3] = vertex_index + 0;
+                tmp_i[indices_index + 4] = vertex_index + 2;
+                tmp_i[indices_index + 5] = vertex_index + 3;
+
+                vertex_index += RECTANGLE_VERTEX_COUNT;
+                indices_index += RECTANGLE_INDICES_COUNT;
             }
         }
         else
         {
-            for (int i = 0; i < tmp.Length; i++)
+            for (int i = 0; i < count; i++)
+            {
+                ref var r = ref rects[i];
+
+                var rect = r.rect;
+                var color = new SDL.FColor() { R = r.color.r / 255.0f, G = r.color.g / 255.0f, B = r.color.b / 255.0f, A = r.color.a / 255.0f };
+
+                SDL.Vertex v0 = new()
+                {
+                    Position = new SDL.FPoint() { X = rect.x0, Y = rect.y0 },
+                    Color = color,
+                };
+                SDL.Vertex v1 = new()
+                {
+                    Position = new SDL.FPoint() { X = rect.x1, Y = rect.y0 },
+                    Color = color,
+                };
+                SDL.Vertex v2 = new()
+                {
+                    Position = new SDL.FPoint() { X = rect.x1, Y = rect.y1 },
+                    Color = color,
+                };
+                SDL.Vertex v3 = new()
+                {
+                    Position = new SDL.FPoint() { X = rect.x0, Y = rect.y1 },
+                    Color = color,
+                };
+
+                tmp_v[vertex_index + 0] = v0;
+                tmp_v[vertex_index + 1] = v1;
+                tmp_v[vertex_index + 2] = v2;
+                tmp_v[vertex_index + 3] = v3;
+
+                tmp_i[indices_index + 0] = vertex_index + 0;
+                tmp_i[indices_index + 1] = vertex_index + 1;
+                tmp_i[indices_index + 2] = vertex_index + 2;
+                tmp_i[indices_index + 3] = vertex_index + 0;
+                tmp_i[indices_index + 4] = vertex_index + 2;
+                tmp_i[indices_index + 5] = vertex_index + 3;
+
+                vertex_index += RECTANGLE_VERTEX_COUNT;
+                indices_index += RECTANGLE_INDICES_COUNT;
+            }
+        }
+
+        SDL.RenderGeometry(renderer, texture_id, tmp_v, vertex_index, tmp_i, indices_index);
+    }
+
+    public void draw_vertices(StbGuiRenderAdapter.Vertex[] vertices, int count, nint texture_id)
+    {
+        Debug.Assert(count <= tmp_vertex.Length, "Vertex count exceeds temporary vertex buffer size.");
+
+        var tmp_v = tmp_vertex;
+
+        if (texture_id != 0)
+        {
+            if (!SDL.GetTextureSize(texture_id, out float pixels_width, out float pixels_height))
+            {
+                SDL.LogError(SDL.LogCategory.System, $"SDL failed to get texture size: {SDL.GetError()}");
+                return;
+            }
+
+            for (int i = 0; i < count; i++)
             {
                 var c = vertices[i].color;
-                tmp[i].Color = new SDL.FColor() { R = c.r / 255.0f, G = c.g / 255.0f, B = c.b / 255.0f, A = c.a / 255.0f };
-                tmp[i].Position = new SDL.FPoint() { X = vertices[i].position.x, Y = vertices[i].position.y };
+                var t = vertices[i].tex_coord;
+                tmp_v[i].Color = new SDL.FColor() { R = c.r / 255.0f, G = c.g / 255.0f, B = c.b / 255.0f, A = c.a / 255.0f };
+                tmp_v[i].TexCoord = new SDL.FPoint() { X = t.x / pixels_width, Y = t.y / pixels_height };
+                tmp_v[i].Position = new SDL.FPoint() { X = vertices[i].position.x, Y = vertices[i].position.y };
+            }
+        }
+        else
+        {
+            for (int i = 0; i < count; i++)
+            {
+                var c = vertices[i].color;
+                tmp_v[i].Color = new SDL.FColor() { R = c.r / 255.0f, G = c.g / 255.0f, B = c.b / 255.0f, A = c.a / 255.0f };
+                tmp_v[i].Position = new SDL.FPoint() { X = vertices[i].position.x, Y = vertices[i].position.y };
             }
         }
 

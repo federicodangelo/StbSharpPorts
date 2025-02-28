@@ -2,16 +2,26 @@
 
 namespace StbSharp;
 
-public struct Vertex
-{
-    public StbGui.stbg_position position;
-    public StbGui.stbg_position tex_coord;
-    public StbGui.stbg_color color;
-}
 
 public interface StbGuiRenderAdapter
 {
+    public struct Vertex
+    {
+        public StbGui.stbg_position position;
+        public StbGui.stbg_position tex_coord;
+        public StbGui.stbg_color color;
+    }
+
+    public struct Rect
+    {
+        public StbGui.stbg_rect rect;
+        public StbGui.stbg_rect tex_coord_rect;
+        public StbGui.stbg_color color;
+    }
+
     public void draw_vertices(Vertex[] vertices, int count, nint texture_id);
+
+    public void draw_rects(Rect[] rects, int count, nint texture_id);
 
     public void push_clip_rect(StbGui.stbg_rect rect);
 

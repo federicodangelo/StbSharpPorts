@@ -12,7 +12,11 @@ public class DummyRenderAdapter : StbGuiRenderAdapter
 
     }
 
-    public void draw_vertices(Vertex[] vertices, int count, nint texture_id)
+    public void draw_rects(StbGuiRenderAdapter.Rect[] rects, int count, nint texture_id)
+    {
+    }
+
+    public void draw_vertices(StbGuiRenderAdapter.Vertex vertices, int count, nint texture_id)
     {
 
     }
