@@ -1,55 +1,50 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace StbSharp;
 
-public class StbGuiFont : IDisposable
+public record class StbGuiFont : IDisposable
 {
-    public readonly string Name;
-    public readonly float Size = 13;
-
-    public readonly float Ascent;
-    public readonly float Descent;
-    public readonly float LineGap;
-    public readonly float LineHeight;
-    public readonly float Baseline;
-
-    public StbTrueType.stbtt_fontinfo font_info;
-    public float font_scale { get; private set; }
-    public int oversampling { get; private set; } = 1;
-    public float oversampling_scale { get; private set; } = 1.0f;
-    public StbTrueType.stbtt_packedchar[] font_char_data { get; private set; }
-    public nint texture_id { get; private set; }
-
+    public readonly string name;
+    public readonly float size;
+    public readonly float ascent;
+    public readonly float descent;
+    public readonly float line_gap;
+    public readonly float line_height;
+    public readonly float baseline;
+    public readonly StbTrueType.stbtt_packedchar[] font_char_data;
+    public readonly float font_scale;
+    public readonly int oversampling;
+    public readonly float oversampling_scale;
+    public readonly nint texture_id;
+    
+    private StbTrueType.stbtt_fontinfo font_info;
     private StbGuiRenderAdapter render_adapter;
 
-    public StbGuiFont(string name, string fileName, float fontSize, int oversampling, bool use_bilinear_filtering, StbGuiRenderAdapter render_adapter)
+    public StbGuiFont(string name, string filename, float font_size, int oversampling, bool use_bilinear_filtering, StbGuiRenderAdapter render_adapter)
     {
         this.render_adapter = render_adapter;
 
-        Name = name;
-        Size = fontSize;
+        this.name = name;
+        this.size = font_size;
 
         this.oversampling = oversampling;
         this.oversampling_scale = 1.0f / (float)oversampling;
 
-        byte[] fontBytes = File.ReadAllBytes(fileName);
-        StbTrueType.stbtt_InitFont(out font_info, fontBytes, 0);
+        byte[] font_bytes = File.ReadAllBytes(filename);
+        StbTrueType.stbtt_InitFont(out font_info, font_bytes, 0);
 
-        font_scale = StbTrueType.stbtt_ScaleForPixelHeight(ref font_info, fontSize);
+        font_scale = StbTrueType.stbtt_ScaleForPixelHeight(ref font_info, font_size);
         StbTrueType.stbtt_GetFontVMetrics(ref font_info, out int ascent, out int descent, out int lineGap);
 
-        Ascent = ascent * font_scale;
-        Descent = descent * font_scale;
-        LineGap = lineGap * font_scale;
-        LineHeight = (ascent - descent + lineGap) * font_scale;
+        this.ascent = ascent * font_scale;
+        this.descent = descent * font_scale;
+        line_gap = lineGap * font_scale;
+        line_height = (ascent - descent + lineGap) * font_scale;
 
-        Baseline = (int)Ascent;
+        baseline = (int)this.ascent;
 
-        CreateFontTexture(fontBytes, use_bilinear_filtering);
+        CreateFontTexture(font_bytes, use_bilinear_filtering, out texture_id, out font_char_data);
     }
 
-    [MemberNotNull(nameof(font_char_data))]
-    private void CreateFontTexture(byte[] fontBytes, bool use_bilinear_filtering)
+    private void CreateFontTexture(byte[] fontBytes, bool use_bilinear_filtering, out nint texture_id, out StbTrueType.stbtt_packedchar[] font_char_data)
     {
         var width = 512;
         var height = 512;
@@ -62,7 +57,7 @@ public class StbGuiFont : IDisposable
         int rangeSize = rangeTo - rangeFrom;
 
         StbTrueType.stbtt_pack_range[] packRanges = new StbTrueType.stbtt_pack_range[1];
-        packRanges[0].font_size = Size;
+        packRanges[0].font_size = size;
         packRanges[0].first_unicode_codepoint_in_range = rangeFrom;
         packRanges[0].num_chars = rangeSize;
         packRanges[0].chardata_for_range = new StbTrueType.stbtt_packedchar[rangeSize];
@@ -109,12 +104,17 @@ public class StbGuiFont : IDisposable
         render_adapter.set_texture_pixels(texture_id, StbGui.stbg_build_size(width, height), pixels);
     }
 
+    public int GetCodepointKernAdvance(int ch1, int ch2)
+    {
+        return StbTrueType.stbtt_GetCodepointKernAdvance(ref font_info, ch1, ch2);
+    }
+    
+
     public void Dispose()
     {
         if (texture_id != 0)
         {
             render_adapter.destroy_texture(texture_id);
-            texture_id = 0;
         }
     }
 }

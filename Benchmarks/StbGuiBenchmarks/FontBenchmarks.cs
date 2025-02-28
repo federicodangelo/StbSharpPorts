@@ -27,7 +27,7 @@ Ut egestas sagittis libero in convallis. Aliquam sed ex et sapien iaculis aliqua
     {
         styleRanges[0].text_color = StbGui.STBG_COLOR_WHITE;
         styleRanges[0].background_color = StbGui.STBG_COLOR_TRANSPARENT;
-        StbGuiTextHelper.MeasureText(FullText.AsSpan().Slice(0, TextLength), font, 13, styleRanges.AsSpan(), StbGui.STBG_MEASURE_TEXT_OPTIONS.NONE);
+        StbGuiTextHelper.measure_text(FullText.AsSpan().Slice(0, TextLength), font, 13, styleRanges.AsSpan(), StbGui.STBG_MEASURE_TEXT_OPTIONS.NONE);
     }
 
     [Benchmark]
@@ -46,7 +46,7 @@ Ut egestas sagittis libero in convallis. Aliquam sed ex et sapien iaculis aliqua
             vertical_alignment = -1,
         };
 
-        StbGuiTextHelper.DrawText(parameters, bounds, font, render_adapter);
+        StbGuiTextHelper.draw_text(parameters, bounds, font, render_adapter);
     }
 
     [Benchmark]
@@ -65,7 +65,7 @@ Ut egestas sagittis libero in convallis. Aliquam sed ex et sapien iaculis aliqua
             vertical_alignment = -1,
         };
 
-        StbGuiTextHelper.DrawText(parameters, bounds, font, render_adapter);
+        StbGuiTextHelper.draw_text(parameters, bounds, font, render_adapter);
     }
 }
 

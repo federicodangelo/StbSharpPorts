@@ -1,5 +1,8 @@
+#pragma warning disable IDE1006 // Naming Styles
+
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+
 namespace StbSharp;
 
 public class StbGuiTextHelper
@@ -25,7 +28,7 @@ public class StbGuiTextHelper
 
     private delegate bool IterateTextInternalDelegate<T>(ref TextIterationData data, ref T user_data);
 
-    static private void IterateTextInternal<T>(
+    static private void iterate_text_internal<T>(
         ReadOnlySpan<char> text,
         StbGuiFont font,
         float font_size,
@@ -50,7 +53,7 @@ public class StbGuiTextHelper
         var font_char_data = font.font_char_data;
 
         TextIterationData iteration_data = new TextIterationData();
-        iteration_data.scale = font_size / font.Size;
+        iteration_data.scale = font_size / font.size;
 
         float current_line_height = 0;
 
@@ -61,8 +64,8 @@ public class StbGuiTextHelper
         float get_line_height(ref TextIterationData data)
         {
             return (ignore_metrics && current_line_height != 0) ? current_line_height :
-                (use_only_baseline_for_first_line && data.line_number == 0) ? font.Baseline * data.scale :
-                font.LineHeight * data.scale;
+                (use_only_baseline_for_first_line && data.line_number == 0) ? font.baseline * data.scale :
+                font.line_height * data.scale;
         }
 
         bool stop = false;
@@ -120,7 +123,7 @@ public class StbGuiTextHelper
                 {
                     iteration_data.dx = iteration_data.c_data.xadvance * iteration_data.scale;
                     if (iteration_data.c_index + 1 < text.Length)
-                        iteration_data.dx += font.font_scale * StbTrueType.stbtt_GetCodepointKernAdvance(ref font.font_info, iteration_data.c, text[iteration_data.c_index + 1]) * iteration_data.scale;
+                        iteration_data.dx += font.font_scale * font.GetCodepointKernAdvance(iteration_data.c, text[iteration_data.c_index + 1]) * iteration_data.scale;
                 }
             }
 
@@ -156,7 +159,7 @@ public class StbGuiTextHelper
         }
     }
 
-    static private bool MeasureTextCallback(ref TextIterationData data, ref StbGui.stbg_size size)
+    static private bool measure_text_callback(ref TextIterationData data, ref StbGui.stbg_size size)
     {
         if (data.new_line || data.final)
         {
@@ -168,11 +171,11 @@ public class StbGuiTextHelper
     }
 
 
-    static public StbGui.stbg_size MeasureText(ReadOnlySpan<char> text, StbGuiFont font, float font_size, ReadOnlySpan<StbGui.stbg_render_text_style_range> style_ranges, StbGui.STBG_MEASURE_TEXT_OPTIONS options)
+    static public StbGui.stbg_size measure_text(ReadOnlySpan<char> text, StbGuiFont font, float font_size, ReadOnlySpan<StbGui.stbg_render_text_style_range> style_ranges, StbGui.STBG_MEASURE_TEXT_OPTIONS options)
     {
         StbGui.stbg_size size = new StbGui.stbg_size();
 
-        IterateTextInternal(text, font, font_size, style_ranges, options, ref size, MeasureTextCallback);
+        iterate_text_internal(text, font, font_size, style_ranges, options, ref size, measure_text_callback);
 
         return StbGui.stbg_build_size(size.width, size.height);
     }
@@ -183,7 +186,7 @@ public class StbGuiTextHelper
         public StbGui.stbg_position position;
     }
 
-    static private bool GetCharacterPositionInTextCallback(ref TextIterationData data, ref GetCharacterPositionInTextCallbackData callback_data)
+    static private bool get_character_position_in_text_callback(ref TextIterationData data, ref GetCharacterPositionInTextCallbackData callback_data)
     {
         if (data.c_index + 1 == callback_data.character_index)
         {
@@ -195,7 +198,7 @@ public class StbGuiTextHelper
         return false;
     }
 
-    static public StbGui.stbg_position GetCharacterPositionInText(ReadOnlySpan<char> text, StbGuiFont font, float font_size, ReadOnlySpan<StbGui.stbg_render_text_style_range> style_ranges, StbGui.STBG_MEASURE_TEXT_OPTIONS options, int character_index)
+    static public StbGui.stbg_position get_character_position_in_text(ReadOnlySpan<char> text, StbGuiFont font, float font_size, ReadOnlySpan<StbGui.stbg_render_text_style_range> style_ranges, StbGui.STBG_MEASURE_TEXT_OPTIONS options, int character_index)
     {
         GetCharacterPositionInTextCallbackData callback_data = new()
         {
@@ -203,7 +206,7 @@ public class StbGuiTextHelper
             position = new StbGui.stbg_position()
         };
 
-        IterateTextInternal(text, font, font_size, style_ranges, options, ref callback_data, GetCharacterPositionInTextCallback);
+        iterate_text_internal(text, font, font_size, style_ranges, options, ref callback_data, get_character_position_in_text_callback);
 
         return callback_data.position;
     }
@@ -239,7 +242,7 @@ public class StbGuiTextHelper
     private const int RECTANGLE_VERTEX_COUNT = 6;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static private void AddVerticesToVertexBuffer(ref VertexBuffer vertex_buffer, Vertex v0, Vertex v1, Vertex v2, Vertex v3)
+    static private void add_vertices_to_vertex_buffer(ref VertexBuffer vertex_buffer, Vertex v0, Vertex v1, Vertex v2, Vertex v3)
     {
         vertex_buffer.buffer[vertex_buffer.index++] = v0;
         vertex_buffer.buffer[vertex_buffer.index++] = v1;
@@ -250,7 +253,7 @@ public class StbGuiTextHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static private void AddDrawTextureToVertexBuffer(ref VertexBuffer vertex_buffer, StbGui.stbg_rect fromRect, StbGui.stbg_rect toRect, StbGui.stbg_color color)
+    static private void add_draw_texture_to_vertex_buffer(ref VertexBuffer vertex_buffer, StbGui.stbg_rect fromRect, StbGui.stbg_rect toRect, StbGui.stbg_color color)
     {
         Vertex v0 = new()
         {
@@ -278,11 +281,11 @@ public class StbGuiTextHelper
         };
 
 
-        AddVerticesToVertexBuffer(ref vertex_buffer, v0, v1, v2, v3);
+        add_vertices_to_vertex_buffer(ref vertex_buffer, v0, v1, v2, v3);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static private void AddDrawRectToVertexBuffer(ref VertexBuffer vertex_buffer, StbGui.stbg_rect toRect, StbGui.stbg_color color)
+    static private void add_draw_rect_to_vertex_buffer(ref VertexBuffer vertex_buffer, StbGui.stbg_rect toRect, StbGui.stbg_color color)
     {
         Vertex v0 = new()
         {
@@ -305,10 +308,10 @@ public class StbGuiTextHelper
             color = color,
         };
 
-        AddVerticesToVertexBuffer(ref vertex_buffer, v0, v1, v2, v3);
+        add_vertices_to_vertex_buffer(ref vertex_buffer, v0, v1, v2, v3);
     }
 
-    static private void FlushRenderBuffer(ref VertexBuffer vertex_buffer, nint texture_id, StbGuiRenderAdapter render_adapter)
+    static private void flush_render_buffer(ref VertexBuffer vertex_buffer, nint texture_id, StbGuiRenderAdapter render_adapter)
     {
         if (vertex_buffer.index > 0)
         {
@@ -317,7 +320,7 @@ public class StbGuiTextHelper
         }
     }
 
-    static private bool DrawTextCallback(ref TextIterationData data, ref DrawTextCallbackData callback_data)
+    static private bool draw_text_callback(ref TextIterationData data, ref DrawTextCallbackData callback_data)
     {
         if (!data.new_line && !data.final)
         {
@@ -334,30 +337,30 @@ public class StbGuiTextHelper
 
             if (callback_data.text_vertex_buffer.index + RECTANGLE_VERTEX_COUNT > callback_data.text_vertex_buffer.buffer.Length)
             {
-                FlushRenderBuffer(ref callback_data.background_vertex_buffer, 0, callback_data.render_adapter);
-                FlushRenderBuffer(ref callback_data.text_vertex_buffer, callback_data.font_texture_id, callback_data.render_adapter);
+                flush_render_buffer(ref callback_data.background_vertex_buffer, 0, callback_data.render_adapter);
+                flush_render_buffer(ref callback_data.text_vertex_buffer, callback_data.font_texture_id, callback_data.render_adapter);
             }
 
-            AddDrawTextureToVertexBuffer(ref callback_data.text_vertex_buffer, fromRect, toRect, data.text_color);
+            add_draw_texture_to_vertex_buffer(ref callback_data.text_vertex_buffer, fromRect, toRect, data.text_color);
             if (data.background_color.a > 0)
             {
                 var background_rect = StbGui.stbg_build_rect(xpos, ypos - 1, xpos + data.dx, ypos + callback_data.line_height + 1);
 
-                AddDrawRectToVertexBuffer(ref callback_data.background_vertex_buffer, background_rect, data.background_color);
+                add_draw_rect_to_vertex_buffer(ref callback_data.background_vertex_buffer, background_rect, data.background_color);
             }
         }
         else if (data.final)
         {
-            FlushRenderBuffer(ref callback_data.background_vertex_buffer, 0, callback_data.render_adapter);
-            FlushRenderBuffer(ref callback_data.text_vertex_buffer, callback_data.font_texture_id, callback_data.render_adapter);
+            flush_render_buffer(ref callback_data.background_vertex_buffer, 0, callback_data.render_adapter);
+            flush_render_buffer(ref callback_data.text_vertex_buffer, callback_data.font_texture_id, callback_data.render_adapter);
         }
 
         return false;
     }
 
-    static public void DrawText(StbGui.stbg_render_text_parameters parameters, StbGui.stbg_rect bounds, StbGuiFont font, StbGuiRenderAdapter render_adapter)
+    static public void draw_text(StbGui.stbg_render_text_parameters parameters, StbGui.stbg_rect bounds, StbGuiFont font, StbGuiRenderAdapter render_adapter)
     {
-        float scale = parameters.font_size / font.Size;
+        float scale = parameters.font_size / font.size;
 
         var bounds_width = bounds.x1 - bounds.x0;
         var bounds_height = bounds.y1 - bounds.y0;
@@ -370,7 +373,7 @@ public class StbGuiTextHelper
                 parameters.style_ranges.Span :
                 stackalloc StbGui.stbg_render_text_style_range[1] { parameters.single_style };
 
-        var full_text_bounds = MeasureText(parameters.text.Span, font, parameters.font_size, style_ranges, parameters.measure_options);
+        var full_text_bounds = measure_text(parameters.text.Span, font, parameters.font_size, style_ranges, parameters.measure_options);
 
         bool dont_clip = (parameters.render_options & StbGui.STBG_RENDER_TEXT_OPTIONS.DONT_CLIP) != 0;
 
@@ -398,7 +401,7 @@ public class StbGuiTextHelper
             position = new StbGui.stbg_position(),
             ignore_metrics = ignore_metrics,
             scale = scale,
-            baseline = font.Baseline,
+            baseline = font.baseline,
             center_x_offset = center_x_offset,
             center_y_offset = center_y_offset,
             oversampling_scale = font.oversampling_scale,
@@ -417,7 +420,7 @@ public class StbGuiTextHelper
             render_adapter = render_adapter,
         };
 
-        IterateTextInternal(parameters.text.Span, font, parameters.font_size, style_ranges, parameters.measure_options, ref callback_data, DrawTextCallback);
+        iterate_text_internal(parameters.text.Span, font, parameters.font_size, style_ranges, parameters.measure_options, ref callback_data, draw_text_callback);
 
         if (use_clipping)
         {

@@ -540,7 +540,7 @@ public class SDLAppBase : IDisposable
             font_style = style.style
         };
 
-        return StbGuiTextHelper.MeasureText(text, mainFont, style.size, tmp_styles, options);
+        return StbGuiTextHelper.measure_text(text, mainFont, style.size, tmp_styles, options);
     }
 
     private StbGui.stbg_position GetCharacterPositionInText(ReadOnlySpan<char> text, StbGui.stbg_font _, StbGui.stbg_font_style style, StbGui.STBG_MEASURE_TEXT_OPTIONS options, int character_index)
@@ -554,14 +554,14 @@ public class SDLAppBase : IDisposable
             font_style = style.style
         };
 
-        return StbGuiTextHelper.GetCharacterPositionInText(text, mainFont, style.size, tmp_styles, options, character_index);
+        return StbGuiTextHelper.get_character_position_in_text(text, mainFont, style.size, tmp_styles, options, character_index);
     }
 
     private void DrawText(StbGui.stbg_render_text_parameters text, StbGui.stbg_rect bounds)
     {
         var font = StbGui.stbg_get_font_by_id(text.font_id);
 
-        StbGuiTextHelper.DrawText(text, bounds, mainFont, render_adapter);
+        StbGuiTextHelper.draw_text(text, bounds, mainFont, render_adapter);
     }
 
     private void InitStbGui()
@@ -571,11 +571,11 @@ public class SDLAppBase : IDisposable
         StbGui.stbg_init(BuildExternalDependencies(), new());
         StbGui.stbg_set_screen_size(screenWidth, screenHeight);
 
-        int fontId = StbGui.stbg_add_font(mainFont.Name);
+        int fontId = StbGui.stbg_add_font(mainFont.name);
 
         StbGui.stbg_init_default_theme(
             fontId,
-            new() { size = mainFont.Size, style = StbGui.STBG_FONT_STYLE_FLAGS.NONE, color = StbGui.STBG_COLOR_WHITE }
+            new() { size = mainFont.size, style = StbGui.STBG_FONT_STYLE_FLAGS.NONE, color = StbGui.STBG_COLOR_WHITE }
         );
     }
 

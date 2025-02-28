@@ -1,3 +1,5 @@
+#pragma warning disable IDE1006 // Naming Styles
+
 namespace StbSharp;
 
 public struct Vertex
@@ -9,13 +11,11 @@ public struct Vertex
 
 public interface StbGuiRenderAdapter
 {
-
     public void draw_vertices(Vertex[] vertices, int count, nint texture_id);
 
     public void push_clip_rect(StbGui.stbg_rect rect);
 
     public void pop_clip_rect();
-
 
     public struct CreateTextureOptions
     {

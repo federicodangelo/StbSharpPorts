@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using SDL3;
 
 namespace StbSharp.Examples;
@@ -52,15 +51,5 @@ public class SDLHelper
     static public SDL.Rect StbgRectToSdlRect(StbGui.stbg_rect rect)
     {
         return new SDL.Rect { X = (int)rect.x0, Y = (int)rect.y0, W = (int)(rect.x1 - rect.x0), H = (int)(rect.y1 - rect.y0) };
-    }
-
-    static public StbGui.stbg_rect SdlRectToStbgRect(SDL.Rect rect)
-    {
-        return StbGui.stbg_build_rect(
-            rect.X,
-            rect.Y,
-            rect.X + rect.W,
-            rect.Y + rect.H
-        );
     }
 }
