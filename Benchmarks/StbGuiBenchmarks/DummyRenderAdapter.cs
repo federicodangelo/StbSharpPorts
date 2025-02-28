@@ -16,9 +16,9 @@ public class DummyRenderAdapter : StbGuiRenderAdapter
     {
     }
 
-    public void draw_vertices(StbGuiRenderAdapter.Vertex vertices, int count, nint texture_id)
+    public void draw_vertices(StbGuiRenderAdapter.Vertex[] vertices, int count, nint texture_id)
     {
-
+        throw new NotImplementedException();
     }
 
     public void pop_clip_rect()
