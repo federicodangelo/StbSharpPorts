@@ -9,7 +9,8 @@ using StbSharp.Examples;
 //[HardwareCounters(HardwareCounter.BranchMispredictions, HardwareCounter.BranchInstructions, HardwareCounter.CacheMisses)]
 public class FontBenchmark
 {
-    private Font font = new Font("ProggyClean", "Fonts/ProggyClean.ttf", 13, 1);
+    private readonly DummyRenderAdapter render_adapter = new DummyRenderAdapter();
+    private StbGuiFont font = new StbGuiFont("ProggyClean", "Fonts/ProggyClean.ttf", 13, 1, false, new DummyRenderAdapter());
     private StbGui.stbg_render_text_style_range[] styleRanges = new StbGui.stbg_render_text_style_range[1];
 
     public string FullText = @"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum sit amet nisl a urna bibendum tincidunt. Fusce rhoncus, ex eu lobortis tempor, ligula orci porta lectus, at ultricies dui lorem in lectus. Morbi lacinia odio fringilla metus molestie rhoncus. Vestibulum condimentum arcu orci. Nullam maximus ultricies dictum. Etiam nec accumsan quam. Maecenas ultrices tellus quis nunc volutpat cursus. Aenean pellentesque ipsum nec fermentum mattis. Curabitur varius feugiat odio, at tristique neque porttitor quis.
@@ -26,7 +27,7 @@ Ut egestas sagittis libero in convallis. Aliquam sed ex et sapien iaculis aliqua
     {
         styleRanges[0].text_color = StbGui.STBG_COLOR_WHITE;
         styleRanges[0].background_color = StbGui.STBG_COLOR_TRANSPARENT;
-        font.MeasureText(FullText.AsSpan().Slice(0, TextLength), 13, styleRanges.AsSpan(), StbGui.STBG_MEASURE_TEXT_OPTIONS.NONE);
+        StbGuiTextHelper.MeasureText(FullText.AsSpan().Slice(0, TextLength), font, 13, styleRanges.AsSpan(), StbGui.STBG_MEASURE_TEXT_OPTIONS.NONE);
     }
 
     [Benchmark]
@@ -45,7 +46,7 @@ Ut egestas sagittis libero in convallis. Aliquam sed ex et sapien iaculis aliqua
             vertical_alignment = -1,
         };
 
-        font.DrawText(parameters, bounds);
+        StbGuiTextHelper.DrawText(parameters, bounds, font, render_adapter);
     }
 
     [Benchmark]
@@ -64,7 +65,7 @@ Ut egestas sagittis libero in convallis. Aliquam sed ex et sapien iaculis aliqua
             vertical_alignment = -1,
         };
 
-        font.DrawText(parameters, bounds);
+        StbGuiTextHelper.DrawText(parameters, bounds, font, render_adapter);
     }
 }
 

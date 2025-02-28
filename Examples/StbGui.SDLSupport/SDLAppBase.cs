@@ -11,11 +11,11 @@ public class SDLAppBase : IDisposable
     private const int BACKGROUND_FPS = 30;
     private const int MAX_FPS = int.MaxValue;
 
-    private SDLFont mainFont;
+    private StbGuiFont mainFont;
     private nint renderer;
     private nint window;
-
     private bool use_fake_vsync;
+    private StbGuiRenderAdapter render_adapter;
 
     public struct MetricsInfo
     {
@@ -66,7 +66,9 @@ public class SDLAppBase : IDisposable
         SDL.SetWindowMinimumSize(window, options.MinWindowWidth, options.MinWindowHeight);
         SDL.EnableScreenSaver(); //Re-enable the screensaver that is disabled by default
 
-        mainFont = new SDLFont(options.DefaultFontName, options.DefaultFontPath, options.DefaultFontSize, options.FontRenderingOversampling, options.FontRenderingBilinear, renderer);
+        render_adapter = new SDLRenderAdapter(renderer);
+
+        mainFont = new StbGuiFont(options.DefaultFontName, options.DefaultFontPath, options.DefaultFontSize, options.FontRenderingOversampling, options.FontRenderingBilinear, render_adapter);
 
         InitStbGui();
     }
@@ -452,15 +454,15 @@ public class SDLAppBase : IDisposable
             },
             get_time_milliseconds = () =>
             {
-                return (long) SDL.GetTicks();
+                return (long)SDL.GetTicks();
             },
             get_performance_counter = () =>
             {
-                return (long) SDL.GetPerformanceCounter();
+                return (long)SDL.GetPerformanceCounter();
             },
             get_performance_counter_frequency = () =>
             {
-                return (long) SDL.GetPerformanceFrequency();
+                return (long)SDL.GetPerformanceFrequency();
             },
         };
     }
@@ -538,7 +540,7 @@ public class SDLAppBase : IDisposable
             font_style = style.style
         };
 
-        return mainFont.MeasureText(text, style.size, tmp_styles, options);
+        return StbGuiTextHelper.MeasureText(text, mainFont, style.size, tmp_styles, options);
     }
 
     private StbGui.stbg_position GetCharacterPositionInText(ReadOnlySpan<char> text, StbGui.stbg_font _, StbGui.stbg_font_style style, StbGui.STBG_MEASURE_TEXT_OPTIONS options, int character_index)
@@ -552,13 +554,14 @@ public class SDLAppBase : IDisposable
             font_style = style.style
         };
 
-        return mainFont.GetCharacterPositionInText(text, style.size, tmp_styles, options, character_index);
+        return StbGuiTextHelper.GetCharacterPositionInText(text, mainFont, style.size, tmp_styles, options, character_index);
     }
 
     private void DrawText(StbGui.stbg_render_text_parameters text, StbGui.stbg_rect bounds)
     {
         var font = StbGui.stbg_get_font_by_id(text.font_id);
-        mainFont.DrawText(text, bounds);
+
+        StbGuiTextHelper.DrawText(text, bounds, mainFont, render_adapter);
     }
 
     private void InitStbGui()

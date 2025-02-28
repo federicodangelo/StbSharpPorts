@@ -47,6 +47,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbGuiBenchmarks", "Benchma
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbGui.SDLSupport", "Examples\StbGui.SDLSupport\StbGui.SDLSupport.csproj", "{3ED86489-0AEE-44AA-A990-0D1720333C8C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbGui.Extended", "StbGui.Extended\StbGui.Extended.csproj", "{E955293F-086A-4845-B70A-2C9626D25DB7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -285,6 +287,18 @@ Global
 		{3ED86489-0AEE-44AA-A990-0D1720333C8C}.Release|x64.Build.0 = Release|Any CPU
 		{3ED86489-0AEE-44AA-A990-0D1720333C8C}.Release|x86.ActiveCfg = Release|Any CPU
 		{3ED86489-0AEE-44AA-A990-0D1720333C8C}.Release|x86.Build.0 = Release|Any CPU
+		{E955293F-086A-4845-B70A-2C9626D25DB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E955293F-086A-4845-B70A-2C9626D25DB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E955293F-086A-4845-B70A-2C9626D25DB7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E955293F-086A-4845-B70A-2C9626D25DB7}.Debug|x64.Build.0 = Debug|Any CPU
+		{E955293F-086A-4845-B70A-2C9626D25DB7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E955293F-086A-4845-B70A-2C9626D25DB7}.Debug|x86.Build.0 = Debug|Any CPU
+		{E955293F-086A-4845-B70A-2C9626D25DB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E955293F-086A-4845-B70A-2C9626D25DB7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E955293F-086A-4845-B70A-2C9626D25DB7}.Release|x64.ActiveCfg = Release|Any CPU
+		{E955293F-086A-4845-B70A-2C9626D25DB7}.Release|x64.Build.0 = Release|Any CPU
+		{E955293F-086A-4845-B70A-2C9626D25DB7}.Release|x86.ActiveCfg = Release|Any CPU
+		{E955293F-086A-4845-B70A-2C9626D25DB7}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
