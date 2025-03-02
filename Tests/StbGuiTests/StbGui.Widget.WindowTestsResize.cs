@@ -237,7 +237,7 @@ public class StbGuiWindowTestsResize : StbGuiTestsBase
         }
 
         // Wait another frame so the dragging operations starts
-        
+
         StbGui.stbg_begin_frame();
         {
             create_parent();

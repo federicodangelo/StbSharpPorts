@@ -48,6 +48,14 @@ public class TestRenderScreen
         test_render_screen[y][x].character_color = color;
     }
 
+    protected void SetTestRenderScreenPixelCharacterAndColor(int x, int y, char c, StbGui.stbg_color color, StbGui.stbg_color background_color)
+    {
+        if (IsClipped(x, y)) return;
+        test_render_screen[y][x].character = c;
+        test_render_screen[y][x].character_color = color;
+        test_render_screen[y][x].background_color = background_color;
+    }
+
     private bool IsClipped(int x, int y)
     {
         if (clipping_rects.Count == 0)
@@ -135,28 +143,50 @@ public class TestRenderScreen
                 {
                     var bounds = cmd.bounds;
                     var text = cmd.text.text.Span;
-                    var style_ranges = cmd.text.style_ranges.Length > 0 ? cmd.text.style_ranges.Span : [ cmd.text.single_style ];
-                    int text_index = 0;
+                    var measure_options = cmd.text.measure_options;
+                    var style_ranges = cmd.text.style_ranges.Length > 0 ? cmd.text.style_ranges.Span : [cmd.text.single_style];
+                    bool single_line = (measure_options & StbGui.STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE) != 0;
 
                     int style_index = 0;
                     var style = style_ranges[style_index];
                     var next_style_start_index = style_index + 1 < style_ranges.Length ? style_ranges[style_index + 1].start_index : int.MaxValue;
-                    
-                    for (int y = (int)bounds.y0; y < (int)bounds.y1 && text_index < text.Length; y++)
+
+                    var x = (int)bounds.x0;
+                    var y = (int)bounds.y0;
+
+                    for (var text_index = 0; text_index < text.Length; text_index++)
                     {
-                        for (int x = (int)bounds.x0; x < (int)bounds.x1 && text_index < text.Length; x++)
+                        char character = text[text_index];
+
+                        if (text_index == next_style_start_index)
                         {
-                            if (text_index == next_style_start_index)
-                            {
-                                style_index++;
-                                style = style_ranges[style_index];
-                                next_style_start_index = style_index + 1 < style_ranges.Length ? style_ranges[style_index + 1].start_index : int.MaxValue;
-                            }
-
-                            char character = text[text_index++];
-
-                            SetTestRenderScreenPixelCharacterAndColor(x, y, character, style.text_color);
+                            style_index++;
+                            style = style_ranges[style_index];
+                            next_style_start_index = style_index + 1 < style_ranges.Length ? style_ranges[style_index + 1].start_index : int.MaxValue;
                         }
+
+                        if (character == '\n')
+                        {
+                            if (single_line)
+                            {
+                                character = ' ';
+                            }
+                            else
+                            {
+                                x = (int)bounds.x0;
+                                y++;
+                                continue;
+                            }
+                        }
+
+                        if (x < bounds.x1 && y < bounds.y1)
+                        {
+                            if (style.background_color != StbGui.STBG_COLOR_TRANSPARENT)
+                                SetTestRenderScreenPixelCharacterAndColor(x, y, character, style.text_color, style.background_color);
+                            else
+                                SetTestRenderScreenPixelCharacterAndColor(x, y, character, style.text_color);
+                        }
+                        x++;
                     }
                     break;
                 }

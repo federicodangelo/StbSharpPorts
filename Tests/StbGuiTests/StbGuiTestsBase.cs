@@ -35,7 +35,37 @@ public class StbGuiTestsBase : IDisposable
             },
             copy_text_to_clipboard = (text) => { },
             get_clipboard_text = () => "",
-            get_character_position_in_text = (text, font, style, options, character_index) => StbGui.stbg_build_position_zero(),
+            get_character_position_in_text = (text, font, style, options, character_index) =>
+            {
+                int x = 0;
+                int y = 0;
+                var single_line = (options & StbGui.STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE) != 0;
+
+                for (int i = 0; i < character_index; i++)
+                {
+                    char c = text[i];
+                    if (i == character_index)
+                    {
+                        break;
+                    }
+                    if (c == '\n')
+                    {
+                        if (single_line)
+                        {
+                            c = ' ';
+                        }
+                        else
+                        {
+                            y += 1;
+                            x = 0;
+                            continue;
+                        }
+                    }
+                    x++;
+                }
+
+                return StbGui.stbg_build_position(x, y);
+            },
             set_input_method_editor = (info) => { },
             get_time_milliseconds = () => 0,
             get_performance_counter = () => 0,
@@ -404,6 +434,23 @@ public class StbGuiTestsBase : IDisposable
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.SCROLLBAR_THUMB_PRESSED_COLOR, StbGui.STBG_COLOR_MAGENTA);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.SCROLLBAR_BUTTON_PRESSED_BACKGROUND_COLOR, StbGui.STBG_COLOR_BLUE);
         StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.SCROLLBAR_BUTTON_PRESSED_COLOR, StbGui.STBG_COLOR_RED);
+
+        // TEXTBOX
+        var textboxPaddingTopBottom = MathF.Ceiling(font_style.size / 4);
+        var textboxPaddingLeftRight = MathF.Ceiling(font_style.size / 4);
+
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.TEXTBOX_PADDING_TOP, textboxPaddingTopBottom);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.TEXTBOX_PADDING_BOTTOM, textboxPaddingTopBottom);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT, textboxPaddingLeftRight);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.TEXTBOX_PADDING_RIGHT, textboxPaddingLeftRight);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.TEXTBOX_BACKGROUND_COLOR, StbGui.STBG_COLOR_CYAN);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.TEXTBOX_BORDER_COLOR, StbGui.STBG_COLOR_BLUE);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.TEXTBOX_BORDER_SIZE, 1);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.TEXTBOX_TEXT_COLOR, StbGui.STBG_COLOR_BLACK);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.TEXTBOX_CURSOR_COLOR, StbGui.STBG_COLOR_YELLOW);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.TEXTBOX_CURSOR_WIDTH, 1);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.TEXTBOX_CURSOR_HEIGHT, font_style.size);
+        StbGui.stbg_set_widget_style(StbGui.STBG_WIDGET_STYLE.TEXTBOX_CURSOR_BLINKING_RATE, 500);
     }
 
     protected void SetMousePosition(float x, float y)
@@ -424,6 +471,16 @@ public class StbGuiTestsBase : IDisposable
     protected void SetMouseScrollWheelAmount(float x, float y)
     {
         StbGui.stbg_add_user_input_event_mouse_wheel(x, y);
+    }
+
+    protected void PressKey(StbGui.STBG_KEYBOARD_KEY key, StbGui.STBG_KEYBOARD_MODIFIER_FLAGS modifiers, bool pressed)
+    {
+        StbGui.stbg_add_user_input_event_keyboard_key(key, modifiers, pressed);
+    }
+
+    protected void PressKeyCharacter(char c, StbGui.STBG_KEYBOARD_MODIFIER_FLAGS modifiers, bool pressed)
+    {
+        StbGui.stbg_add_user_input_event_keyboard_key_character(c, modifiers, pressed);
     }
 
     protected void DestroyGui()

@@ -34,7 +34,7 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.TEXTBOX_TEXT_COLOR, rgb(44, 62, 80));
         stbg_set_widget_style(STBG_WIDGET_STYLE.TEXTBOX_CURSOR_COLOR, rgb(44, 62, 80));
         stbg_set_widget_style(STBG_WIDGET_STYLE.TEXTBOX_CURSOR_WIDTH, 1);
-        stbg_set_widget_style(STBG_WIDGET_STYLE.TEXTBOX_CURSOR_HEIGHT, font_style.size);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.TEXTBOX_CURSOR_HEIGHT, font_style.size + 2);
         stbg_set_widget_style(STBG_WIDGET_STYLE.TEXTBOX_CURSOR_BLINKING_RATE, 500);
     }
 
@@ -532,12 +532,14 @@ public partial class StbGui
 
             if (blinking_state_visible)
             {
+                var cursor_y_offset = (line_height - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_CURSOR_HEIGHT)) / 2;
+
                 stbg__rc_draw_rectangle(
                     stbg_build_rect(
                         cursor_x,
-                        cursor_y - 1,
+                        cursor_y + cursor_y_offset,
                         cursor_x + stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_CURSOR_WIDTH),
-                        cursor_y + stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_CURSOR_HEIGHT) + 1
+                        cursor_y + stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_CURSOR_HEIGHT)
                     ),
                     stbg_get_widget_style_color(STBG_WIDGET_STYLE.TEXTBOX_CURSOR_COLOR)
                 );
