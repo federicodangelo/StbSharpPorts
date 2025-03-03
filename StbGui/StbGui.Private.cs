@@ -145,6 +145,7 @@ public partial class StbGui
     {
         stbg__assert(context.inside_frame);
         stbg__assert(context.first_free_widget_id != STBG_WIDGET_ID_NULL, "No more room for widgets");
+        stbg__assert(parent_id == STBG_WIDGET_ID_NULL || (stbg__get_widget_by_id_internal(parent_id).flags & STBG_WIDGET_FLAGS.ALLOW_CHILDREN) != 0, "Parent widget does not allow children");
 
         ref var widget =
             ref (stbg__find_widget_by_hash(hash, out var existingWidgetId) ?

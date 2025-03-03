@@ -9,27 +9,6 @@ public partial class StbGui
 {
     [ExcludeFromCodeCoverage]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static stbg_widget_intrinsic_size stbg__build_intrinsic_size_text()
-    {
-        return new stbg_widget_intrinsic_size()
-        {
-            type = STBG_INTRINSIC_SIZE_TYPE.MEASURE_TEXT,
-        };
-    }
-
-    [ExcludeFromCodeCoverage]
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static stbg_widget_intrinsic_size stbg__build_intrinsic_size_pixels(float width, float height)
-    {
-        return new stbg_widget_intrinsic_size()
-        {
-            type = STBG_INTRINSIC_SIZE_TYPE.FIXED_PIXELS,
-            size = stbg_build_size(width, height),
-        };
-    }
-
-    [ExcludeFromCodeCoverage]
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static stbg_widget_constrains stbg_build_constrains_unconstrained()
     {
         return new stbg_widget_constrains()

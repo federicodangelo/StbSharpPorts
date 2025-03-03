@@ -81,7 +81,7 @@ public partial class StbGui
             left = stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_LEFT),
             right = stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_RIGHT),
         };
-        layout.intrinsic_size = stbg__build_intrinsic_size_pixels(300, layout.constrains.min.height);
+        layout.intrinsic_size = stbg_build_size(300, layout.constrains.min.height);
 
         if (is_new || (textbox.properties.input_flags & STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED) == 0)
         {

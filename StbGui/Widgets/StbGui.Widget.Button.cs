@@ -46,14 +46,18 @@ public partial class StbGui
         ref var layout = ref button.properties.layout;
 
         layout.constrains = stbg_build_constrains_unconstrained();
-        layout.inner_padding = new stbg_padding()
+        var padding = new stbg_padding()
         {
             top = stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_TOP),
             bottom = stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_BOTTOM),
             left = stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_LEFT),
             right = stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_RIGHT),
         };
-        layout.intrinsic_size = stbg__build_intrinsic_size_text();
+
+        var text_size = stbg__measure_text( stbg__build_text(button.properties.text), STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE | STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE);
+        text_size = stbg_size_add_padding(text_size, padding);
+
+        layout.intrinsic_size = text_size;
 
         return ref button;
     }

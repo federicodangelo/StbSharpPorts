@@ -97,6 +97,7 @@ public partial class StbGui
     private static void stbg__window_init(ref stbg_widget window, ref bool is_open, bool is_new, ReadOnlySpan<char> title, STBG_WINDOW_OPTIONS options)
     {
         window.properties.text = stbg__add_string(title);
+        window.flags |= STBG_WIDGET_FLAGS.ALLOW_CHILDREN;
 
         var parameters = new stbg__window_parameters()
         {
@@ -133,7 +134,7 @@ public partial class StbGui
         if (is_new)
         {
             window.properties.layout.intrinsic_position = context.next_new_window_position;
-            window.properties.layout.intrinsic_size = stbg__build_intrinsic_size_pixels(stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH), stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT));
+            window.properties.layout.intrinsic_size = stbg_build_size(stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH), stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT));
 
             context.next_new_window_position = stbg_offset_position(context.next_new_window_position, stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_SPACING_BETWEEN_NEW_WINDOWS), stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_SPACING_BETWEEN_NEW_WINDOWS));
         }
@@ -356,7 +357,7 @@ public partial class StbGui
         {
             var parent_bounds = parent.properties.computed_bounds.global_rect;
 
-            ref var intrinsic_size = ref window.properties.layout.intrinsic_size.size;
+            ref var intrinsic_size = ref window.properties.layout.intrinsic_size;
             ref var intrinsic_position = ref window.properties.layout.intrinsic_position;
 
             if (resize_x == 0 && resize_y == 0 && allow_move)

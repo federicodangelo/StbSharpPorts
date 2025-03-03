@@ -95,22 +95,6 @@ public partial class StbGui
         public float bottom;
     }
 
-    public enum STBG_INTRINSIC_SIZE_TYPE
-    {
-        /// <summary>
-        /// Widget has no intrinsic size
-        /// </summary>
-        NONE,
-        /// <summary>
-        /// Widget has an intrinsic size in pixels
-        /// </summary>
-        FIXED_PIXELS,
-        /// <summary>
-        /// Widget has an intrinsic size based on the measurement of the text
-        /// </summary>
-        MEASURE_TEXT
-    };
-
     public record struct stbg_color
     {
         public byte r;
@@ -264,12 +248,6 @@ public partial class StbGui
         public double[] styles;
     }
 
-    public struct stbg_widget_intrinsic_size
-    {
-        public STBG_INTRINSIC_SIZE_TYPE type;
-        public stbg_size size;
-    }
-
     public struct stbg_widget_constrains
     {
         public stbg_size min;
@@ -299,9 +277,9 @@ public partial class StbGui
         public stbg_widget_constrains constrains;
 
         /// <summary>
-        /// Intrinsic size, doesn't include inner_padding, can be overridden if the widget doesn't fit in the expected bounds, or if it auto-expands
+        /// Intrinsic size, can be overridden if the widget doesn't fit in the expected bounds, or if it auto-expands
         /// </summary>
-        public stbg_widget_intrinsic_size intrinsic_size;
+        public stbg_size intrinsic_size;
 
         /// <summary>
         /// Intrinsic top-left position, used when the parent's children layout direction is FREE
@@ -400,6 +378,7 @@ public partial class StbGui
         NONE = 0,
         USED = 1 << 0,
         IGNORE = 1 << 1,
+        ALLOW_CHILDREN = 1 << 2,
     }
 
     [Flags]

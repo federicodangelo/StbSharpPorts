@@ -293,6 +293,7 @@ public partial class StbGui
 
         ref var root = ref stbg__add_widget(STBG_WIDGET_TYPE.ROOT, "root", out _);
         root.properties.layout.constrains.max = context.screen_size;
+        root.flags |= STBG_WIDGET_FLAGS.ALLOW_CHILDREN;
 
         context.current_widget_id = root.id;
         context.root_widget_id = root.id;
@@ -524,11 +525,7 @@ public partial class StbGui
         stbg__assert(widget_id != context.root_widget_id);
         ref var widget = ref stbg_get_widget_by_id(widget_id);
 
-        widget.properties.layout.intrinsic_size =
-            stbg__build_intrinsic_size_pixels(
-                Math.Max(width, 0),
-                Math.Max(height, 0)
-        );
+        widget.properties.layout.intrinsic_size = stbg_build_size(Math.Max(width, 0), Math.Max(height, 0));
     }
 
     /// <summary>
@@ -581,14 +578,7 @@ public partial class StbGui
     /// <param name="spacing">Spacing between children</param>
     public static void stbg_begin_container(ReadOnlySpan<char> identifier, STBG_CHILDREN_LAYOUT layout_direction, stbg_widget_constrains constrains, float spacing)
     {
-        ref var container = ref stbg__add_widget(STBG_WIDGET_TYPE.CONTAINER, identifier, out _);
-
-        ref var layout = ref container.properties.layout;
-
-        layout.inner_padding = new stbg_padding();
-        layout.constrains = constrains;
-        layout.children_layout_direction = layout_direction;
-        layout.children_spacing = spacing;
+        ref var container = ref stbg__container_create(identifier, layout_direction, constrains, spacing);
 
         context.current_widget_id = container.id;
     }
