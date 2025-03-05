@@ -28,7 +28,7 @@ public class SDLApp : SDLAppBase
     private float scrollbar_value = 50;
     private int scrollbar_value_int = 50;
 
-    private readonly StringMemoryPool mp = new StringMemoryPool();
+    private readonly StbGuiStringMemoryPool mp = new StbGuiStringMemoryPool();
 
     private bool show_title = true;
     private bool resizable = true;

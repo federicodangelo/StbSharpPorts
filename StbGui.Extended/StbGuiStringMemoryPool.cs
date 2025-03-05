@@ -1,14 +1,13 @@
-namespace StbSharp.Examples;
+namespace StbSharp;
 
 using System.Diagnostics;
-using StbSharp;
 
-public class StringMemoryPool
+public class StbGuiStringMemoryPool
 {
     private readonly Memory<char> memoryPool;
     private int memoryPoolOffset = 0;
 
-    public StringMemoryPool(int size = 1024 * 1024)
+    public StbGuiStringMemoryPool(int size = 1024 * 1024)
     {
         Debug.Assert(size >= 0);
         memoryPool = new Memory<char>(new char[size]);

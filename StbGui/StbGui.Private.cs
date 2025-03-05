@@ -15,12 +15,16 @@ public partial class StbGui
 
     private static void stbg_init_context(ref stbg_context context, stbg_external_dependencies external_dependencies, stbg_init_options options)
     {
+        // Initialize the assert behavior first so all configuration related asserts work as expected
+        context.init_options.assert_behavior = options.assert_behavior;
+
         stbg__assert(external_dependencies.measure_text != null);
         stbg__assert(external_dependencies.get_character_position_in_text != null);
         stbg__assert(external_dependencies.render != null);
         stbg__assert(external_dependencies.get_clipboard_text != null);
         stbg__assert(external_dependencies.copy_text_to_clipboard != null);
         stbg__assert(external_dependencies.set_input_method_editor != null);
+        stbg__assert(external_dependencies.get_performance_counter != null);
 
         if (options.max_widgets == 0)
             options.max_widgets = DEFAULT_MAX_WIDGETS;
