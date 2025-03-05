@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OptimizationPreference>Speed</OptimizationPreference>
+    <TrimMode>full</TrimMode>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+
+    <!-- Use Invariant Globalization only -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <InvariantTimezone>true</InvariantTimezone>
+
+    <!-- Remove stack trace info from AOT builds-->
+    <StackTraceSupport>false</StackTraceSupport>
+
+    <!-- WASM Specific configuration -->
+    <RuntimeIdentifier>browser-wasm</RuntimeIdentifier>
+    <WasmMainJSPath>main.js</WasmMainJSPath>    
+
+    <!-- JSExport requires unsafe code -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>    
+
+    <!-- Disable symbol map generation -->
+    <WasmEmitSymbolMap>false</WasmEmitSymbolMap>
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <WasmExtraFilesToDeploy Include="index.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Fonts\*.ttf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\StbGui\StbGui.csproj" />
+    <ProjectReference Include="..\..\StbGui.Extended\StbGui.Extended.csproj" />
+    <ProjectReference Include="..\..\StbCommon\StbCommon.csproj" />
+    <ProjectReference Include="..\..\StbTrueType\StbTrueType.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="9.0.2" />
+  </ItemGroup>
+  
+</Project>

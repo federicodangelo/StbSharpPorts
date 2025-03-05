@@ -14,11 +14,17 @@ public record class StbGuiFont : IDisposable
     public readonly int oversampling;
     public readonly float oversampling_scale;
     public readonly nint texture_id;
-    
+
     private StbTrueType.stbtt_fontinfo font_info;
     private StbGuiRenderAdapter render_adapter;
 
     public StbGuiFont(string name, string filename, float font_size, int oversampling, bool use_bilinear_filtering, StbGuiRenderAdapter render_adapter)
+        : this(name, File.ReadAllBytes(filename), font_size, oversampling, use_bilinear_filtering, render_adapter)
+    {
+
+    }
+
+    public StbGuiFont(string name, byte[] font_bytes, float font_size, int oversampling, bool use_bilinear_filtering, StbGuiRenderAdapter render_adapter)
     {
         this.render_adapter = render_adapter;
 
@@ -28,7 +34,6 @@ public record class StbGuiFont : IDisposable
         this.oversampling = oversampling;
         this.oversampling_scale = 1.0f / (float)oversampling;
 
-        byte[] font_bytes = File.ReadAllBytes(filename);
         StbTrueType.stbtt_InitFont(out font_info, font_bytes, 0);
 
         font_scale = StbTrueType.stbtt_ScaleForPixelHeight(ref font_info, font_size);
@@ -108,7 +113,7 @@ public record class StbGuiFont : IDisposable
     {
         return StbTrueType.stbtt_GetCodepointKernAdvance(ref font_info, ch1, ch2);
     }
-    
+
 
     public void Dispose()
     {
