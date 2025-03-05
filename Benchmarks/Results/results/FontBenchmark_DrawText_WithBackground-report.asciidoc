@@ -1,0 +1,17 @@
+....
+BenchmarkDotNet v0.14.0, Windows 11 (10.0.26100.3194)
+13th Gen Intel Core i7-13700K, 1 CPU, 24 logical and 16 physical cores
+.NET SDK 9.0.200
+  [Host]     : .NET 9.0.2 (9.0.225.6610), X64 RyuJIT AVX2
+  DefaultJob : .NET 9.0.2 (9.0.225.6610), X64 RyuJIT AVX2
+
+....
+[options="header"]
+|===
+|Method                  |TextLength  |Mean           |Error         |StdDev        
+|DrawTextWithBackground  |1           |       45.31 ns|      0.085 ns|      0.075 ns
+|DrawTextWithBackground  |10          |      165.45 ns|      0.903 ns|      0.844 ns
+|DrawTextWithBackground  |100         |    1,385.22 ns|      5.489 ns|      4.584 ns
+|DrawTextWithBackground  |1000        |   14,814.05 ns|    292.108 ns|    647.290 ns
+|DrawTextWithBackground  |10000       |  137,545.66 ns|  2,702.884 ns|  3,789.066 ns
+|===

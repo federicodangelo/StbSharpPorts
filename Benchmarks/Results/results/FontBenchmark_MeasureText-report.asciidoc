@@ -1,0 +1,17 @@
+....
+BenchmarkDotNet v0.14.0, Windows 11 (10.0.26100.3194)
+13th Gen Intel Core i7-13700K, 1 CPU, 24 logical and 16 physical cores
+.NET SDK 9.0.200
+  [Host]     : .NET 9.0.2 (9.0.225.6610), X64 RyuJIT AVX2
+  DefaultJob : .NET 9.0.2 (9.0.225.6610), X64 RyuJIT AVX2
+
+....
+[options="header"]
+|===
+|Method       |TextLength  |Mean           |Error       |StdDev      
+|MeasureText  |1           |       8.109 ns|   0.0473 ns|   0.0442 ns
+|MeasureText  |10          |      34.948 ns|   0.0946 ns|   0.0885 ns
+|MeasureText  |100         |     307.033 ns|   1.3842 ns|   1.2948 ns
+|MeasureText  |1000        |   2,898.024 ns|   8.3002 ns|   7.3579 ns
+|MeasureText  |10000       |  27,082.617 ns|  97.9425 ns|  91.6155 ns
+|===
