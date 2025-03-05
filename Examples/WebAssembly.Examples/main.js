@@ -9,8 +9,14 @@ const { getAssemblyExports, getConfig } = await dotnet
 const config = getConfig();
 const exports = await getAssemblyExports(config.mainAssemblyName);
 
+globalThis.exports = exports;
+
 // Access JSExport methods using exports.<Namespace>.<Type>.<Method>
-let result = exports.Sample.Init();
+const sample = exports.Sample;
+
+sample.Init();
+
+let result = sample.RenderText("Hello Fede :-)");
 
 console.log(result);
 

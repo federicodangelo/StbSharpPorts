@@ -43,6 +43,12 @@
     <ProjectReference Include="..\..\StbTrueType\StbTrueType.csproj" />
   </ItemGroup>
 
+<ItemGroup>
+    <!-- extends watching group to include *.js files -->
+    <Watch Include="*.js"/>
+    <Watch Include="*.html"/>
+</ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="9.0.2" />
   </ItemGroup>

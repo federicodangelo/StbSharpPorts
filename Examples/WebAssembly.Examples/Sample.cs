@@ -18,11 +18,9 @@ public partial class Sample
     private static Sample instance;
 
     [JSExport]
-    public static string Init()
+    public static void Init()
     {
         instance = new Sample();
-        
-        return instance.Run();
     }
 
     public Sample()
@@ -31,11 +29,17 @@ public partial class Sample
         InitStbGui();
     }
 
+    [JSExport]
+    public static string RenderText(string text)
+    {
+        return instance.Run(text);
+    }
+
     private string Run(string text = "hello World", string fileName = "Fonts/Karla-Regular.ttf", int fontSize = 20)
     {
         var console = "";
 
-        int ScreenWidth = 100;
+        int ScreenWidth = text.Length * fontSize;
         int ScreenHeight = fontSize;
 
         BytePtr screen = new BytePtr(new byte[ScreenHeight * ScreenWidth]);
