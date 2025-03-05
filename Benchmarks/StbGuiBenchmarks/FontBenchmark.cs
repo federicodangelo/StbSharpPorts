@@ -1,17 +1,8 @@
 ﻿using BenchmarkDotNet.Attributes;
 using StbSharp;
 
-public class FontBenchmark
+public class FontBenchmark : GuiBenchmark
 {
-    protected readonly DummyRenderAdapter render_adapter = new DummyRenderAdapter();
-    protected readonly StbGuiFont font;
-    protected readonly StbGui.stbg_render_text_style_range[] styleRanges = new StbGui.stbg_render_text_style_range[1];
-
-    public FontBenchmark()
-    {
-        font = new StbGuiFont("ProggyClean", "Fonts/ProggyClean.ttf", 13, 1, false, render_adapter);
-    }
-
     public string FullText = @"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam vitae molestie neque. Aenean laoreet leo neque. Nam sed eros orci. Mauris pulvinar suscipit dolor sit amet tincidunt. Cras quis tellus tortor. Cras efficitur risus ut dictum accumsan. Morbi nulla dui, blandit at purus nec, scelerisque vehicula mi. Etiam dapibus diam sed mauris molestie, a condimentum neque molestie. Maecenas eu neque et sapien mollis lacinia a ac justo.
 Sed sit amet dapibus dui. Proin laoreet augue a enim faucibus viverra. Nulla vel dui ullamcorper, tempus ex sit amet, ornare ex. Curabitur efficitur justo a turpis pharetra scelerisque. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed tincidunt dignissim elit, id rutrum diam aliquet id. Quisque a tincidunt turpis, at ultricies felis. Nullam vulputate fermentum neque sed tristique. Sed in luctus elit, semper iaculis neque. Nullam iaculis faucibus aliquam. Quisque eget dui et nisl interdum placerat sit amet vitae libero.
 Vivamus tincidunt nunc at elit finibus, vitae dapibus massa volutpat. Aenean gravida nisl nibh, at maximus diam bibendum non. Etiam tempor, dolor quis convallis hendrerit, lectus magna interdum neque, vel malesuada orci dui sit amet felis. Curabitur at purus leo. Maecenas tempor egestas metus, in sagittis sapien placerat et. Mauris quis eros in diam vehicula rutrum eu vitae odio. Ut eu enim vel urna interdum pulvinar et convallis libero.
@@ -48,4 +39,3 @@ Nullam semper quam eu sem posuere ultrices. Donec pretium, neque quis iaculis ma
     [Params(1, 10, 100, 1000, 10000)]
     public int TextLength;
 }
-

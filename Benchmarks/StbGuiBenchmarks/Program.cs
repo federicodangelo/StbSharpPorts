@@ -10,9 +10,9 @@ var config = ManualConfig.
     .AddExporter(MarkdownExporter.GitHub)
     .AddExporter(AsciiDocExporter.Default);
 
-//BenchmarkRunner.Run<FontBenchmark_MeasureText>(config);
-//BenchmarkRunner.Run<FontBenchmark_DrawText_NoBackground>(config);
-//BenchmarkRunner.Run<FontBenchmark_DrawText_WithBackground>(config);
+BenchmarkRunner.Run<FontBenchmark_MeasureText>(config);
+BenchmarkRunner.Run<FontBenchmark_DrawText_NoBackground>(config);
+BenchmarkRunner.Run<FontBenchmark_DrawText_WithBackground>(config);
 
 BenchmarkRunner.Run<LayoutBenchmark_Window_Empty>(config);
 BenchmarkRunner.Run<LayoutBenchmark_Window_OneButton>(config);
