@@ -12,6 +12,7 @@
     
     <!-- Use Invariant Globalization only -->
     <InvariantGlobalization>true</InvariantGlobalization>
+    <InvariantTimezone>true</InvariantTimezone>
 
     <!-- Remove stack trace info from AOT builds-->
     <StackTraceSupport>false</StackTraceSupport>
