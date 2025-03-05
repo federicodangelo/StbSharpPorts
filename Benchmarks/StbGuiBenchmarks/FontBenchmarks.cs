@@ -1,9 +1,7 @@
 ﻿using BenchmarkDotNet;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
-using SDL3;
 using StbSharp;
-using StbSharp.Examples;
 
 //[MemoryDiagnoser]
 //[HardwareCounters(HardwareCounter.BranchMispredictions, HardwareCounter.BranchInstructions, HardwareCounter.CacheMisses)]
