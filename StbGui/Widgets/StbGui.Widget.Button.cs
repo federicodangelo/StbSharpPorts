@@ -57,7 +57,7 @@ public partial class StbGui
         var text_size = stbg__measure_text( stbg__build_text(button.properties.text), STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE | STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE);
         text_size = stbg_size_add_padding(text_size, padding);
 
-        layout.intrinsic_size = text_size;
+        layout.intrinsic_size.size = text_size;
 
         return ref button;
     }

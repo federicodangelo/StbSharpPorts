@@ -267,6 +267,36 @@ public partial class StbGui
         NONE = 0,
         ALLOW_CHILDREN_OVERFLOW = 1 << 0,
         PARENT_CONTROLLED = 1 << 1,
+        INTRINSIC_SIZE_IS_MAX_SIZE = 1 << 2,
+    }
+
+    public enum STBG_INTRINSIC_POSITION_DOCKING
+    {
+        NONE,
+        TOP,
+        BOTTOM,
+        LEFT,
+        RIGHT,
+    }
+
+    public struct stbg_widget_intrinsic_position
+    {
+        public stbg_position position;
+
+        public STBG_INTRINSIC_POSITION_DOCKING docking;
+
+        public float docking_padding;
+    }
+
+    public struct stbg_widget_intrinsic_size
+    {
+        public stbg_size size;
+
+        public bool expand_width;
+
+        public bool expand_height;
+
+        public stbg_padding expand_padding;
     }
 
     public struct stbg_widget_layout
@@ -279,12 +309,12 @@ public partial class StbGui
         /// <summary>
         /// Intrinsic size, can be overridden if the widget doesn't fit in the expected bounds, or if it auto-expands
         /// </summary>
-        public stbg_size intrinsic_size;
+        public stbg_widget_intrinsic_size intrinsic_size;
 
         /// <summary>
-        /// Intrinsic top-left position, used when the parent's children layout direction is FREE
+        /// Intrinsic position, used when the parent's children layout direction is FREE
         /// </summary>
-        public stbg_position intrinsic_position;
+        public stbg_widget_intrinsic_position intrinsic_position;
 
         /// <summary>
         /// Intrinsic sorting index value, used when the parent's children layout direction is FREE to sort the children

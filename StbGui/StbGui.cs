@@ -504,8 +504,8 @@ public partial class StbGui
 
         stbg__warning(stbg_get_widget_by_id(widget.hierarchy.parent_id).properties.layout.children_layout_direction == STBG_CHILDREN_LAYOUT.FREE, "Position of widgets inside non-free parents is ignored");
 
-        widget.properties.layout.intrinsic_position.x = Math.Max(x, 0);
-        widget.properties.layout.intrinsic_position.y = Math.Max(y, 0);
+        widget.properties.layout.intrinsic_position.position.x = Math.Max(x, 0);
+        widget.properties.layout.intrinsic_position.position.y = Math.Max(y, 0);
     }
 
     /// <summary>
@@ -525,7 +525,7 @@ public partial class StbGui
         stbg__assert(widget_id != context.root_widget_id);
         ref var widget = ref stbg_get_widget_by_id(widget_id);
 
-        widget.properties.layout.intrinsic_size = stbg_build_size(Math.Max(width, 0), Math.Max(height, 0));
+        widget.properties.layout.intrinsic_size.size = stbg_build_size(Math.Max(width, 0), Math.Max(height, 0));
     }
 
     /// <summary>
