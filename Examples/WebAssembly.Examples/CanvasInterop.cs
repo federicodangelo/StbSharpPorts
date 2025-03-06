@@ -38,6 +38,12 @@ public partial class CanvasInterop
     [JSImport("copyCanvasPixels", "canvas-interop")]
     public static partial void CopyCanvasPixels(int id, int fromX, int fromY, int fromWidth, int fromHeight, int toX, int toY, int toWidth, int toHeight, byte r, byte g, byte b, byte a);
 
+
+    public const int COPY_CANVAS_PIXELS_BATCH_ELEMENT_SIZE = 12;
+
+    [JSImport("copyCanvasPixelsBatch", "canvas-interop")]
+    public static partial void CopyCanvasPixelsBatch(int id, [JSMarshalAs<JSType.MemoryView>] Span<int> buffer);
+
     [JSImport("getEventsCount", "canvas-interop")]
     public static partial int GetEventsCount();
 

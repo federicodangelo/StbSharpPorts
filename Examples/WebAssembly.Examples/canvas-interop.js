@@ -45,7 +45,7 @@ export function init() {
     document.addEventListener('keydown', (evt) => {
         input_events.push({ type: KEY_DOWN_EVENT_TYPE, alt: evt.altKey ? 1 : 0, ctrl: evt.ctrlKey ? 1 : 0, meta: evt.metaKey ? 1 : 0, shift: evt.shiftKey ? 1 : 0, key: evt.key, code: evt.code });
     });
-    
+
     document.addEventListener('keyup', (evt) => {
         input_events.push({ type: KEY_UP_EVENT_TYPE, alt: evt.altKey ? 1 : 0, ctrl: evt.ctrlKey ? 1 : 0, meta: evt.metaKey ? 1 : 0, shift: evt.shiftKey ? 1 : 0, key: evt.key, code: evt.code });
     });
@@ -148,39 +148,95 @@ export function destroyCanvas(id) {
     delete canvases[id];
 }
 
+function getCanvas(id) {
+    return canvases[id];
+}
+
+function getCanvasTinted(id, r, g, b, a) {
+    if (r === 255 && g === 255 && b === 255 && a === 255) {
+        return getCanvas(id);
+    }
+
+    const style = buildFillStyle(r, g, b, a);
+    const tinted_id = id + "-" + style;
+    let canvas_tinted = canvases_tinted[tinted_id];
+
+    if (!canvas_tinted) {
+        const canvas = getCanvas(id);
+
+        canvas_tinted = document.createElement("canvas");
+        canvas_tinted.width = canvas.width;
+        canvas_tinted.height = canvas.height;
+
+        const ctx_tinted = canvas_tinted.getContext("2d");
+        ctx_tinted.fillStyle = style;
+        ctx_tinted.fillRect(0, 0, canvas.width, canvas.height);
+        ctx_tinted.globalCompositeOperation = "destination-atop";
+        ctx_tinted.drawImage(canvas, 0, 0);
+
+        canvases_tinted[tinted_id] = canvas_tinted;
+    }
+
+    return canvas_tinted;
+}
+
 export function setCanvasPixels(id, width, height, pixels) {
-    const canvas = canvases[id];
+    const canvas = getCanvas(id);
     const canvasCtx = canvas.getContext("2d");
     const imageData = canvasCtx.createImageData(width, height);
     pixels.copyTo(new Uint8Array(imageData.data.buffer));
     canvasCtx.putImageData(imageData, 0, 0);
 }
 
+export function copyCanvasPixelsBatch(id, batch_memory_view) {
+    const batch = batch_memory_view.slice();
+
+    for (let i = 0; i < batch.length; i += 12) {
+        const fromX = batch[i + 0];
+        const fromY = batch[i + 1];
+        const fromWidth = batch[i + 2];
+        const fromHeight = batch[i + 3];
+        const toX = batch[i + 4];
+        const toY = batch[i + 5];
+        const toWidth = batch[i + 6];
+        const toHeight = batch[i + 7];
+        const r = batch[i + 8];
+        const g = batch[i + 9];
+        const b = batch[i + 10];
+        const a = batch[i + 11];
+
+        copyCanvasPixels(id, fromX, fromY, fromWidth, fromHeight, toX, toY, toWidth, toHeight, r, g, b, a);
+    }
+}
+
+let last_copy_canvas_pixels_id = 0;
+let last_copy_canvas_pixels_r = 0;
+let last_copy_canvas_pixels_g = 0;
+let last_copy_canvas_pixels_b = 0;
+let last_copy_canvas_pixels_a = 0;
+
+let last_copy_canvas_pixels_canvas_tinted;
+let last_copy_canvas_pixels_fill_style;
+
 export function copyCanvasPixels(id, fromX, fromY, fromWidth, fromHeight, toX, toY, toWidth, toHeight, r, g, b, a) {
-    var style = buildFillStyle(r, g, b, a);
-    if (id === 0) {
-        ctx.fillStyle = style;
-        ctx.fillRect(toX, toY, toWidth, toHeight);        
-    } else {
-        const tinted_id = id + "-" + style;
-        let canvas_tinted = canvases_tinted[tinted_id];
+    if (last_copy_canvas_pixels_id !== id || last_copy_canvas_pixels_r !== r || last_copy_canvas_pixels_g !== g || last_copy_canvas_pixels_b !== b || last_copy_canvas_pixels_a !== a) {
+        last_copy_canvas_pixels_r = r;
+        last_copy_canvas_pixels_g = g;
+        last_copy_canvas_pixels_b = b;
+        last_copy_canvas_pixels_a = a;
+        last_copy_canvas_pixels_id = id;
 
-        if (!canvas_tinted) {
-            const canvas = canvases[id];
-
-            canvas_tinted = document.createElement("canvas");
-            canvas_tinted.width = canvas.width;
-            canvas_tinted.height = canvas.height;
-
-            const ctx_tinted = canvas_tinted.getContext("2d");
-            ctx_tinted.fillStyle = style;
-            ctx_tinted.fillRect(0, 0, canvas.width, canvas.height);
-            ctx_tinted.globalCompositeOperation = "destination-atop";
-            ctx_tinted.drawImage(canvas, 0, 0);
-
-            canvases_tinted[tinted_id] = canvas_tinted;
+        if (id != 0) {
+            last_copy_canvas_pixels_canvas_tinted = getCanvasTinted(id, r, g, b, a);
+        } else {
+            last_copy_canvas_pixels_fill_style = buildFillStyle(r, g, b, a);
         }
+    }
 
-        ctx.drawImage(canvas_tinted, fromX, fromY, fromWidth, fromHeight, toX, toY, toWidth, toHeight);
+    if (id === 0) {
+        ctx.fillStyle = last_copy_canvas_pixels_fill_style;
+        ctx.fillRect(toX, toY, toWidth, toHeight);
+    } else {
+        ctx.drawImage(last_copy_canvas_pixels_canvas_tinted, fromX, fromY, fromWidth, fromHeight, toX, toY, toWidth, toHeight);
     }
 }
