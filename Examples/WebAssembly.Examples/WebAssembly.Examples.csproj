@@ -18,15 +18,17 @@
 
     <!-- WASM Specific configuration -->
     <RuntimeIdentifier>browser-wasm</RuntimeIdentifier>
-    <WasmMainJSPath>main.js</WasmMainJSPath>    
+    <WasmMainJSPath>main.js</WasmMainJSPath>
 
     <!-- JSExport requires unsafe code -->
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>    
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <!-- Symbol map generation -->
+    <RunAOTCompilation>true</RunAOTCompilation>
     <WasmEmitSymbolMap>false</WasmEmitSymbolMap>
-    <!-- <WasmNativeStrip>false</WasmNativeStrip> -->
-    <!-- <RunAOTCompilation>True</RunAOTCompilation> -->
+    <WasmEmitSourceMap>false</WasmEmitSourceMap>
+    <WasmNativeStrip>true</WasmNativeStrip>
+    <WasmEnableSIMD>true</WasmEnableSIMD>
 
   </PropertyGroup>
 
@@ -47,14 +49,14 @@
     <ProjectReference Include="..\..\StbTrueType\StbTrueType.csproj" />
   </ItemGroup>
 
-<ItemGroup>
+  <ItemGroup>
     <!-- extends watching group to include *.js files -->
     <Watch Include="*.js"/>
     <Watch Include="*.html"/>
-</ItemGroup>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="9.0.2" />
   </ItemGroup>
-  
+
 </Project>
