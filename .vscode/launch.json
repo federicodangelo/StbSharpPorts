@@ -4,20 +4,24 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-    
         {
             "name": "C#: Examples Debug",
             "type": "dotnet",
             "request": "launch",
             "projectPath": "${workspaceFolder}/Examples/StbImage.Examples/StbImage.Examples.csproj"
         },
-
         {
             "name": "C#: StbGui Examples Debug",
             "type": "dotnet",
             "request": "launch",
             "projectPath": "${workspaceFolder}/Examples/StbGui.Examples/StbGui.Examples.csproj"
+        },
+        {
+            "name": "C#: StbGui WebAssembly Examples Debug",
+            "type": "blazorwasm",
+            "request": "launch",
+            //"browser": "chrome",
+            "url": "http://localhost:5133/"
         }
-
     ]
 }
