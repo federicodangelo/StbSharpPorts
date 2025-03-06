@@ -368,11 +368,18 @@ public partial class StbGui
             stbg__assert_internal(bucket.first_widget_in_bucket == widget.id);
 
             bucket.first_widget_in_bucket = widget.hash_chain.next_same_bucket;
+
+            if (widget.hash_chain.next_same_bucket != STBG_WIDGET_ID_NULL)
+                stbg__get_widget_by_id_internal(widget.hash_chain.next_same_bucket).hash_chain.prev_same_bucket = STBG_WIDGET_ID_NULL;
         }
         else
         {
             // We are NOT the first element, make the previous entry point to the next one in our hash list
             stbg__get_widget_by_id_internal(widget.hash_chain.prev_same_bucket).hash_chain.next_same_bucket = widget.hash_chain.next_same_bucket;
+
+            // And now make the next entry point to the previous one in our hash list
+            if (widget.hash_chain.next_same_bucket != STBG_WIDGET_ID_NULL)
+                stbg__get_widget_by_id_internal(widget.hash_chain.next_same_bucket).hash_chain.prev_same_bucket = widget.hash_chain.prev_same_bucket;
         }
 
         widget.hash_chain = new stbg_widget_hash_chain();
