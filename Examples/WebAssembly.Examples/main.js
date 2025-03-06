@@ -11,21 +11,21 @@ const exports = await getAssemblyExports(config.mainAssemblyName);
 
 globalThis.exports = exports;
 
-// Access JSExport methods using exports.<Namespace>.<Type>.<Method>
 const main = exports.Main;
 
 await main.Init();
 
-let result = main.RenderText("Hello Fede :-)");
-
-console.log(result);
-
-result = result.replaceAll("\n", "<br/>");
-
+//let result = main.RenderText("Hello Fede :-)");
+//console.log(result);
+//result = result.replaceAll("\n", "<br/>");
 // Display the result of the .NET method
-document.getElementById("out").innerHTML = result;
+//document.getElementById("out").innerHTML = result;
 
 function render() {
+    const canvas = document.getElementById("myCanvas");
+    const ctx = canvas.getContext("2d");
+    ctx.canvas.width = window.innerWidth;
+    ctx.canvas.height = window.innerHeight;
     main.Render();
     requestAnimationFrame(render);
 }

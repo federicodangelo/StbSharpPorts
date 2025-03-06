@@ -2,8 +2,6 @@ namespace StbSharp.Examples;
 
 using System;
 using System.Diagnostics;
-using System.Net.WebSockets;
-using System.Runtime.InteropServices;
 using Microsoft.Extensions.FileProviders;
 using StbSharp;
 
@@ -83,9 +81,11 @@ public class WAAppBase : IDisposable
 
     public void LoopOnce()
     {
-       var frame_start_ms = sw.ElapsedMilliseconds;
+        UpdateCanvasSize();
 
-        //var quit = ProcessSDLEvents();
+        var frame_start_ms = sw.ElapsedMilliseconds;
+
+        ProcessWAEvents();
 
         //if (quit) break;
 
@@ -99,7 +99,7 @@ public class WAAppBase : IDisposable
 
         StbGui.stbg_render();
 
-        //UpdateActiveCursor();
+        UpdateActiveCursor();
 
         UpdateMetrics();
 
@@ -112,42 +112,40 @@ public class WAAppBase : IDisposable
         //FrameDelay(frame_ns);
     }
 
-    /*
-
-    private SDL.SystemCursor last_active_cursor = SDL.SystemCursor.Default;
+    private string last_active_cursor = "";
 
     private void UpdateActiveCursor()
     {
-        SDL.SystemCursor cursor = SDL.SystemCursor.Default;
+        string cursor = "";
 
         switch (StbGui.stbg_get_cursor())
         {
             case StbGui.STBG_ACTIVE_CURSOR_TYPE.DEFAULT:
-                cursor = SDL.SystemCursor.Default;
+                cursor = "default";
                 break;
             case StbGui.STBG_ACTIVE_CURSOR_TYPE.RESIZE_N:
-                cursor = SDL.SystemCursor.NResize;
+                cursor = "n-resize";
                 break;
             case StbGui.STBG_ACTIVE_CURSOR_TYPE.RESIZE_NE:
-                cursor = SDL.SystemCursor.NEResize;
+                cursor = "ne-resize";
                 break;
             case StbGui.STBG_ACTIVE_CURSOR_TYPE.RESIZE_NW:
-                cursor = SDL.SystemCursor.NWResize;
+                cursor = "nw-resize";
                 break;
             case StbGui.STBG_ACTIVE_CURSOR_TYPE.RESIZE_E:
-                cursor = SDL.SystemCursor.EResize;
+                cursor = "e-resize";
                 break;
             case StbGui.STBG_ACTIVE_CURSOR_TYPE.RESIZE_W:
-                cursor = SDL.SystemCursor.WResize;
+                cursor = "w-resize";
                 break;
             case StbGui.STBG_ACTIVE_CURSOR_TYPE.RESIZE_S:
-                cursor = SDL.SystemCursor.SResize;
+                cursor = "s-resize";
                 break;
             case StbGui.STBG_ACTIVE_CURSOR_TYPE.RESIZE_SE:
-                cursor = SDL.SystemCursor.SEResize;
+                cursor = "se-resize";
                 break;
             case StbGui.STBG_ACTIVE_CURSOR_TYPE.RESIZE_SW:
-                cursor = SDL.SystemCursor.SWResize;
+                cursor = "sw-resize";
                 break;
         }
 
@@ -155,13 +153,9 @@ public class WAAppBase : IDisposable
         {
             last_active_cursor = cursor;
 
-            var system_cursor = SDL.CreateSystemCursor(cursor);
-
-            if (system_cursor != 0)
-                SDL.SetCursor(system_cursor);
+            CanvasInterop.SetCursor(cursor);
         }
     }
-    */
 
     private void UpdateMetrics()
     {
@@ -172,10 +166,12 @@ public class WAAppBase : IDisposable
         frames_count++;
         if (now_ms - frames_count_ms > 1000)
         {
-            updatedMetrics.Fps = (int)Math.Round(frames_count / ((sw.ElapsedMilliseconds - frames_count_ms) / 1000.0f));
+            updatedMetrics.Fps = (int)Math.Round(frames_count / ((now_ms - frames_count_ms) / 1000.0f));
+
+            //Console.WriteLine($"FPS: {updatedMetrics.Fps}");
 
             frames_count = 0;
-            frames_count_ms = sw.ElapsedMilliseconds;
+            frames_count_ms = now_ms;
         }
 
         // Update memory usage
@@ -192,6 +188,38 @@ public class WAAppBase : IDisposable
         updatedMetrics.TotalGarbageCollectionsPerformed = collectionCount;
 
         Metrics = updatedMetrics;
+    }
+
+    private void ProcessWAEvents()
+    {
+        var count = CanvasInterop.GetEventsCount();
+
+        for (int i = 0; i < count; i++)
+        {
+            var e = CanvasInterop.GetEvent(i);
+
+            switch (e)
+            {
+                case 1: //"mouse_down":
+                    StbGui.stbg_add_user_input_event_mouse_position(CanvasInterop.GetEventProperty(i, "x"), CanvasInterop.GetEventProperty(i, "y"), true);
+                    StbGui.stbg_add_user_input_event_mouse_button(CanvasInterop.GetEventProperty(i, "button") + 1, true);
+                    break;
+                case 2: //"mouse_up":
+                    StbGui.stbg_add_user_input_event_mouse_position(CanvasInterop.GetEventProperty(i, "x"), CanvasInterop.GetEventProperty(i, "y"), true);
+                    StbGui.stbg_add_user_input_event_mouse_button(CanvasInterop.GetEventProperty(i, "button") + 1, false);
+                    break;
+                case 3: //"mouse_move":
+                    StbGui.stbg_add_user_input_event_mouse_position(CanvasInterop.GetEventProperty(i, "x"), CanvasInterop.GetEventProperty(i, "y"), true);
+                    break;
+                case 4: //"mouse_wheel":
+                    StbGui.stbg_add_user_input_event_mouse_position(CanvasInterop.GetEventProperty(i, "x"), CanvasInterop.GetEventProperty(i, "y"), true);
+                    StbGui.stbg_add_user_input_event_mouse_wheel(MathF.Round(CanvasInterop.GetEventProperty(i, "dx") * 0.025f), -MathF.Round(CanvasInterop.GetEventProperty(i, "dy") * 0.025f));
+                    break;
+            }
+
+        }
+
+        CanvasInterop.ClearEvents();
     }
 
     /*
@@ -483,7 +511,7 @@ public class WAAppBase : IDisposable
                     var bounds = cmd.bounds;
                     var text = cmd.text;
 
-                    DrawText(cmd.text, bounds);
+                    DrawText(text, bounds);
                     break;
                 }
 
@@ -534,13 +562,9 @@ public class WAAppBase : IDisposable
 
     private void InitStbGui()
     {
-        int screenWidth = CanvasInterop.GetWidth();
-        int screenHeight = CanvasInterop.GetHeight();
-
-        Console.WriteLine($"Canvas size: {screenWidth}x{screenHeight}");
-
         StbGui.stbg_init(BuildExternalDependencies(), new());
-        StbGui.stbg_set_screen_size(screenWidth, screenHeight);
+
+        UpdateCanvasSize();
 
         int fontId = StbGui.stbg_add_font(mainFont.name);
 
@@ -548,6 +572,13 @@ public class WAAppBase : IDisposable
             fontId,
             new() { size = mainFont.size, style = StbGui.STBG_FONT_STYLE_FLAGS.NONE, color = StbGui.STBG_COLOR_WHITE }
         );
+    }
+
+    private static void UpdateCanvasSize()
+    {
+        int screenWidth = CanvasInterop.GetWidth();
+        int screenHeight = CanvasInterop.GetHeight();
+        StbGui.stbg_set_screen_size(screenWidth, screenHeight);
     }
 
     protected virtual void OnRenderStbGui()

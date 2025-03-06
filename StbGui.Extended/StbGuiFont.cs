@@ -26,6 +26,8 @@ public record class StbGuiFont : IDisposable
 
     public StbGuiFont(string name, byte[] font_bytes, float font_size, int oversampling, bool use_bilinear_filtering, StbGuiRenderAdapter render_adapter)
     {
+        Console.WriteLine($"Loading font {name} ({font_size})");
+
         this.render_adapter = render_adapter;
 
         this.name = name;
@@ -83,11 +85,16 @@ public record class StbGuiFont : IDisposable
         int fontBitmapOffset = 0;
         int fontTextureOffset = 0;
 
+        int non_zero_pixels = 0;
+
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
                 byte pixel = fontBitmap[fontBitmapOffset];
+
+                if (pixel != 0)
+                    non_zero_pixels++;
 
                 pixels[fontTextureOffset + 0] = pixel;
                 pixels[fontTextureOffset + 1] = pixel;

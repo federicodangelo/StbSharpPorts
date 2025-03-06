@@ -22,7 +22,34 @@ public partial class CanvasInterop
 
     [JSImport("pushClip", "canvas-interop")]
     public static partial void PushClip(float x, float y, float w, float h);
-    
+
     [JSImport("popClip", "canvas-interop")]
     public static partial void PopClip();
+
+    [JSImport("createCanvas", "canvas-interop")]
+    public static partial int CreateCanvas(int width, int height);
+
+    [JSImport("destroyCanvas", "canvas-interop")]
+    public static partial void DestroyCanvas(int id);
+
+    [JSImport("setCanvasPixels", "canvas-interop")]
+    public static partial void SetCanvasPixels(int id, int width, int height, byte[] pixels);
+
+    [JSImport("copyCanvasPixels", "canvas-interop")]
+    public static partial void CopyCanvasPixels(int id, int fromX, int fromY, int fromWidth, int fromHeight, int toX, int toY, int toWidth, int toHeight, byte r, byte g, byte b, byte a);
+
+    [JSImport("getEventsCount", "canvas-interop")]
+    public static partial int GetEventsCount();
+
+    [JSImport("getEvent", "canvas-interop")]
+    public static partial int GetEvent(int index);
+
+    [JSImport("getEventProperty", "canvas-interop")]
+    public static partial int GetEventProperty(int index, string property);
+
+    [JSImport("clearEvents", "canvas-interop")]
+    public static partial void ClearEvents();
+
+    [JSImport("setCursor", "canvas-interop")]
+    public static partial void SetCursor(string cursor);
 }
