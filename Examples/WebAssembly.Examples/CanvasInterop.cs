@@ -33,7 +33,7 @@ public partial class CanvasInterop
     public static partial void DestroyCanvas(int id);
 
     [JSImport("setCanvasPixels", "canvas-interop")]
-    public static partial void SetCanvasPixels(int id, int width, int height, byte[] pixels);
+    public static partial void SetCanvasPixels(int id, int width, int height, [JSMarshalAs<JSType.MemoryView>] Span<byte> pixels);
 
     [JSImport("copyCanvasPixels", "canvas-interop")]
     public static partial void CopyCanvasPixels(int id, int fromX, int fromY, int fromWidth, int fromHeight, int toX, int toY, int toWidth, int toHeight, byte r, byte g, byte b, byte a);
@@ -46,6 +46,9 @@ public partial class CanvasInterop
 
     [JSImport("getEventProperty", "canvas-interop")]
     public static partial int GetEventProperty(int index, string property);
+
+    [JSImport("getEventPropertyString", "canvas-interop")]
+    public static partial int GetEventPropertyString(int index, string property, [JSMarshalAs<JSType.MemoryView>] Span<int> buffer); //Returns string length
 
     [JSImport("clearEvents", "canvas-interop")]
     public static partial void ClearEvents();

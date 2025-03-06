@@ -190,31 +190,75 @@ public class WAAppBase : IDisposable
         Metrics = updatedMetrics;
     }
 
+    private enum WAEventType
+    {
+        MouseDown = 1,
+        MouseUp = 2,
+        MouseMove = 3,
+        MouseWheel = 4,
+
+        KeyDown = 10,
+        KeyUp = 11,
+    }
+
     private void ProcessWAEvents()
     {
+        Span<char> tmp_string = stackalloc char[256];
+
         var count = CanvasInterop.GetEventsCount();
+
 
         for (int i = 0; i < count; i++)
         {
-            var e = CanvasInterop.GetEvent(i);
+            var e = (WAEventType)CanvasInterop.GetEvent(i);
 
             switch (e)
             {
-                case 1: //"mouse_down":
+                case WAEventType.MouseDown:
                     StbGui.stbg_add_user_input_event_mouse_position(CanvasInterop.GetEventProperty(i, "x"), CanvasInterop.GetEventProperty(i, "y"), true);
                     StbGui.stbg_add_user_input_event_mouse_button(CanvasInterop.GetEventProperty(i, "button") + 1, true);
                     break;
-                case 2: //"mouse_up":
+                case WAEventType.MouseUp:
                     StbGui.stbg_add_user_input_event_mouse_position(CanvasInterop.GetEventProperty(i, "x"), CanvasInterop.GetEventProperty(i, "y"), true);
                     StbGui.stbg_add_user_input_event_mouse_button(CanvasInterop.GetEventProperty(i, "button") + 1, false);
                     break;
-                case 3: //"mouse_move":
+                case WAEventType.MouseMove:
                     StbGui.stbg_add_user_input_event_mouse_position(CanvasInterop.GetEventProperty(i, "x"), CanvasInterop.GetEventProperty(i, "y"), true);
                     break;
-                case 4: //"mouse_wheel":
+                case WAEventType.MouseWheel:
                     StbGui.stbg_add_user_input_event_mouse_position(CanvasInterop.GetEventProperty(i, "x"), CanvasInterop.GetEventProperty(i, "y"), true);
                     StbGui.stbg_add_user_input_event_mouse_wheel(MathF.Round(CanvasInterop.GetEventProperty(i, "dx") * 0.025f), -MathF.Round(CanvasInterop.GetEventProperty(i, "dy") * 0.025f));
                     break;
+
+                case WAEventType.KeyDown:
+                case WAEventType.KeyUp:
+                    {
+                        var modifiers = StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.NONE;
+                        if (CanvasInterop.GetEventProperty(i, "ctrl") != 0)
+                            modifiers |= StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.CONTROL;
+                        if (CanvasInterop.GetEventProperty(i, "shift") != 0)
+                            modifiers |= StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.SHIFT;
+                        if (CanvasInterop.GetEventProperty(i, "alt") != 0)
+                            modifiers |= StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.ALT;
+                        if (CanvasInterop.GetEventProperty(i, "meta") != 0)
+                            modifiers |= StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.SUPER;
+
+                        var down = e == WAEventType.KeyDown;
+
+                        Span<char> code = GetEventPropertyString(i, "code", tmp_string);
+
+                        if (SDL_KEY_MAPPINGS_ALTERNATE_LOOKUP.TryGetValue(code, out var mapped_key))
+                        {
+                            StbGui.stbg_add_user_input_event_keyboard_key(mapped_key, modifiers, down);
+                        }
+                        else
+                        {
+                            Span<char> key = GetEventPropertyString(i, "key", tmp_string);
+                            if (key.Length == 1)
+                                StbGui.stbg_add_user_input_event_keyboard_key_character(key[0], modifiers, down);
+                        }
+                        break;
+                    }
             }
 
         }
@@ -222,182 +266,53 @@ public class WAAppBase : IDisposable
         CanvasInterop.ClearEvents();
     }
 
-    /*
+    private static Span<char> GetEventPropertyString(int i, string property, Span<char> tmp_string)
+    {
+        Span<int> tmp_string_bytes = stackalloc int[tmp_string.Length];
 
-    static private Dictionary<SDL.Scancode, StbGui.STBG_KEYBOARD_KEY> SDL_KEY_MAPPINGS = new() {
+        var len = CanvasInterop.GetEventPropertyString(i, property, tmp_string_bytes);
+        for (int c = 0; c < len; c++)
+            tmp_string[c] = (char)tmp_string_bytes[c];
+        var code = tmp_string.Slice(0, len);
+        return code;
+    }
+
+    static private Dictionary<string, StbGui.STBG_KEYBOARD_KEY> SDL_KEY_MAPPINGS = new() {
         // Basic arrows
-        { SDL.Scancode.Left, StbGui.STBG_KEYBOARD_KEY.LEFT },
-        { SDL.Scancode.Right, StbGui.STBG_KEYBOARD_KEY.RIGHT },
-        { SDL.Scancode.Up, StbGui.STBG_KEYBOARD_KEY.UP },
-        { SDL.Scancode.Down, StbGui.STBG_KEYBOARD_KEY.DOWN },
+        { "ArrowLeft", StbGui.STBG_KEYBOARD_KEY.LEFT },
+        { "ArrowRight", StbGui.STBG_KEYBOARD_KEY.RIGHT },
+        { "ArrowUp", StbGui.STBG_KEYBOARD_KEY.UP },
+        { "ArrowDown", StbGui.STBG_KEYBOARD_KEY.DOWN },
         
         // Backspace
-        { SDL.Scancode.Backspace, StbGui.STBG_KEYBOARD_KEY.BACKSPACE },
+        { "Backspace", StbGui.STBG_KEYBOARD_KEY.BACKSPACE },
 
-        // Backspace
-        { SDL.Scancode.Delete, StbGui.STBG_KEYBOARD_KEY.DELETE },
+        // Delete
+        { "Delete", StbGui.STBG_KEYBOARD_KEY.DELETE },
 
         // Enter
-        { SDL.Scancode.Return, StbGui.STBG_KEYBOARD_KEY.RETURN },
-        { SDL.Scancode.Return2, StbGui.STBG_KEYBOARD_KEY.RETURN },
-        { SDL.Scancode.KpEnter, StbGui.STBG_KEYBOARD_KEY.RETURN },
+        { "Enter", StbGui.STBG_KEYBOARD_KEY.RETURN },
 
         // Control
-        { SDL.Scancode.RCtrl, StbGui.STBG_KEYBOARD_KEY.CONTROL_RIGHT },
-        { SDL.Scancode.LCtrl, StbGui.STBG_KEYBOARD_KEY.CONTROL_LEFT },
+        { "ControlLeft", StbGui.STBG_KEYBOARD_KEY.CONTROL_LEFT },
+        { "ControlRight", StbGui.STBG_KEYBOARD_KEY.CONTROL_RIGHT },
 
         // Shift
-        { SDL.Scancode.LShift, StbGui.STBG_KEYBOARD_KEY.SHIFT_LEFT },
-        { SDL.Scancode.RShift, StbGui.STBG_KEYBOARD_KEY.SHIFT_RIGHT },
+        { "ShiftLeft", StbGui.STBG_KEYBOARD_KEY.SHIFT_LEFT },
+        { "ShiftRight", StbGui.STBG_KEYBOARD_KEY.SHIFT_RIGHT },
 
         // Alt
-        { SDL.Scancode.LAlt, StbGui.STBG_KEYBOARD_KEY.ALT_LEFT },
-        { SDL.Scancode.RAlt, StbGui.STBG_KEYBOARD_KEY.ALT_RIGHT },
+        { "AltLeft", StbGui.STBG_KEYBOARD_KEY.ALT_LEFT },
+        { "AltRight", StbGui.STBG_KEYBOARD_KEY.ALT_RIGHT },
 
         // Text navigation
-        { SDL.Scancode.Home, StbGui.STBG_KEYBOARD_KEY.HOME },
-        { SDL.Scancode.End, StbGui.STBG_KEYBOARD_KEY.END },
-        { SDL.Scancode.Pageup, StbGui.STBG_KEYBOARD_KEY.PAGE_UP },
-        { SDL.Scancode.Pagedown, StbGui.STBG_KEYBOARD_KEY.PAGE_DOWN },
+        { "Home", StbGui.STBG_KEYBOARD_KEY.HOME },
+        { "End", StbGui.STBG_KEYBOARD_KEY.END },
+        { "Pageup", StbGui.STBG_KEYBOARD_KEY.PAGE_UP },
+        { "PageDown", StbGui.STBG_KEYBOARD_KEY.PAGE_DOWN },
     };
 
-    private bool ProcessSDLEvents()
-    {
-        bool quit = false;
-
-        Span<byte> tmp_bytes = stackalloc byte[64];
-        Span<char> tmp_chars = stackalloc char[64];
-        int tmp_chars_length = 0;
-
-        while (SDL.PollEvent(out var e) && !quit)
-        {
-            switch ((SDL.EventType)e.Type)
-            {
-                case SDL.EventType.Quit:
-                    quit = true;
-                    break;
-
-                case SDL.EventType.MouseMotion:
-                    StbGui.stbg_add_user_input_event_mouse_position(e.Motion.X, e.Motion.Y);
-                    break;
-
-                case SDL.EventType.MouseButtonDown:
-                    StbGui.stbg_add_user_input_event_mouse_position(e.Button.X, e.Button.Y, true);
-                    StbGui.stbg_add_user_input_event_mouse_button(e.Button.Button, true);
-                    break;
-
-                case SDL.EventType.MouseButtonUp:
-                    StbGui.stbg_add_user_input_event_mouse_position(e.Button.X, e.Button.Y);
-                    StbGui.stbg_add_user_input_event_mouse_button(e.Button.Button, false);
-                    break;
-
-                case SDL.EventType.MouseWheel:
-                    StbGui.stbg_add_user_input_event_mouse_position(e.Wheel.MouseX, e.Wheel.MouseY);
-                    StbGui.stbg_add_user_input_event_mouse_wheel(e.Wheel.X, e.Wheel.Y);
-                    break;
-
-                case SDL.EventType.WindowMouseLeave:
-                    StbGui.stbg_add_user_input_event_mouse_position(0, 0, false);
-                    break;
-
-                case SDL.EventType.TextInput:
-                    if (e.Text.Text != 0)
-                    {
-                        var len = 0;
-                        for (int i = 0; i < tmp_bytes.Length; i++)
-                        {
-                            var b = Marshal.ReadByte(e.Text.Text, i);
-                            if (b == 0)
-                                break;
-                            tmp_bytes[i] = b;
-                            len++;
-                        }
-
-                        if (len == tmp_bytes.Length)
-                        {
-                            // We ran out of buffer, allocate manually..
-                            var text = Marshal.PtrToStringUTF8(e.Text.Text);
-                            if (text != null)
-                            {
-                                foreach (var c in text)
-                                {
-                                    StbGui.stbg_add_user_input_event_keyboard_key_character(c, StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.NONE, true);
-                                    StbGui.stbg_add_user_input_event_keyboard_key_character(c, StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.NONE, false);
-                                }
-                            }
-                        }
-                        else if (System.Text.Encoding.UTF8.TryGetChars(tmp_bytes.Slice(0, len), tmp_chars, out tmp_chars_length))
-                        {
-                            for (var i = 0; i < tmp_chars_length; i++)
-                            {
-                                var c = tmp_chars[i];
-                                StbGui.stbg_add_user_input_event_keyboard_key_character(c, StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.NONE, true);
-                                StbGui.stbg_add_user_input_event_keyboard_key_character(c, StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.NONE, false);
-                            }
-                        }
-                    }
-                    break;
-
-                case SDL.EventType.KeyDown:
-                case SDL.EventType.KeyUp:
-                    {
-                        var modifiers = StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.NONE;
-                        if ((e.Key.Mod & SDL.Keymod.Ctrl) != 0)
-                            modifiers |= StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.CONTROL;
-                        if ((e.Key.Mod & SDL.Keymod.Shift) != 0)
-                            modifiers |= StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.SHIFT;
-                        if ((e.Key.Mod & SDL.Keymod.Alt) != 0)
-                            modifiers |= StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.ALT;
-                        if ((e.Key.Mod & SDL.Keymod.GUI) != 0)
-                            modifiers |= StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.SUPER;
-
-                        var down = e.Key.Down;
-
-                        // Some special keyboard keys are also valid unicode character, when we find one of those (Enter, Escape, Backspace, etc..)
-                        // we handle it as a special key and NOT as a character
-                        if (SDL_KEY_MAPPINGS.TryGetValue(e.Key.Scancode, out var mapped_key))
-                        {
-                            StbGui.stbg_add_user_input_event_keyboard_key(mapped_key, modifiers, down);
-                        }
-                        else
-                        {
-
-                            var key = e.Key.Key;
-                            bool is_extended = (key & SDL.Keycode.ExtendedMask) != 0;
-                            bool is_scancode = (key & SDL.Keycode.ScanCodeMask) != 0;
-
-                            if (!is_scancode && !is_extended && key != SDL.Keycode.Unknown)
-                            {
-                                char c = (char)key;
-                                if ((modifiers & StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.CONTROL) != 0 ||
-                                    (modifiers & StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.ALT) != 0)
-                                {
-                                    // keys pressed in combination with CONTROL or ALT are not received as TextInput texts, 
-                                    // since they represent possible keyboard shortcuts for other actions, so we deliver them
-                                    // here manually
-                                    StbGui.stbg_add_user_input_event_keyboard_key_character(c, modifiers, e.Key.Down);
-                                }
-                                else
-                                {
-                                    //Normal characters are handled as TextInput in case SDL.EventType.TextInput
-                                }
-                            }
-                        }
-                        break;
-                    }
-
-                case SDL.EventType.WindowResized:
-                    if (e.Window.WindowID == SDL.GetWindowID(window))
-                    {
-                        StbGui.stbg_set_screen_size(e.Window.Data1, e.Window.Data2);
-                    }
-                    break;
-            }
-        }
-
-        return quit;
-    }
-    */
+    static private Dictionary<string, StbGui.STBG_KEYBOARD_KEY>.AlternateLookup<ReadOnlySpan<char>> SDL_KEY_MAPPINGS_ALTERNATE_LOOKUP = SDL_KEY_MAPPINGS.GetAlternateLookup<ReadOnlySpan<char>>();
 
     public void Dispose()
     {
