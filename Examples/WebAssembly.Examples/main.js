@@ -12,11 +12,11 @@ const exports = await getAssemblyExports(config.mainAssemblyName);
 globalThis.exports = exports;
 
 // Access JSExport methods using exports.<Namespace>.<Type>.<Method>
-const sample = exports.Sample;
+const main = exports.Main;
 
-sample.Init();
+await main.Init();
 
-let result = sample.RenderText("Hello Fede :-)");
+let result = main.RenderText("Hello Fede :-)");
 
 console.log(result);
 
@@ -24,3 +24,10 @@ result = result.replaceAll("\n", "<br/>");
 
 // Display the result of the .NET method
 document.getElementById("out").innerHTML = result;
+
+function render() {
+    main.Render();
+    requestAnimationFrame(render);
+}
+
+requestAnimationFrame(render);

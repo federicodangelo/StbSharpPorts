@@ -23,13 +23,17 @@
     <!-- JSExport requires unsafe code -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>    
 
-    <!-- Disable symbol map generation -->
+    <!-- Symbol map generation -->
     <WasmEmitSymbolMap>false</WasmEmitSymbolMap>
+    <!-- <WasmNativeStrip>false</WasmNativeStrip> -->
+    <!-- <RunAOTCompilation>True</RunAOTCompilation> -->
 
   </PropertyGroup>
 
   <ItemGroup>
     <WasmExtraFilesToDeploy Include="index.html" />
+    <WasmExtraFilesToDeploy Include="main.js" />
+    <WasmExtraFilesToDeploy Include="canvas-interop.js" />
   </ItemGroup>
 
   <ItemGroup>
