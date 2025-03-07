@@ -90,42 +90,42 @@ public abstract class WAAppBase : StbGuiAppBase
     {
         Span<char> tmp_string = stackalloc char[256];
 
-        var count = CanvasInterop.GetEventsCount();
+        var count = CanvasInterop.GetInputEventsCount();
 
 
         for (int i = 0; i < count; i++)
         {
-            var e = (WAEventType)CanvasInterop.GetEvent(i);
+            var e = (WAEventType)CanvasInterop.GetInputEvent(i);
 
             switch (e)
             {
                 case WAEventType.MouseDown:
-                    StbGui.stbg_add_user_input_event_mouse_position(CanvasInterop.GetEventProperty(i, "x"), CanvasInterop.GetEventProperty(i, "y"), true);
-                    StbGui.stbg_add_user_input_event_mouse_button(CanvasInterop.GetEventProperty(i, "button") + 1, true);
+                    StbGui.stbg_add_user_input_event_mouse_position(CanvasInterop.GetInputEventProperty(i, "x"), CanvasInterop.GetInputEventProperty(i, "y"), true);
+                    StbGui.stbg_add_user_input_event_mouse_button(CanvasInterop.GetInputEventProperty(i, "button") + 1, true);
                     break;
                 case WAEventType.MouseUp:
-                    StbGui.stbg_add_user_input_event_mouse_position(CanvasInterop.GetEventProperty(i, "x"), CanvasInterop.GetEventProperty(i, "y"), true);
-                    StbGui.stbg_add_user_input_event_mouse_button(CanvasInterop.GetEventProperty(i, "button") + 1, false);
+                    StbGui.stbg_add_user_input_event_mouse_position(CanvasInterop.GetInputEventProperty(i, "x"), CanvasInterop.GetInputEventProperty(i, "y"), true);
+                    StbGui.stbg_add_user_input_event_mouse_button(CanvasInterop.GetInputEventProperty(i, "button") + 1, false);
                     break;
                 case WAEventType.MouseMove:
-                    StbGui.stbg_add_user_input_event_mouse_position(CanvasInterop.GetEventProperty(i, "x"), CanvasInterop.GetEventProperty(i, "y"), true);
+                    StbGui.stbg_add_user_input_event_mouse_position(CanvasInterop.GetInputEventProperty(i, "x"), CanvasInterop.GetInputEventProperty(i, "y"), true);
                     break;
                 case WAEventType.MouseWheel:
-                    StbGui.stbg_add_user_input_event_mouse_position(CanvasInterop.GetEventProperty(i, "x"), CanvasInterop.GetEventProperty(i, "y"), true);
-                    StbGui.stbg_add_user_input_event_mouse_wheel(MathF.Round(CanvasInterop.GetEventProperty(i, "dx") * 0.025f), -MathF.Round(CanvasInterop.GetEventProperty(i, "dy") * 0.025f));
+                    StbGui.stbg_add_user_input_event_mouse_position(CanvasInterop.GetInputEventProperty(i, "x"), CanvasInterop.GetInputEventProperty(i, "y"), true);
+                    StbGui.stbg_add_user_input_event_mouse_wheel(MathF.Round(CanvasInterop.GetInputEventProperty(i, "dx") * 0.025f), -MathF.Round(CanvasInterop.GetInputEventProperty(i, "dy") * 0.025f));
                     break;
 
                 case WAEventType.KeyDown:
                 case WAEventType.KeyUp:
                     {
                         var modifiers = StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.NONE;
-                        if (CanvasInterop.GetEventProperty(i, "ctrl") != 0)
+                        if (CanvasInterop.GetInputEventProperty(i, "ctrl") != 0)
                             modifiers |= StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.CONTROL;
-                        if (CanvasInterop.GetEventProperty(i, "shift") != 0)
+                        if (CanvasInterop.GetInputEventProperty(i, "shift") != 0)
                             modifiers |= StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.SHIFT;
-                        if (CanvasInterop.GetEventProperty(i, "alt") != 0)
+                        if (CanvasInterop.GetInputEventProperty(i, "alt") != 0)
                             modifiers |= StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.ALT;
-                        if (CanvasInterop.GetEventProperty(i, "meta") != 0)
+                        if (CanvasInterop.GetInputEventProperty(i, "meta") != 0)
                             modifiers |= StbGui.STBG_KEYBOARD_MODIFIER_FLAGS.SUPER;
 
                         var down = e == WAEventType.KeyDown;
@@ -148,14 +148,14 @@ public abstract class WAAppBase : StbGuiAppBase
 
         }
 
-        CanvasInterop.ClearEvents();
+        CanvasInterop.ClearInputEvents();
     }
 
     private static Span<char> GetEventPropertyString(int i, string property, Span<char> tmp_string)
     {
         Span<int> tmp_string_bytes = stackalloc int[tmp_string.Length];
 
-        var len = CanvasInterop.GetEventPropertyString(i, property, tmp_string_bytes);
+        var len = CanvasInterop.GetInputEventPropertyString(i, property, tmp_string_bytes);
         for (int c = 0; c < len; c++)
             tmp_string[c] = (char)tmp_string_bytes[c];
         var code = tmp_string.Slice(0, len);

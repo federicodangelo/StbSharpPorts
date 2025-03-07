@@ -58,20 +58,20 @@ public partial class CanvasInterop
     [JSImport("presentFrame", "canvas-interop")]
     public static partial void PresentFrame();
 
-   [JSImport("getEventsCount", "canvas-interop")]
-    public static partial int GetEventsCount();
+   [JSImport("getInputEventsCount", "canvas-interop")]
+    public static partial int GetInputEventsCount();
 
-    [JSImport("getEvent", "canvas-interop")]
-    public static partial int GetEvent(int index);
+    [JSImport("getInputEvent", "canvas-interop")]
+    public static partial int GetInputEvent(int index);
 
-    [JSImport("getEventProperty", "canvas-interop")]
-    public static partial int GetEventProperty(int index, string property);
+    [JSImport("getInputEventProperty", "canvas-interop")]
+    public static partial int GetInputEventProperty(int index, string property);
 
-    [JSImport("getEventPropertyString", "canvas-interop")]
-    public static partial int GetEventPropertyString(int index, string property, [JSMarshalAs<JSType.MemoryView>] Span<int> buffer); //Returns string length
+    [JSImport("getInputEventPropertyString", "canvas-interop")]
+    public static partial int GetInputEventPropertyString(int index, string property, [JSMarshalAs<JSType.MemoryView>] Span<int> buffer); //Returns string length
 
-    [JSImport("clearEvents", "canvas-interop")]
-    public static partial void ClearEvents();
+    [JSImport("clearInputEvents", "canvas-interop")]
+    public static partial void ClearInputEvents();
 
     [JSImport("setCursor", "canvas-interop")]
     public static partial void SetCursor(string cursor);

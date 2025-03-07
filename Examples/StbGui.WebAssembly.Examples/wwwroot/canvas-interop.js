@@ -69,19 +69,19 @@ export function getHeight() {
     return canvas.height;
 }
 
-export function getEventsCount() {
+export function getInputEventsCount() {
     return input_events.length;
 }
 
-export function getEvent(index) {
+export function getInputEvent(index) {
     return input_events[index].type;
 }
 
-export function getEventProperty(index, property) {
+export function getInputEventProperty(index, property) {
     return input_events[index][property];
 }
 
-export function getEventPropertyString(index, property, buffer) {
+export function getInputEventPropertyString(index, property, buffer) {
     const str = input_events[index][property];
     let len = 0;
 
@@ -97,7 +97,7 @@ export function getEventPropertyString(index, property, buffer) {
     return len;
 }
 
-export function clearEvents() {
+export function clearInputEvents() {
     input_events.length = 0;
 }
 
