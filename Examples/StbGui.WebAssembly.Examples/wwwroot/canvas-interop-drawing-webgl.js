@@ -152,6 +152,8 @@ function setScissor(rect) {
 export function pushClip(x, y, w, h) {
     if (!RENDER) return;
 
+    submitVertices();
+
     var rect = buildClipRect(x, y, w, h);
 
     var prev_clip = clip_rects.length > 0 ? clip_rects[clip_rects.length - 1] : undefined;
@@ -169,6 +171,8 @@ export function pushClip(x, y, w, h) {
 
 export function popClip() {
     if (!RENDER) return;
+
+    submitVertices();
 
     clip_rects.pop();
 
@@ -200,27 +204,12 @@ export function setCanvasPixels(id, width, height, pixels_memory_view) {
     if (!RENDER) return;
 
     var texture = getTexture(id);
-    var pixels = new Uint8Array(pixels_memory_view.length);
-    pixels_memory_view.copyTo(pixels);
-    //var pixels = pixels_memory_view.slice();
-
-    /*
-
-    const canvas = getTexture(id);
-    const canvasCtx = canvas.getContext("2d");
-    const imageData = canvasCtx.createImageData(width, height);
-    pixels.copyTo(new Uint8Array(imageData.data.buffer));
-    canvasCtx.putImageData(imageData, 0, 0);*/
+    var pixels = pixels_memory_view.slice();
 
     gl.bindTexture(gl.TEXTURE_2D, texture);
     
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
-    // Because images have to be downloaded over the internet
-    // they might take a moment until they are ready.
-    // Until then put a single pixel in the texture so we can
-    // use it immediately. When the image has finished downloading
-    // we'll update the texture with the contents of the image.
     const level = 0;
     const internalFormat = gl.RGBA;
     const border = 0;
@@ -239,9 +228,9 @@ export function setCanvasPixels(id, width, height, pixels_memory_view) {
     );
 
     gl.generateMipmap(gl.TEXTURE_2D);
-    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 }
 
 export function drawCanvasRectangle(id, fromX, fromY, fromWidth, fromHeight, toX, toY, toWidth, toHeight, color) {
@@ -255,14 +244,64 @@ export function drawCanvasRectangle(id, fromX, fromY, fromWidth, fromHeight, toX
 }
 
 export function presentFrame() {
-
+    submitVertices();
 }
 
 var lastProgram;
 
+const tempVerticesCount = 1024;
+
+var tempVertPositions = new Float32Array(tempVerticesCount * 2);
+var tempVertColors = new Float32Array(tempVerticesCount * 4);
+var tempVertTextureCoords = new Float32Array(tempVerticesCount * 2);
+var tempVertIndex = 0;
+
+function addVertexColor(x, y, r, g, b, a) {
+    if (tempVertIndex + 1 == tempVerticesCount) {
+        submitVertices();
+    }
+
+    tempVertPositions[tempVertIndex * 2] = x;
+    tempVertPositions[tempVertIndex * 2 + 1] = y;
+    tempVertColors[tempVertIndex * 4] = r;
+    tempVertColors[tempVertIndex * 4 + 1] = g;
+    tempVertColors[tempVertIndex * 4 + 2] = b;
+    tempVertColors[tempVertIndex * 4 + 3] = a;
+    tempVertIndex++;
+}
+
+function addVertexColorTexture(x, y, r, g, b, a, tx, ty) {
+    if (tempVertIndex + 1 == tempVerticesCount) {
+        submitVertices();
+    }
+
+    tempVertPositions[tempVertIndex * 2] = x;
+    tempVertPositions[tempVertIndex * 2 + 1] = y;
+    tempVertColors[tempVertIndex * 4] = r;
+    tempVertColors[tempVertIndex * 4 + 1] = g;
+    tempVertColors[tempVertIndex * 4 + 2] = b;
+    tempVertColors[tempVertIndex * 4 + 3] = a;
+    tempVertTextureCoords[tempVertIndex * 2] = tx;
+    tempVertTextureCoords[tempVertIndex * 2 + 1] = ty;
+    tempVertIndex++;
+}
+
+function submitVertices() {
+    if (tempVertIndex == 0) return;
+    setPositionBuffer(tempVertPositions);
+    setColorsBuffer(tempVertColors);
+    if (lastProgram == textureColorProgramInfo) {
+        setTextureCoords(tempVertTextureCoords);
+    }
+    gl.drawArrays(gl.TRIANGLES, 0, tempVertIndex);
+    tempVertIndex = 0;
+}
+
 function drawRectangleColor(x, y, w, h, color) {
 
     if (lastProgram != colorProgramInfo) {
+        submitVertices();
+
         lastProgram = colorProgramInfo;
 
         // Setup shader
@@ -277,33 +316,17 @@ function drawRectangleColor(x, y, w, h, color) {
         setColorAttribute(colorProgramInfo);
     }
 
-    setPositionBuffer([
-        x, y,
-        x + w, y,
-        x + w, y + h,
-        x + w, y + h,
-        x, y + h,
-        x, y,
-    ]);
-
     const r = getRed(color) / 255;
     const g = getGreen(color) / 255;
     const b = getBlue(color) / 255;
     const a = getAlpha(color) / 255;
 
-    setColorsBuffer([
-        r, g, b, a,
-        r, g, b, a,
-        r, g, b, a,
-        r, g, b, a,
-        r, g, b, a,
-        r, g, b, a,
-    ]);
-
-
-    const offset = 0;
-    const vertexCount = 6;
-    gl.drawArrays(gl.TRIANGLES, offset, vertexCount);
+    addVertexColor(x, y, r, g, b, a);
+    addVertexColor(x + w, y, r, g, b, a);
+    addVertexColor(x + w, y + h, r, g, b, a);
+    addVertexColor(x + w, y + h, r, g, b, a);
+    addVertexColor(x, y + h, r, g, b, a);
+    addVertexColor(x, y, r, g, b, a);
 }
 
 var lastTextureId = -1;
@@ -311,6 +334,8 @@ var lastTextureId = -1;
 function drawRectangleColorTexture(x, y, w, h, color, texture_id, tx, ty, tw, th) {
 
     if (lastProgram != textureColorProgramInfo) {
+        submitVertices();
+
         lastProgram = textureColorProgramInfo;
         lastTextureId = -1;
 
@@ -329,6 +354,8 @@ function drawRectangleColorTexture(x, y, w, h, color, texture_id, tx, ty, tw, th
     }
 
     if (lastTextureId != texture_id) {
+        submitVertices();
+
         lastTextureId = texture_id;
         const texture = getTexture(texture_id);
         gl.activeTexture(gl.TEXTURE0);
@@ -340,30 +367,10 @@ function drawRectangleColorTexture(x, y, w, h, color, texture_id, tx, ty, tw, th
 
     // Positions
 
-    setPositionBuffer([
-        x, y,
-        x + w, y,
-        x + w, y + h,
-        x + w, y + h,
-        x, y + h,
-        x, y,
-    ]);
-
-    // Colors
-
     const r = getRed(color) / 255;
     const g = getGreen(color) / 255;
     const b = getBlue(color) / 255;
     const a = getAlpha(color) / 255;
-
-    setColorsBuffer([
-        r, g, b, a,
-        r, g, b, a,
-        r, g, b, a,
-        r, g, b, a,
-        r, g, b, a,
-        r, g, b, a,
-    ]);
 
     // Texture coordinates
     const texture_size = 512; //TODO!!
@@ -373,34 +380,27 @@ function drawRectangleColorTexture(x, y, w, h, color, texture_id, tx, ty, tw, th
     const texture_x2 = (tx + tw) / texture_size;
     const texture_y2 = 1 - ((ty + th) / texture_size);
 
-    setTextureCoords([
-        texture_x1, texture_y1,
-        texture_x2, texture_y1,
-        texture_x2, texture_y2,
-        
-        texture_x2, texture_y2,
-        texture_x1, texture_y2,
-        texture_x1, texture_y1,
-    ]);
-
-    const offset = 0;
-    const vertexCount = 6;
-    gl.drawArrays(gl.TRIANGLES, offset, vertexCount);
+    addVertexColorTexture(x, y, r, g, b, a, texture_x1, texture_y1);
+    addVertexColorTexture(x + w, y, r, g, b, a, texture_x2, texture_y1);
+    addVertexColorTexture(x + w, y + h, r, g, b, a, texture_x2, texture_y2);
+    addVertexColorTexture(x + w, y + h, r, g, b, a, texture_x2, texture_y2);
+    addVertexColorTexture(x, y + h, r, g, b, a, texture_x1, texture_y2);
+    addVertexColorTexture(x, y, r, g, b, a, texture_x1, texture_y1);
 }
 
 function setPositionBuffer(positions) {
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.DYNAMIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, positions, gl.DYNAMIC_DRAW);
 }
 
 function setColorsBuffer(colors) {
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.DYNAMIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, colors, gl.DYNAMIC_DRAW);
 }
 
 function setTextureCoords(textureCoords) {
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureCoord);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.DYNAMIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, textureCoords, gl.DYNAMIC_DRAW);
 }
 
 function setPositionAttribute(programInfo) {
