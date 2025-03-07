@@ -38,6 +38,11 @@ class WARenderAdapter : StbGuiRenderAdapterBase
         }
     }
 
+    private bool draw_buffer_fits(int size)
+    {
+        return draw_batch_buffer_index + size < draw_batch_buffer.Length;
+    }
+
     private void flush_draw_buffer()
     {
         if (draw_batch_buffer_index > 0)
@@ -55,27 +60,60 @@ class WARenderAdapter : StbGuiRenderAdapterBase
     public override void draw_texture_rects(StbGuiRenderAdapter.Rect[] rects, int count, nint texture_id)
     {
 #if USE_DRAW_BUFFER
-        flush_draw_buffer_if_doesnt_fit(3 + count * 9);
-        draw_batch_buffer[draw_batch_buffer_index++] = DRAW_BATCH_CANVAS_RECTANGLE_BATCH;
-        draw_batch_buffer[draw_batch_buffer_index++] = texture_id;
-        draw_batch_buffer[draw_batch_buffer_index++] = count;
-        for (var i = 0; i < count; i++)
+        int size = 3 + count * 9;
+
+        flush_draw_buffer_if_doesnt_fit(size);
+
+        int batches;
+        int rects_per_batch;
+
+        if (draw_buffer_fits(size))
         {
-            var rect = rects[i];
+            // Fits in a single batch
+            batches = 1;
+            rects_per_batch = count;
+        }
+        else
+        {
+            // Doesn't fit in a single batch, so we need to split it into multiple batches
+            rects_per_batch = (draw_batch_buffer.Length - 3) / 9;
+            batches = count / rects_per_batch + (count % rects_per_batch == 0 ? 0 : 1);
+        }
 
-            var r = rect.tex_coord_rect;
-            var target = rect.rect;
-            var c = rect.color;
+        int rect_index = 0;
 
-            draw_batch_buffer[draw_batch_buffer_index++] = r.x0;
-            draw_batch_buffer[draw_batch_buffer_index++] = r.y0;
-            draw_batch_buffer[draw_batch_buffer_index++] = r.x1 - r.x0;
-            draw_batch_buffer[draw_batch_buffer_index++] = r.y1 - r.y0;
-            draw_batch_buffer[draw_batch_buffer_index++] = target.x0;
-            draw_batch_buffer[draw_batch_buffer_index++] = target.y0;
-            draw_batch_buffer[draw_batch_buffer_index++] = target.x1 - target.x0;
-            draw_batch_buffer[draw_batch_buffer_index++] = target.y1 - target.y0;
-            draw_batch_buffer[draw_batch_buffer_index++] = CanvasInterop.BuildRGBA(c);
+        for (int batch = 0; batch < batches; batch++)
+        {
+            if (batch > 0)
+            {
+                // Flush the previous batch
+                flush_draw_buffer();
+            }
+
+            var batch_count = Math.Min(rects_per_batch, count - rect_index);
+
+            draw_batch_buffer[draw_batch_buffer_index++] = DRAW_BATCH_CANVAS_RECTANGLE_BATCH;
+            draw_batch_buffer[draw_batch_buffer_index++] = texture_id;
+            draw_batch_buffer[draw_batch_buffer_index++] = batch_count;
+
+            for (var j = 0; j < batch_count; j++)
+            {
+                var rect = rects[rect_index++];
+
+                var r = rect.tex_coord_rect;
+                var target = rect.rect;
+                var c = rect.color;
+
+                draw_batch_buffer[draw_batch_buffer_index++] = r.x0;
+                draw_batch_buffer[draw_batch_buffer_index++] = r.y0;
+                draw_batch_buffer[draw_batch_buffer_index++] = r.x1 - r.x0;
+                draw_batch_buffer[draw_batch_buffer_index++] = r.y1 - r.y0;
+                draw_batch_buffer[draw_batch_buffer_index++] = target.x0;
+                draw_batch_buffer[draw_batch_buffer_index++] = target.y0;
+                draw_batch_buffer[draw_batch_buffer_index++] = target.x1 - target.x0;
+                draw_batch_buffer[draw_batch_buffer_index++] = target.y1 - target.y0;
+                draw_batch_buffer[draw_batch_buffer_index++] = CanvasInterop.BuildRGBA(c);
+            }
         }
 #else
         if (count < 2)
