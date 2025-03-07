@@ -35,7 +35,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbHash", "StbHash\StbHash.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbHashTests", "Tests\StbHashTests\StbHashTests.csproj", "{874958DA-98A5-4114-B53C-2A35E34C6DDD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbGui.Examples", "Examples\StbGui.Examples\StbGui.Examples.csproj", "{2D347315-3A0E-4484-8397-ED8BECA4EB6C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbGui.SDL.Examples", "Examples\StbGui.SDL.Examples\StbGui.SDL.Examples.csproj", "{2D347315-3A0E-4484-8397-ED8BECA4EB6C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbGuiTests", "Tests\StbGuiTests\StbGuiTests.csproj", "{6532C5D3-8242-4EA6-94F5-270C427F0CDB}"
 EndProject
@@ -45,11 +45,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmarks", "Benchmarks", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbGuiBenchmarks", "Benchmarks\StbGuiBenchmarks\StbGuiBenchmarks.csproj", "{74940B6F-C236-468F-A4FE-238E886C94E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbGui.SDLSupport", "Examples\StbGui.SDLSupport\StbGui.SDLSupport.csproj", "{3ED86489-0AEE-44AA-A990-0D1720333C8C}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbGui.Extended", "StbGui.Extended\StbGui.Extended.csproj", "{E955293F-086A-4845-B70A-2C9626D25DB7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAssembly.Examples", "Examples\WebAssembly.Examples\WebAssembly.Examples.csproj", "{B5DBA36A-FF22-41C7-B762-B3738A3E10B9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbGui.WebAssembly.Examples", "Examples\StbGui.WebAssembly.Examples\StbGui.WebAssembly.Examples.csproj", "{B5DBA36A-FF22-41C7-B762-B3738A3E10B9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
