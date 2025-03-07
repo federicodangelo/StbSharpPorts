@@ -297,6 +297,10 @@ export function drawBatch(batch_memory_view) {
     }
 }
 
+export function presentFrame() {
+    // Nothing to do
+}
+
 let clipboard_text = "";
 
 export function copyToClipboard(text) {

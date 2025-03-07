@@ -55,6 +55,9 @@ public partial class CanvasInterop
     [JSImport("drawBatch", "canvas-interop")]
     public static partial void DrawBatch([JSMarshalAs<JSType.MemoryView>] Span<double> buffer);
 
+    [JSImport("presentFrame", "canvas-interop")]
+    public static partial void PresentFrame();
+
    [JSImport("getEventsCount", "canvas-interop")]
     public static partial int GetEventsCount();
 

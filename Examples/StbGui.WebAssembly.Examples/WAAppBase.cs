@@ -27,7 +27,7 @@ public abstract class WAAppBase : StbGuiAppBase
 
     protected override void present_frame(long frame_ms)
     {
-        // Nothing to do
+        CanvasInterop.PresentFrame();
     }
 
     private string last_active_cursor = "";
