@@ -4,6 +4,8 @@ using StbSharp.Examples;
 
 class WARenderAdapter : StbGuiRenderAdapterBase
 {
+    private int clip_rects_count;
+
     public override nint create_texture(int width, int height, StbGuiRenderAdapter.CreateTextureOptions options = default)
     {
         return CanvasInterop.CreateCanvas(width, height);
@@ -78,11 +80,13 @@ class WARenderAdapter : StbGuiRenderAdapterBase
 
     public override void pop_clip_rect()
     {
+        clip_rects_count--;
         CanvasInterop.PopClip();
     }
 
     public override void push_clip_rect(StbGui.stbg_rect rect)
     {
+        clip_rects_count++;
         CanvasInterop.PushClip(rect.x0, rect.y0, rect.x1 - rect.x0, rect.y1 - rect.y0);
     }
 
@@ -98,7 +102,7 @@ class WARenderAdapter : StbGuiRenderAdapterBase
 
     protected override void render_end_frame()
     {
-        Debug.Assert(WAHelper.HasClipping() == false);
+        Debug.Assert(clip_rects_count == 0);
     }
 
     protected override void render_draw_rectangle(StbGui.stbg_rect bounds, StbGui.stbg_color background_color)
