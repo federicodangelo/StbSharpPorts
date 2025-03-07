@@ -36,7 +36,7 @@ export function clear(c) {
 }
 
 function getAlpha(color) {
-    const a = color & 0xFF;
+    return color & 0xFF;
 }
 
 export function drawBorder(color_fill, color_border, x, y, w, h, border_size) {

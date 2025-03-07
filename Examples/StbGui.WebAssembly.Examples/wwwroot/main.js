@@ -23,9 +23,8 @@ await main.Init();
 
 function render() {
     const canvas = document.getElementById("myCanvas");
-    const ctx = canvas.getContext("2d");
-    ctx.canvas.width = window.innerWidth;
-    ctx.canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
     main.Render();
     requestAnimationFrame(render);
 }

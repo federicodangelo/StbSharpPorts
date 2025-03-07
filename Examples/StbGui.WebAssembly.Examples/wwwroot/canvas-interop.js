@@ -1,5 +1,5 @@
 import * as input from "./canvas-interop-input.js";
-import * as drawing from "./canvas-interop-drawing-2d.js";
+import * as drawing from "./canvas-interop-drawing-webgl.js";
 
 let canvas;
 
