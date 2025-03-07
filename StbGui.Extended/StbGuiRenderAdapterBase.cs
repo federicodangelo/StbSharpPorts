@@ -76,9 +76,9 @@ public abstract class StbGuiRenderAdapterBase : StbGuiRenderAdapter
 
     protected abstract void draw_border(StbGui.stbg_rect bounds, int border_size, StbGui.stbg_color background_color, StbGui.stbg_color color);
 
-    public abstract void draw_vertices(StbGuiRenderAdapter.Vertex[] vertices, int count, nint texture_id);
+    public abstract void draw_texture_vertices(StbGuiRenderAdapter.Vertex[] vertices, int count, nint texture_id);
 
-    public abstract void draw_rects(StbGuiRenderAdapter.Rect[] rects, int count, nint texture_id);
+    public abstract void draw_texture_rects(StbGuiRenderAdapter.Rect[] rects, int count, nint texture_id);
 
     public abstract void push_clip_rect(StbGui.stbg_rect rect);
 

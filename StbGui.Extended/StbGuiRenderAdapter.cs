@@ -19,9 +19,9 @@ public interface StbGuiRenderAdapter
         public StbGui.stbg_color color;
     }
 
-    public void draw_vertices(Vertex[] vertices, int count, nint texture_id);
+    public void draw_texture_vertices(Vertex[] vertices, int count, nint texture_id);
 
-    public void draw_rects(Rect[] rects, int count, nint texture_id);
+    public void draw_texture_rects(Rect[] rects, int count, nint texture_id);
 
     public void push_clip_rect(StbGui.stbg_rect rect);
 

@@ -1,7 +1,16 @@
 using System.Runtime.InteropServices.JavaScript;
+using StbSharp;
 
 public partial class CanvasInterop
 {
+    static public long BuildRGBA(StbGui.stbg_color color)
+    {
+        return ((long) color.r) << 24 |
+               ((long) color.g) << 16 |
+               ((long) color.b) << 8 |
+               ((long) color.a);
+    }
+
     [JSImport("init", "canvas-interop")]
     public static partial void Init();
 
@@ -12,16 +21,16 @@ public partial class CanvasInterop
     public static partial int GetHeight();
 
     [JSImport("clear", "canvas-interop")]
-    public static partial void Clear(byte r, byte g, byte b, byte a);
+    public static partial void Clear(double color);
 
     [JSImport("drawBorder", "canvas-interop")]
-    public static partial void DrawBorder(byte r1, byte g1, byte b1, byte a1, byte r2, byte g2, byte b2, byte a2, float x, float y, float w, float h, int border_size);
+    public static partial void DrawBorder(double color1, double color2, double x, double y, double w, double h, int border_size);
 
     [JSImport("drawRectangle", "canvas-interop")]
-    public static partial void DrawRectangle(byte r, byte g, byte b, byte a, float x, float y, float w, float h);
+    public static partial void DrawRectangle(double color, double x, double y, double w, double h);
 
     [JSImport("pushClip", "canvas-interop")]
-    public static partial void PushClip(float x, float y, float w, float h);
+    public static partial void PushClip(double x, double y, double w, double h);
 
     [JSImport("popClip", "canvas-interop")]
     public static partial void PopClip();
@@ -36,14 +45,17 @@ public partial class CanvasInterop
     public static partial void SetCanvasPixels(int id, int width, int height, [JSMarshalAs<JSType.MemoryView>] Span<byte> pixels);
 
     [JSImport("drawCanvasRectangle", "canvas-interop")]
-    public static partial void DrawCanvasRectangle(int id, double fromX, double fromY, double fromWidth, double fromHeight, double toX, double toY, double toWidth, double toHeight, double r, double g, double b, double a);
+    public static partial void DrawCanvasRectangle(int id, double fromX, double fromY, double fromWidth, double fromHeight, double toX, double toY, double toWidth, double toHeight, double color);
 
-    public const int DRAW_CANVAS_RECTANGLE_BATCH_ELEMENT_SIZE = 12;
+    public const int DRAW_CANVAS_RECTANGLE_BATCH_ELEMENT_SIZE = 9;
 
     [JSImport("drawCanvasRectangleBatch", "canvas-interop")]
     public static partial void DrawCanvasRectangleBatch(int id, [JSMarshalAs<JSType.MemoryView>] Span<double> buffer);
 
-    [JSImport("getEventsCount", "canvas-interop")]
+    [JSImport("drawBatch", "canvas-interop")]
+    public static partial void DrawBatch([JSMarshalAs<JSType.MemoryView>] Span<double> buffer);
+
+   [JSImport("getEventsCount", "canvas-interop")]
     public static partial int GetEventsCount();
 
     [JSImport("getEvent", "canvas-interop")]

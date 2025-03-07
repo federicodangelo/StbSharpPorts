@@ -51,7 +51,7 @@ public class SDLRenderAdapter : StbGuiRenderAdapterBase
         SDL.DestroyTexture(texture_id);
     }
 
-    public override void draw_rects(StbGuiRenderAdapter.Rect[] rects, int count, nint texture_id)
+    public override void draw_texture_rects(StbGuiRenderAdapter.Rect[] rects, int count, nint texture_id)
     {
         Debug.Assert(count * RECTANGLE_VERTEX_COUNT <= tmp_vertex.Length, "Vertex count exceeds temporary vertex buffer size.");
 
@@ -167,7 +167,7 @@ public class SDLRenderAdapter : StbGuiRenderAdapterBase
         SDL.RenderGeometry(renderer, texture_id, tmp_v, vertex_index, tmp_i, indices_index);
     }
 
-    public override void draw_vertices(StbGuiRenderAdapter.Vertex[] vertices, int count, nint texture_id)
+    public override void draw_texture_vertices(StbGuiRenderAdapter.Vertex[] vertices, int count, nint texture_id)
     {
         Debug.Assert(count <= tmp_vertex.Length, "Vertex count exceeds temporary vertex buffer size.");
 

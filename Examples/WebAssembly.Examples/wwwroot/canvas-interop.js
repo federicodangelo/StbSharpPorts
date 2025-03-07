@@ -8,8 +8,8 @@ const canvases_tinted = {};
 
 const RENDER = true;
 
-function buildFillStyle(r, g, b, a) {
-    return `rgba(${r}, ${g}, ${b}, ${a / 255})`;
+function buildFillStyle(argb) {
+    return "#" + argb.toString(16).padStart(8, '0');
 }
 
 const input_events = [];
@@ -101,33 +101,37 @@ export function clearEvents() {
     input_events.length = 0;
 }
 
-export function clear(r, g, b, a) {
+export function clear(c) {
     if (!RENDER) return;
-    ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${a / 255})`;
+    ctx.fillStyle = buildFillStyle(c);
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
-export function drawBorder(r1, g1, b1, a1, r2, g2, b2, a2, x, y, w, h, border_size) {
+function getAlpha(color) {
+    const a = color & 0xFF;
+}
+
+export function drawBorder(color_fill, color_border, x, y, w, h, border_size) {
     if (!RENDER) return;
 
-    if (a1 != 0) {
-        ctx.fillStyle = buildFillStyle(r1, g1, b1, a1);
+    if (getAlpha(color_fill) != 0) {
+        ctx.fillStyle = buildFillStyle(color_fill);
         ctx.fillRect(x, y, w, h);
     }
 
-    if (a2 != 0) {
-        ctx.strokeStyle = buildFillStyle(r2, g2, b2, a2);
+    if (getAlpha(color_border) != 0) {
+        ctx.strokeStyle = buildFillStyle(color_border);
         ctx.lineWidth = border_size;
         ctx.beginPath();
         ctx.strokeRect(x + border_size / 2, y + border_size / 2, w - 1, h - 1);
     }
 }
 
-export function drawRectangle(r1, g1, b1, a1, x, y, w, h) {
+export function drawRectangle(color, x, y, w, h) {
     if (!RENDER) return;
 
-    if (a1 != 0) {
-        ctx.fillStyle = buildFillStyle(r1, g1, b1, a1);
+    if (getAlpha(color) != 0) {
+        ctx.fillStyle = buildFillStyle(color);
         ctx.fillRect(x, y, w, h);
     }
 }
@@ -167,12 +171,12 @@ function getCanvas(id) {
     return canvases[id];
 }
 
-function getCanvasTinted(id, r, g, b, a) {
-    if (r === 255 && g === 255 && b === 255 && a === 255) {
+function getCanvasTinted(id, color) {
+    if (color === 0xFFFFFFFF) {
         return getCanvas(id);
     }
 
-    const style = buildFillStyle(r, g, b, a);
+    const style = buildFillStyle(color);
     const tinted_id = id + "-" + style;
     let canvas_tinted = canvases_tinted[tinted_id];
 
@@ -207,7 +211,7 @@ export function drawCanvasRectangleBatch(id, batch_memory_view) {
     if (!RENDER) return;
     const batch = batch_memory_view.slice();
 
-    for (let i = 0; i < batch.length; i += 12) {
+    for (let i = 0; i < batch.length; i += 9) {
         const fromX = batch[i + 0];
         const fromY = batch[i + 1];
         const fromWidth = batch[i + 2];
@@ -216,38 +220,29 @@ export function drawCanvasRectangleBatch(id, batch_memory_view) {
         const toY = batch[i + 5];
         const toWidth = batch[i + 6];
         const toHeight = batch[i + 7];
-        const r = batch[i + 8];
-        const g = batch[i + 9];
-        const b = batch[i + 10];
-        const a = batch[i + 11];
+        const color = batch[i + 8];
 
-        drawCanvasRectangle(id, fromX, fromY, fromWidth, fromHeight, toX, toY, toWidth, toHeight, r, g, b, a);
+        drawCanvasRectangle(id, fromX, fromY, fromWidth, fromHeight, toX, toY, toWidth, toHeight, color);
     }
 }
 
 let last_copy_canvas_pixels_id = 0;
-let last_copy_canvas_pixels_r = 0;
-let last_copy_canvas_pixels_g = 0;
-let last_copy_canvas_pixels_b = 0;
-let last_copy_canvas_pixels_a = 0;
+let last_copy_canvas_pixels_color = 0;
 
 let last_copy_canvas_pixels_canvas_tinted;
 let last_copy_canvas_pixels_fill_style;
 
-export function drawCanvasRectangle(id, fromX, fromY, fromWidth, fromHeight, toX, toY, toWidth, toHeight, r, g, b, a) {
+export function drawCanvasRectangle(id, fromX, fromY, fromWidth, fromHeight, toX, toY, toWidth, toHeight, color) {
     if (!RENDER) return;
 
-    if (last_copy_canvas_pixels_id !== id || last_copy_canvas_pixels_r !== r || last_copy_canvas_pixels_g !== g || last_copy_canvas_pixels_b !== b || last_copy_canvas_pixels_a !== a) {
-        last_copy_canvas_pixels_r = r;
-        last_copy_canvas_pixels_g = g;
-        last_copy_canvas_pixels_b = b;
-        last_copy_canvas_pixels_a = a;
+    if (last_copy_canvas_pixels_id !== id || last_copy_canvas_pixels_color !== color) {
+        last_copy_canvas_pixels_color = color;
         last_copy_canvas_pixels_id = id;
 
         if (id != 0) {
-            last_copy_canvas_pixels_canvas_tinted = getCanvasTinted(id, r, g, b, a);
+            last_copy_canvas_pixels_canvas_tinted = getCanvasTinted(id, color);
         } else {
-            last_copy_canvas_pixels_fill_style = buildFillStyle(r, g, b, a);
+            last_copy_canvas_pixels_fill_style = buildFillStyle(color);
         }
     }
 
@@ -256,5 +251,48 @@ export function drawCanvasRectangle(id, fromX, fromY, fromWidth, fromHeight, toX
         ctx.fillRect(toX, toY, toWidth, toHeight);
     } else {
         ctx.drawImage(last_copy_canvas_pixels_canvas_tinted, fromX, fromY, fromWidth, fromHeight, toX, toY, toWidth, toHeight);
+    }
+}
+
+const DRAW_BATCH_BORDER = 1;
+const DRAW_BATCH_RECTANGLE = 2;
+const DRAW_BATCH_CANVAS_RECTANGLE = 3;
+const DRAW_BATCH_CANVAS_RECTANGLE_BATCH = 4;
+const DRAW_BATCH_CANVAS_PUSH_CLIP_RECT = 5;
+const DRAW_BATCH_CANVAS_POP_CLIP_RECT = 6;
+
+export function drawBatch(batch_memory_view) {
+    const batch = batch_memory_view.slice();
+
+    let i = 0;
+
+    while (i < batch.length) {
+        const type = batch[i++];
+
+        switch (type) {
+            case DRAW_BATCH_BORDER:
+                drawBorder(batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++]);
+                break;
+            case DRAW_BATCH_RECTANGLE:
+                drawRectangle(batch[i++], batch[i++], batch[i++], batch[i++], batch[i++]);
+                break;
+            case DRAW_BATCH_CANVAS_RECTANGLE:
+                drawCanvasRectangle(batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++]);
+                break;
+            case DRAW_BATCH_CANVAS_RECTANGLE_BATCH: {
+                const id = batch[i++];
+                const batch_count = batch[i++];
+                for (let j = 0; j < batch_count; j++) {
+                    drawCanvasRectangle(id, batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++]);
+                }
+                break;
+            }
+            case DRAW_BATCH_CANVAS_PUSH_CLIP_RECT:
+                pushClip(batch[i++], batch[i++], batch[i++], batch[i++]);
+                break;
+            case DRAW_BATCH_CANVAS_POP_CLIP_RECT:
+                popClip();
+                break;
+        }
     }
 }

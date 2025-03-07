@@ -264,7 +264,7 @@ public class StbGuiTextHelper
     {
         if (rects_buffer.index > 0)
         {
-            render_adapter.draw_rects(rects_buffer.buffer, rects_buffer.index, texture_id);
+            render_adapter.draw_texture_rects(rects_buffer.buffer, rects_buffer.index, texture_id);
             rects_buffer.index = 0;
         }
     }
