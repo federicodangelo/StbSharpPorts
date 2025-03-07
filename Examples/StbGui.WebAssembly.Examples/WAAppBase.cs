@@ -206,12 +206,12 @@ public abstract class WAAppBase : StbGuiAppBase
 
     protected override void copy_text_to_clipboard(ReadOnlySpan<char> text)
     {
-        // Not implemented
+        CanvasInterop.CopyToClipboard(text.ToString());
     }
 
     protected override ReadOnlySpan<char> get_clipboard_text()
     {
-        return ""; // Not implemented
+        return CanvasInterop.GetFromClipboard();
     }
 
     protected override long get_time_milliseconds()

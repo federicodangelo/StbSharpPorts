@@ -75,4 +75,10 @@ public partial class CanvasInterop
 
     [JSImport("setTitle", "canvas-interop")]
     public static partial void SetTitle(string title);
+
+    [JSImport("copyToClipboard", "canvas-interop")]
+    public static partial void CopyToClipboard(string text);
+    
+    [JSImport("getFromClipboard", "canvas-interop")]
+    public static partial string GetFromClipboard();
 }

@@ -296,3 +296,15 @@ export function drawBatch(batch_memory_view) {
         }
     }
 }
+
+let clipboard_text = "";
+
+export function copyToClipboard(text) {
+    // TODO: Browser clipboard API is async...
+    clipboard_text = text;
+}
+
+export function getFromClipboard() {
+    // TODO: Browser clipboard API is async...
+    return clipboard_text ?? "";
+}
