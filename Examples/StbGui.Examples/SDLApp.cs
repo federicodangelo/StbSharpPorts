@@ -1,8 +1,5 @@
 namespace StbSharp.Examples;
 
-using System.Buffers.Text;
-using StbSharp;
-
 public class SDLApp : SDLAppBase
 {
 
@@ -13,7 +10,7 @@ public class SDLApp : SDLAppBase
     // DefaultFontPath = "Fonts/Karla-Regular.ttf", DefaultFontSize = 16
     // DefaultFontPath = "Fonts/Roboto-Medium.ttf", DefaultFontSize = 16
 
-    public SDLApp() : base(new SdlAppOptions() { WindowName = "Example App", DefaultFontName = "Font", DefaultFontPath = "Fonts/ProggyClean.ttf", DefaultFontSize = 13 })
+    public SDLApp() : base(new StbGuiAppOptions() { WindowName = "Example App", DefaultFontName = "Font", DefaultFontPath = "Fonts/ProggyClean.ttf", DefaultFontSize = 13 })
     {
         var txt = "Hello World THIS IS A VERY LONG TEXT TO EDITTTT";
         txt.AsSpan().CopyTo(text_to_edit.Span);
@@ -43,7 +40,7 @@ public class SDLApp : SDLAppBase
     private Memory<char> text_to_edit2 = new Memory<char>(new char[1024]);
     private int text_to_edit2_length;
 
-    protected override void OnRenderStbGui()
+    protected override void on_render_stbgui()
     {
         mp.ResetPool();
 
@@ -128,7 +125,7 @@ public class SDLApp : SDLAppBase
 
             StbGui.stbg_textbox("textbox1", text_to_edit, ref text_to_edit_length);
             StbGui.stbg_textbox("textbox2", text_to_edit2, ref text_to_edit2_length, 3);
-            
+
             for (int i = 0; i < 20; i++)
             {
                 StbGui.stbg_button(mp.Concat("Test Button ", i));

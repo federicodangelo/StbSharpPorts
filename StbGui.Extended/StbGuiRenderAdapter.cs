@@ -37,4 +37,8 @@ public interface StbGuiRenderAdapter
     public void set_texture_pixels(nint texture_id, StbGui.stbg_size size, byte[] pixels);
 
     public void destroy_texture(nint texture_id);
+
+    public void register_font(int font_id, StbGuiFont font);
+
+    public void process_render_command(StbGui.stbg_render_command cmd);
 }

@@ -5,116 +5,32 @@ using System.Diagnostics;
 using Microsoft.Extensions.FileProviders;
 using StbSharp;
 
-public class WAAppBase : IDisposable
+public abstract class WAAppBase : StbGuiAppBase
 {
-    private const int BACKGROUND_FPS = 30;
-    private const int MAX_FPS = int.MaxValue;
+    private readonly EmbeddedFileProvider embeddedFileProvider = new EmbeddedFileProvider(typeof(WAAppBase).Assembly);
 
-    private StbGuiFont mainFont;
-    private StbGuiRenderAdapter render_adapter;
+    private readonly Stopwatch sw = Stopwatch.StartNew();
 
-    public struct MetricsInfo
+
+    public WAAppBase(StbGuiAppOptions options) : base(options)
     {
-        public int Fps;
-        public long TotalAllocatedBytes;
-        public long LastFrameAllocatedBytes;
-        public long TotalGarbageCollectionsPerformed;
     }
 
-    public MetricsInfo Metrics { get; private set; } = new();
-
-    public class WaAppOptions
+    protected override StbGuiRenderAdapter build_render_adapter(StbGuiAppOptions options)
     {
-        public int DefaultWindowWidth = 800;
-        public int DefaultWindowHeight = 600;
-        public int MinWindowWidth = 320;
-        public int MinWindowHeight = 100;
-        public string DefaultFontPath = "Fonts/ProggyClean.ttf";
-        public string DefaultFontName = "ProggyClean";
-        public float DefaultFontSize = 13;
-        public int FontRenderingOversampling = 1;
-        public bool FontRenderingBilinear = false;
-    }
-
-    private EmbeddedFileProvider embeddedFileProvider;
-
-    protected byte[] GetFileBytes(string path)
-    {
-        var file = embeddedFileProvider.GetFileInfo(path);
-
-        if (!file.Exists)
-            throw new FileNotFoundException(path);
-
-        using (var memoryStream = new MemoryStream())
-        {
-            using (var stream = file.CreateReadStream())
-            {
-                stream.CopyTo(memoryStream);
-            }
-            return memoryStream.ToArray();
-        }
-
-    }
-
-    public WAAppBase(WaAppOptions options)
-    {
-        embeddedFileProvider = new EmbeddedFileProvider(typeof(WAAppBase).Assembly);
-
         CanvasInterop.Init();
 
-        render_adapter = new WARenderAdapter();
-
-        mainFont = new StbGuiFont(options.DefaultFontName, GetFileBytes(options.DefaultFontPath), options.DefaultFontSize, options.FontRenderingOversampling, options.FontRenderingBilinear, render_adapter);
-
-        InitStbGui();
-
-        sw = new Stopwatch();
-        sw.Start();
-
-        frames_count_ms = sw.ElapsedMilliseconds;
+        return new WARenderAdapter();
     }
 
-    private Stopwatch sw;
-
-    private long frames_count_ms;
-    private long frames_count;
-
-    public void LoopOnce()
+    protected override void present_frame(long frame_ms)
     {
-        UpdateCanvasSize();
-
-        var frame_start_ms = sw.ElapsedMilliseconds;
-
-        ProcessWAEvents();
-
-        //if (quit) break;
-
-        // Screen clearing is handled by STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME
-
-        StbGui.stbg_begin_frame();
-        {
-            OnRenderStbGui();
-        }
-        StbGui.stbg_end_frame();
-
-        StbGui.stbg_render();
-
-        UpdateActiveCursor();
-
-        UpdateMetrics();
-
-        //SDL.RenderPresent(renderer);
-
-        var frame_end_ms = sw.ElapsedMilliseconds;
-
-        //var frame_ms = frame_end_ms - frame_start_ms;
-
-        //FrameDelay(frame_ns);
+        // Nothing to do
     }
 
     private string last_active_cursor = "";
 
-    private void UpdateActiveCursor()
+    protected override void update_active_cursor()
     {
         string cursor = "";
 
@@ -157,39 +73,6 @@ public class WAAppBase : IDisposable
         }
     }
 
-    private void UpdateMetrics()
-    {
-        var updatedMetrics = Metrics;
-
-        // Update FPS
-        var now_ms = sw.ElapsedMilliseconds;
-        frames_count++;
-        if (now_ms - frames_count_ms > 1000)
-        {
-            updatedMetrics.Fps = (int)Math.Round(frames_count / ((now_ms - frames_count_ms) / 1000.0f));
-
-            //Console.WriteLine($"FPS: {updatedMetrics.Fps}");
-
-            frames_count = 0;
-            frames_count_ms = now_ms;
-        }
-
-        // Update memory usage
-        var totalAllocatedBytes = GC.GetTotalAllocatedBytes(true);
-
-        updatedMetrics.LastFrameAllocatedBytes = totalAllocatedBytes - updatedMetrics.TotalAllocatedBytes;
-        updatedMetrics.TotalAllocatedBytes = totalAllocatedBytes;
-
-        var collectionCount = 0;
-
-        for (var i = 0; i < GC.MaxGeneration; i++)
-            collectionCount += GC.CollectionCount(i);
-
-        updatedMetrics.TotalGarbageCollectionsPerformed = collectionCount;
-
-        Metrics = updatedMetrics;
-    }
-
     private enum WAEventType
     {
         MouseDown = 1,
@@ -201,7 +84,7 @@ public class WAAppBase : IDisposable
         KeyUp = 11,
     }
 
-    private void ProcessWAEvents()
+    protected override void process_input_events()
     {
         Span<char> tmp_string = stackalloc char[256];
 
@@ -314,191 +197,59 @@ public class WAAppBase : IDisposable
 
     static private Dictionary<string, StbGui.STBG_KEYBOARD_KEY>.AlternateLookup<ReadOnlySpan<char>> SDL_KEY_MAPPINGS_ALTERNATE_LOOKUP = SDL_KEY_MAPPINGS.GetAlternateLookup<ReadOnlySpan<char>>();
 
-    public void Dispose()
+    protected override void set_input_method_editor(StbGui.stbg_input_method_editor_info options)
     {
-        mainFont.Dispose();
+        // Not implemented
     }
 
-    private StbGui.stbg_external_dependencies BuildExternalDependencies()
+    protected override void copy_text_to_clipboard(ReadOnlySpan<char> text)
     {
-        return new StbGui.stbg_external_dependencies()
-        {
-            measure_text = (text, font, style, options) => MeasureText(text, font, style, options),
-            get_character_position_in_text = (text, font, style, options, character_index) => GetCharacterPositionInText(text, font, style, options, character_index),
-            render = (commands) =>
-            {
-                foreach (var cmd in commands)
-                    ProcessRenderCommand(cmd);
-            },
-            set_input_method_editor = (options) =>
-            {
-                if (options.enable)
-                {
-                    /*
-                    SDL.SetTextInputArea(window,
-                        new SDL.Rect()
-                        {
-                            X = (int)options.editing_global_rect.x0,
-                            Y = (int)options.editing_global_rect.y0,
-                            W = (int)(options.editing_global_rect.x1 - options.editing_global_rect.x0),
-                            H = (int)(options.editing_global_rect.y1 - options.editing_global_rect.y0)
-                        },
-                        (int)options.editing_cursor_global_x
-                    );
-
-                    SDL.StartTextInput(window);
-                    */
-                }
-                else
-                {
-                    //SDL.StopTextInput(window);
-                }
-            },
-            copy_text_to_clipboard = (text) =>
-            {
-                //SDL.SetClipboardText(text.ToString());
-            },
-            get_clipboard_text = () =>
-            {
-                return ""; //SDL.GetClipboardText();
-            },
-            get_time_milliseconds = () =>
-            {
-                return sw.ElapsedMilliseconds;
-            },
-            get_performance_counter = () =>
-            {
-                return sw.ElapsedMilliseconds;
-            },
-            get_performance_counter_frequency = () =>
-            {
-                return 1000;
-            },
-        };
+        // Not implemented
     }
 
-    private void ProcessRenderCommand(StbGui.stbg_render_command cmd)
+    protected override ReadOnlySpan<char> get_clipboard_text()
     {
-        switch (cmd.type)
-        {
-            case StbGui.STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME:
-                {
-                    var background_color = cmd.background_color;
-                    CanvasInterop.Clear(background_color.r, background_color.g, background_color.b, background_color.a);
-                    break;
-                }
-
-            case StbGui.STBG_RENDER_COMMAND_TYPE.END_FRAME:
-                Debug.Assert(WAHelper.HasClipping() == false);
-                break;
-
-
-            case StbGui.STBG_RENDER_COMMAND_TYPE.BORDER:
-                {
-                    var color = cmd.color;
-                    var background_color = cmd.background_color;
-                    var bounds = cmd.bounds;
-                    var border_size = (int)Math.Ceiling(cmd.size);
-
-                    CanvasInterop.DrawBorder(
-                        background_color.r, background_color.g, background_color.b, background_color.a,
-                        color.r, color.g, color.b, color.a,
-                        bounds.x0, bounds.y0, bounds.x1 - bounds.x0, bounds.y1 - bounds.y0,
-                        border_size
-                    );
-                    break;
-                }
-
-            case StbGui.STBG_RENDER_COMMAND_TYPE.RECTANGLE:
-                {
-                    var background_color = cmd.background_color;
-                    var bounds = cmd.bounds;
-
-                    CanvasInterop.DrawRectangle(
-                        background_color.r, background_color.g, background_color.b, background_color.a,
-                        bounds.x0, bounds.y0, bounds.x1 - bounds.x0, bounds.y1 - bounds.y0
-                    );
-                    break;
-                }
-
-            case StbGui.STBG_RENDER_COMMAND_TYPE.TEXT:
-                {
-                    var bounds = cmd.bounds;
-                    var text = cmd.text;
-
-                    DrawText(text, bounds);
-                    break;
-                }
-
-            case StbGui.STBG_RENDER_COMMAND_TYPE.PUSH_CLIPPING_RECT:
-                WAHelper.PushClipRect(cmd.bounds);
-                break;
-
-            case StbGui.STBG_RENDER_COMMAND_TYPE.POP_CLIPPING_RECT:
-                WAHelper.PopClipRect();
-                break;
-        }
+        return ""; // Not implemented
     }
 
-    private StbGui.stbg_size MeasureText(ReadOnlySpan<char> text, StbGui.stbg_font _, StbGui.stbg_font_style style, StbGui.STBG_MEASURE_TEXT_OPTIONS options)
+    protected override long get_time_milliseconds()
     {
-        Span<StbGui.stbg_render_text_style_range> tmp_styles = stackalloc StbGui.stbg_render_text_style_range[1];
-
-        tmp_styles[0] = new StbGui.stbg_render_text_style_range()
-        {
-            start_index = 0,
-            text_color = style.color,
-            font_style = style.style
-        };
-
-        return StbGuiTextHelper.measure_text(text, mainFont, style.size, tmp_styles, options);
+        return sw.ElapsedMilliseconds;
     }
 
-    private StbGui.stbg_position GetCharacterPositionInText(ReadOnlySpan<char> text, StbGui.stbg_font _, StbGui.stbg_font_style style, StbGui.STBG_MEASURE_TEXT_OPTIONS options, int character_index)
+    protected override long get_performance_counter()
     {
-        Span<StbGui.stbg_render_text_style_range> tmp_styles = stackalloc StbGui.stbg_render_text_style_range[1];
-
-        tmp_styles[0] = new StbGui.stbg_render_text_style_range()
-        {
-            start_index = 0,
-            text_color = style.color,
-            font_style = style.style
-        };
-
-        return StbGuiTextHelper.get_character_position_in_text(text, mainFont, style.size, tmp_styles, options, character_index);
+        return sw.ElapsedMilliseconds;
     }
 
-    private void DrawText(StbGui.stbg_render_text_parameters text, StbGui.stbg_rect bounds)
+    protected override long get_performance_counter_frequency()
     {
-        var font = StbGui.stbg_get_font_by_id(text.font_id);
-
-        StbGuiTextHelper.draw_text(text, bounds, mainFont, render_adapter);
+        return 1000;
     }
 
-    private void InitStbGui()
-    {
-        StbGui.stbg_init(BuildExternalDependencies(), new());
-
-        UpdateCanvasSize();
-
-        int fontId = StbGui.stbg_add_font(mainFont.name);
-
-        StbGui.stbg_init_default_theme(
-            fontId,
-            new() { size = mainFont.size, style = StbGui.STBG_FONT_STYLE_FLAGS.NONE, color = StbGui.STBG_COLOR_WHITE }
-        );
-    }
-
-    private static void UpdateCanvasSize()
+    protected override StbGui.stbg_size get_screen_size()
     {
         int screenWidth = CanvasInterop.GetWidth();
         int screenHeight = CanvasInterop.GetHeight();
-        StbGui.stbg_set_screen_size(screenWidth, screenHeight);
+
+        return StbGui.stbg_build_size(screenWidth, screenHeight);
     }
 
-    protected virtual void OnRenderStbGui()
+    protected override byte[] get_file_bytes(string path)
     {
 
+        var file = embeddedFileProvider.GetFileInfo(path);
+
+        if (!file.Exists)
+            throw new FileNotFoundException(path);
+
+        using (var memoryStream = new MemoryStream())
+        {
+            using (var stream = file.CreateReadStream())
+            {
+                stream.CopyTo(memoryStream);
+            }
+            return memoryStream.ToArray();
+        }
     }
 }
-

@@ -13,7 +13,7 @@ public class WAApp : WAAppBase
     // DefaultFontPath = "Fonts/Karla-Regular.ttf", DefaultFontSize = 16
     // DefaultFontPath = "Fonts/Roboto-Medium.ttf", DefaultFontSize = 16
 
-   public WAApp() : base(new WaAppOptions() { DefaultFontName = "Font", DefaultFontPath = "Fonts/ProggyClean.ttf", DefaultFontSize = 13 })
+   public WAApp() : base(new StbGuiAppOptions() { DefaultFontName = "Font", DefaultFontPath = "Fonts/ProggyClean.ttf", DefaultFontSize = 13 })
      {
         var txt = "Hello World THIS IS A VERY LONG TEXT TO EDITTTT";
         txt.AsSpan().CopyTo(text_to_edit.Span);
@@ -43,7 +43,7 @@ public class WAApp : WAAppBase
     private Memory<char> text_to_edit2 = new Memory<char>(new char[1024]);
     private int text_to_edit2_length;
 
-    protected override void OnRenderStbGui()
+    protected override void on_render_stbgui()
     {
         mp.ResetPool();
 

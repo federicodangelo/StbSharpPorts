@@ -1,47 +1,27 @@
 namespace StbSharp.Examples;
 
 using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using SDL3;
 using StbSharp;
 
-public class SDLAppBase : IDisposable
+public abstract class SDLAppBase : StbGuiAppBase
 {
     private const int BACKGROUND_FPS = 30;
     private const int MAX_FPS = int.MaxValue;
 
-    private StbGuiFont mainFont;
     private nint renderer;
     private nint window;
     private bool use_fake_vsync;
-    private StbGuiRenderAdapter render_adapter;
+    private bool quit;
 
-    public struct MetricsInfo
+    public bool Quit => quit;
+
+    public SDLAppBase(StbGuiAppOptions options) : base(options)
     {
-        public int Fps;
-        public long TotalAllocatedBytes;
-        public long LastFrameAllocatedBytes;
-        public long TotalGarbageCollectionsPerformed;
     }
 
-    public MetricsInfo Metrics { get; private set; } = new();
-
-    public class SdlAppOptions
-    {
-        public string WindowName = "StbGui SDL App";
-        public int DefaultWindowWidth = 800;
-        public int DefaultWindowHeight = 600;
-        public int MinWindowWidth = 320;
-        public int MinWindowHeight = 100;
-        public string DefaultFontPath = "Fonts/ProggyClean.ttf";
-        public string DefaultFontName = "ProggyClean";
-        public float DefaultFontSize = 13;
-        public int FontRenderingOversampling = 1;
-        public bool FontRenderingBilinear = false;
-    }
-
-    public SDLAppBase(SdlAppOptions options)
+    protected override StbGuiRenderAdapter build_render_adapter(StbGuiAppOptions options)
     {
         if (!SDL.Init(SDL.InitFlags.Video))
         {
@@ -66,53 +46,12 @@ public class SDLAppBase : IDisposable
         SDL.SetWindowMinimumSize(window, options.MinWindowWidth, options.MinWindowHeight);
         SDL.EnableScreenSaver(); //Re-enable the screensaver that is disabled by default
 
-        render_adapter = new SDLRenderAdapter(renderer);
-
-        mainFont = new StbGuiFont(options.DefaultFontName, options.DefaultFontPath, options.DefaultFontSize, options.FontRenderingOversampling, options.FontRenderingBilinear, render_adapter);
-
-        InitStbGui();
-    }
-
-    public void MainLoop()
-    {
-        var frames_count_ticks = SDL.GetTicks();
-        var frames_count = 0;
-
-        while (true)
-        {
-            ulong frame_start_ns = SDL.GetTicksNS();
-
-            var quit = ProcessSDLEvents();
-
-            if (quit) break;
-
-            // Screen clearing is handled by STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME
-
-            StbGui.stbg_begin_frame();
-            {
-                OnRenderStbGui();
-            }
-            StbGui.stbg_end_frame();
-
-            StbGui.stbg_render();
-
-            UpdateActiveCursor();
-
-            UpdateMetrics(ref frames_count_ticks, ref frames_count);
-
-            SDL.RenderPresent(renderer);
-
-            ulong frame_end_ns = SDL.GetTicksNS();
-
-            var frame_ns = frame_end_ns - frame_start_ns;
-
-            FrameDelay(frame_ns);
-        }
+        return new SDLRenderAdapter(renderer);
     }
 
     private SDL.SystemCursor last_active_cursor = SDL.SystemCursor.Default;
 
-    private void UpdateActiveCursor()
+    protected override void update_active_cursor()
     {
         SDL.SystemCursor cursor = SDL.SystemCursor.Default;
 
@@ -158,38 +97,10 @@ public class SDLAppBase : IDisposable
         }
     }
 
-    private void UpdateMetrics(ref ulong frames_count_ticks, ref int frames_count)
+    protected override void present_frame(long frame_ms)
     {
-        var updatedMetrics = Metrics;
-
-        // Update FPS
-        frames_count++;
-        if (SDL.GetTicks() - frames_count_ticks > 1000)
-        {
-            updatedMetrics.Fps = (int)Math.Round(frames_count / ((SDL.GetTicks() - frames_count_ticks) / 1000.0f));
-
-            frames_count = 0;
-            frames_count_ticks = SDL.GetTicks();
-        }
-
-        // Update memory usage
-        var totalAllocatedBytes = GC.GetTotalAllocatedBytes(true);
-
-        updatedMetrics.LastFrameAllocatedBytes = totalAllocatedBytes - updatedMetrics.TotalAllocatedBytes;
-        updatedMetrics.TotalAllocatedBytes = totalAllocatedBytes;
-
-        var collectionCount = 0;
-
-        for (var i = 0; i < GC.MaxGeneration; i++)
-            collectionCount += GC.CollectionCount(i);
-
-        updatedMetrics.TotalGarbageCollectionsPerformed = collectionCount;
-
-        Metrics = updatedMetrics;
-    }
-
-    private void FrameDelay(ulong frame_ns)
-    {
+        SDL.RenderPresent(renderer);
+        
         var window_flags = SDL.GetWindowFlags(window);
 
         var background_window = !((window_flags & SDL.WindowFlags.InputFocus) != 0);
@@ -215,11 +126,11 @@ public class SDLAppBase : IDisposable
             if (background_window)
                 refresh_rate = Math.Min(refresh_rate, BACKGROUND_FPS);
 
-            ulong frame_delay_ns = 1_000_000_000 / (ulong)refresh_rate;
+            long frame_delay_ms = 1_000 / (long)refresh_rate;
 
-            if (frame_ns < frame_delay_ns)
+            if (frame_ms < frame_delay_ms)
             {
-                SDL.DelayNS(frame_delay_ns - frame_ns);
+                SDL.Delay((uint)(frame_delay_ms - frame_ms));
             }
         }
     }
@@ -261,10 +172,8 @@ public class SDLAppBase : IDisposable
         { SDL.Scancode.Pagedown, StbGui.STBG_KEYBOARD_KEY.PAGE_DOWN },
     };
 
-    private bool ProcessSDLEvents()
+    protected override void process_input_events()
     {
-        bool quit = false;
-
         Span<byte> tmp_bytes = stackalloc byte[64];
         Span<char> tmp_chars = stackalloc char[64];
         int tmp_chars_length = 0;
@@ -394,13 +303,11 @@ public class SDLAppBase : IDisposable
                     break;
             }
         }
-
-        return quit;
     }
 
-    public void Dispose()
+    public override void Dispose()
     {
-        mainFont.Dispose();
+        base.Dispose();
 
         if (renderer != 0)
             SDL.DestroyRenderer(renderer);
@@ -411,177 +318,63 @@ public class SDLAppBase : IDisposable
         SDL.Quit();
     }
 
-    private StbGui.stbg_external_dependencies BuildExternalDependencies()
-    {
-        return new StbGui.stbg_external_dependencies()
-        {
-            measure_text = (text, font, style, options) => MeasureText(text, font, style, options),
-            get_character_position_in_text = (text, font, style, options, character_index) => GetCharacterPositionInText(text, font, style, options, character_index),
-            render = (commands) =>
-            {
-                foreach (var cmd in commands)
-                    ProcessRenderCommand(cmd);
-            },
-            set_input_method_editor = (options) =>
-            {
-                if (options.enable)
-                {
-                    SDL.SetTextInputArea(window,
-                        new SDL.Rect()
-                        {
-                            X = (int)options.editing_global_rect.x0,
-                            Y = (int)options.editing_global_rect.y0,
-                            W = (int)(options.editing_global_rect.x1 - options.editing_global_rect.x0),
-                            H = (int)(options.editing_global_rect.y1 - options.editing_global_rect.y0)
-                        },
-                        (int)options.editing_cursor_global_x
-                    );
-
-                    SDL.StartTextInput(window);
-                }
-                else
-                {
-                    SDL.StopTextInput(window);
-                }
-            },
-            copy_text_to_clipboard = (text) =>
-            {
-                SDL.SetClipboardText(text.ToString());
-            },
-            get_clipboard_text = () =>
-            {
-                return SDL.GetClipboardText();
-            },
-            get_time_milliseconds = () =>
-            {
-                return (long)SDL.GetTicks();
-            },
-            get_performance_counter = () =>
-            {
-                return (long)SDL.GetPerformanceCounter();
-            },
-            get_performance_counter_frequency = () =>
-            {
-                return (long)SDL.GetPerformanceFrequency();
-            },
-        };
-    }
-
-    private void ProcessRenderCommand(StbGui.stbg_render_command cmd)
-    {
-        switch (cmd.type)
-        {
-            case StbGui.STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME:
-                {
-                    var background_color = cmd.background_color;
-                    SDL.SetRenderDrawColor(renderer, background_color.r, background_color.g, background_color.b, background_color.a);
-                    SDL.RenderClear(renderer);
-                    SDL.SetRenderDrawBlendMode(renderer, SDL.BlendMode.Blend);
-                    break;
-                }
-
-            case StbGui.STBG_RENDER_COMMAND_TYPE.END_FRAME:
-                Debug.Assert(SDLHelper.HasClipping() == false);
-                break;
-
-
-            case StbGui.STBG_RENDER_COMMAND_TYPE.BORDER:
-                {
-                    var color = cmd.color;
-                    var background_color = cmd.background_color;
-                    var bounds = cmd.bounds;
-                    var border_size = (int)Math.Ceiling(cmd.size);
-
-                    SDL.SetRenderDrawColor(renderer, background_color.r, background_color.g, background_color.b, background_color.a);
-                    SDL.RenderFillRect(renderer, new SDL.FRect() { X = bounds.x0, Y = bounds.y0, W = bounds.x1 - bounds.x0, H = bounds.y1 - bounds.y0 });
-                    SDL.SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-                    for (int i = 0; i < border_size; i++)
-                        SDL.RenderRect(renderer, new SDL.FRect() { X = bounds.x0 + i, Y = bounds.y0 + i, W = bounds.x1 - bounds.x0 - i * 2, H = bounds.y1 - bounds.y0 - i * 2 });
-                    break;
-                }
-
-            case StbGui.STBG_RENDER_COMMAND_TYPE.RECTANGLE:
-                {
-                    var background_color = cmd.background_color;
-                    var bounds = cmd.bounds;
-
-                    SDL.SetRenderDrawColor(renderer, background_color.r, background_color.g, background_color.b, background_color.a);
-                    SDL.RenderFillRect(renderer, new SDL.FRect() { X = bounds.x0, Y = bounds.y0, W = bounds.x1 - bounds.x0, H = bounds.y1 - bounds.y0 });
-                    break;
-                }
-
-            case StbGui.STBG_RENDER_COMMAND_TYPE.TEXT:
-                {
-                    var bounds = cmd.bounds;
-                    var text = cmd.text;
-
-                    DrawText(cmd.text, bounds);
-                    break;
-                }
-
-            case StbGui.STBG_RENDER_COMMAND_TYPE.PUSH_CLIPPING_RECT:
-                SDLHelper.PushClipRect(renderer, cmd.bounds);
-                break;
-
-            case StbGui.STBG_RENDER_COMMAND_TYPE.POP_CLIPPING_RECT:
-                SDLHelper.PopClipRect(renderer);
-                break;
-        }
-    }
-
-    private StbGui.stbg_size MeasureText(ReadOnlySpan<char> text, StbGui.stbg_font _, StbGui.stbg_font_style style, StbGui.STBG_MEASURE_TEXT_OPTIONS options)
-    {
-        Span<StbGui.stbg_render_text_style_range> tmp_styles = stackalloc StbGui.stbg_render_text_style_range[1];
-
-        tmp_styles[0] = new StbGui.stbg_render_text_style_range()
-        {
-            start_index = 0,
-            text_color = style.color,
-            font_style = style.style
-        };
-
-        return StbGuiTextHelper.measure_text(text, mainFont, style.size, tmp_styles, options);
-    }
-
-    private StbGui.stbg_position GetCharacterPositionInText(ReadOnlySpan<char> text, StbGui.stbg_font _, StbGui.stbg_font_style style, StbGui.STBG_MEASURE_TEXT_OPTIONS options, int character_index)
-    {
-        Span<StbGui.stbg_render_text_style_range> tmp_styles = stackalloc StbGui.stbg_render_text_style_range[1];
-
-        tmp_styles[0] = new StbGui.stbg_render_text_style_range()
-        {
-            start_index = 0,
-            text_color = style.color,
-            font_style = style.style
-        };
-
-        return StbGuiTextHelper.get_character_position_in_text(text, mainFont, style.size, tmp_styles, options, character_index);
-    }
-
-    private void DrawText(StbGui.stbg_render_text_parameters text, StbGui.stbg_rect bounds)
-    {
-        var font = StbGui.stbg_get_font_by_id(text.font_id);
-
-        StbGuiTextHelper.draw_text(text, bounds, mainFont, render_adapter);
-    }
-
-    private void InitStbGui()
+    protected override StbGui.stbg_size get_screen_size()
     {
         SDL.GetWindowSize(window, out var screenWidth, out var screenHeight);
 
-        StbGui.stbg_init(BuildExternalDependencies(), new());
-        StbGui.stbg_set_screen_size(screenWidth, screenHeight);
-
-        int fontId = StbGui.stbg_add_font(mainFont.name);
-
-        StbGui.stbg_init_default_theme(
-            fontId,
-            new() { size = mainFont.size, style = StbGui.STBG_FONT_STYLE_FLAGS.NONE, color = StbGui.STBG_COLOR_WHITE }
-        );
+        return StbGui.stbg_build_size(screenWidth, screenHeight);
     }
 
-    protected virtual void OnRenderStbGui()
+    protected override long get_performance_counter_frequency()
     {
+        return (long)SDL.GetPerformanceFrequency();
+    }
 
+    protected override long get_performance_counter()
+    {
+        return (long)SDL.GetPerformanceCounter();
+    }
+
+    protected override long get_time_milliseconds()
+    {
+        return (long)SDL.GetTicks();
+    }
+
+    protected override ReadOnlySpan<char> get_clipboard_text()
+    {
+        return SDL.GetClipboardText();
+    }
+
+    protected override void copy_text_to_clipboard(ReadOnlySpan<char> text)
+    {
+        SDL.SetClipboardText(text.ToString());
+    }
+
+    protected override void set_input_method_editor(StbGui.stbg_input_method_editor_info options)
+    {
+        if (options.enable)
+        {
+            SDL.SetTextInputArea(window,
+                new SDL.Rect()
+                {
+                    X = (int)options.editing_global_rect.x0,
+                    Y = (int)options.editing_global_rect.y0,
+                    W = (int)(options.editing_global_rect.x1 - options.editing_global_rect.x0),
+                    H = (int)(options.editing_global_rect.y1 - options.editing_global_rect.y0)
+                },
+                (int)options.editing_cursor_global_x
+            );
+
+            SDL.StartTextInput(window);
+        }
+        else
+        {
+            SDL.StopTextInput(window);
+        }
+    }
+
+    protected override byte[] get_file_bytes(string path)
+    {
+        return File.ReadAllBytes(path);
     }
 }
-

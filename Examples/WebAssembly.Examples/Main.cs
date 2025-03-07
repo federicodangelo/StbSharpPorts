@@ -9,7 +9,7 @@ using StbSharp.StbCommon;
 
 public static partial class Main
 {
-    private static WAApp app;
+    private static WAApp? app;
 
     [JSExport]
     public static async Task Init()
@@ -23,7 +23,7 @@ public static partial class Main
     [JSExport]
     public static void Render()
     {
-        app.LoopOnce();
+        app?.loop_once();
     }
 
     [JSExport]
@@ -83,13 +83,10 @@ public static partial class Main
         return console;
     }
 
-    private static EmbeddedFileProvider embeddedFileProvider;
+    private static EmbeddedFileProvider embeddedFileProvider = new EmbeddedFileProvider(typeof(Main).Assembly);
 
     private static byte[] GetBytes(string path)
     {
-        if (embeddedFileProvider == null)
-            embeddedFileProvider = new EmbeddedFileProvider(typeof(Main).Assembly);
-
         var file = embeddedFileProvider.GetFileInfo(path);
 
         if (!file.Exists)

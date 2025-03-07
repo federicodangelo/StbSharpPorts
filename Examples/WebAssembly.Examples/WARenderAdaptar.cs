@@ -1,20 +1,22 @@
+using System.Diagnostics;
 using StbSharp;
+using StbSharp.Examples;
 
-class WARenderAdapter : StbGuiRenderAdapter
+class WARenderAdapter : StbGuiRenderAdapterBase
 {
-    public nint create_texture(int width, int height, StbGuiRenderAdapter.CreateTextureOptions options = default)
+    public override nint create_texture(int width, int height, StbGuiRenderAdapter.CreateTextureOptions options = default)
     {
         return CanvasInterop.CreateCanvas(width, height);
     }
 
-    public void destroy_texture(nint texture_id)
+    public override void destroy_texture(nint texture_id)
     {
         CanvasInterop.DestroyCanvas((int)texture_id);
     }
 
     private int[] draw_rects_buffer = new int[1024 * CanvasInterop.COPY_CANVAS_PIXELS_BATCH_ELEMENT_SIZE];
 
-    public void draw_rects(StbGuiRenderAdapter.Rect[] rects, int count, nint texture_id)
+    public override void draw_rects(StbGuiRenderAdapter.Rect[] rects, int count, nint texture_id)
     {
         if (count < 2)
         {
@@ -65,27 +67,55 @@ class WARenderAdapter : StbGuiRenderAdapter
                 }
             }
 
-            CanvasInterop.CopyCanvasPixelsBatch((int) texture_id, draw_rects_buffer.AsSpan(0, len));
+            CanvasInterop.CopyCanvasPixelsBatch((int)texture_id, draw_rects_buffer.AsSpan(0, len));
         }
     }
 
-    public void draw_vertices(StbGuiRenderAdapter.Vertex[] vertices, int count, nint texture_id)
+    public override void draw_vertices(StbGuiRenderAdapter.Vertex[] vertices, int count, nint texture_id)
     {
         //throw new NotImplementedException();
     }
 
-    public void pop_clip_rect()
+    public override void pop_clip_rect()
     {
         CanvasInterop.PopClip();
     }
 
-    public void push_clip_rect(StbGui.stbg_rect rect)
+    public override void push_clip_rect(StbGui.stbg_rect rect)
     {
         CanvasInterop.PushClip(rect.x0, rect.y0, rect.x1 - rect.x0, rect.y1 - rect.y0);
     }
 
-    public void set_texture_pixels(nint texture_id, StbGui.stbg_size size, byte[] pixels)
+    public override void set_texture_pixels(nint texture_id, StbGui.stbg_size size, byte[] pixels)
     {
         CanvasInterop.SetCanvasPixels((int)texture_id, (int)size.width, (int)size.height, pixels);
+    }
+
+    protected override void render_begin_frame(StbGui.stbg_color background_color)
+    {
+        CanvasInterop.Clear(background_color.r, background_color.g, background_color.b, background_color.a);
+    }
+
+    protected override void render_end_frame()
+    {
+        Debug.Assert(WAHelper.HasClipping() == false);
+    }
+
+    protected override void render_draw_rectangle(StbGui.stbg_rect bounds, StbGui.stbg_color background_color)
+    {
+        CanvasInterop.DrawRectangle(
+            background_color.r, background_color.g, background_color.b, background_color.a,
+            bounds.x0, bounds.y0, bounds.x1 - bounds.x0, bounds.y1 - bounds.y0
+        );
+    }
+
+    protected override void render_draw_border(StbGui.stbg_rect bounds, int border_size, StbGui.stbg_color background_color, StbGui.stbg_color color)
+    {
+        CanvasInterop.DrawBorder(
+            background_color.r, background_color.g, background_color.b, background_color.a,
+            color.r, color.g, color.b, color.a,
+            bounds.x0, bounds.y0, bounds.x1 - bounds.x0, bounds.y1 - bounds.y0,
+            border_size
+        );
     }
 }

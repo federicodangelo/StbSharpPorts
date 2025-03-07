@@ -3,7 +3,7 @@ using SDL3;
 
 namespace StbSharp.Examples;
 
-public class SDLRenderAdapter : StbGuiRenderAdapter
+public class SDLRenderAdapter : StbGuiRenderAdapterBase
 {
     private const int RECTANGLE_VERTEX_COUNT = 4;
     private const int RECTANGLE_INDICES_COUNT = 6;
@@ -17,7 +17,7 @@ public class SDLRenderAdapter : StbGuiRenderAdapter
         this.renderer = renderer;
     }
 
-    public nint create_texture(int width, int height, StbGuiRenderAdapter.CreateTextureOptions options = default)
+    public override nint create_texture(int width, int height, StbGuiRenderAdapter.CreateTextureOptions options = default)
     {
         var texture_id = SDL.CreateTexture(renderer, SDL.PixelFormat.RGBA8888, SDL.TextureAccess.Static, width, height);
 
@@ -35,7 +35,7 @@ public class SDLRenderAdapter : StbGuiRenderAdapter
         return texture_id;
     }
 
-    public void set_texture_pixels(nint texture_id, StbGui.stbg_size size, byte[] pixels)
+    public override void set_texture_pixels(nint texture_id, StbGui.stbg_size size, byte[] pixels)
     {
         if (!SDL.UpdateTexture(texture_id, new SDL.Rect() { W = (int)size.width, H = (int)size.height, }, pixels, (int)size.width * 4))
         {
@@ -44,15 +44,15 @@ public class SDLRenderAdapter : StbGuiRenderAdapter
         }
     }
 
-    public void destroy_texture(nint texture_id)
+    public override void destroy_texture(nint texture_id)
     {
         SDL.DestroyTexture(texture_id);
     }
 
-    public void draw_rects(StbGuiRenderAdapter.Rect[] rects, int count, nint texture_id)
+    public override void draw_rects(StbGuiRenderAdapter.Rect[] rects, int count, nint texture_id)
     {
         Debug.Assert(count * RECTANGLE_VERTEX_COUNT <= tmp_vertex.Length, "Vertex count exceeds temporary vertex buffer size.");
-        
+
         var tmp_v = tmp_vertex;
         var tmp_i = tmp_indices;
         int vertex_index = 0;
@@ -165,7 +165,7 @@ public class SDLRenderAdapter : StbGuiRenderAdapter
         SDL.RenderGeometry(renderer, texture_id, tmp_v, vertex_index, tmp_i, indices_index);
     }
 
-    public void draw_vertices(StbGuiRenderAdapter.Vertex[] vertices, int count, nint texture_id)
+    public override void draw_vertices(StbGuiRenderAdapter.Vertex[] vertices, int count, nint texture_id)
     {
         Debug.Assert(count <= tmp_vertex.Length, "Vertex count exceeds temporary vertex buffer size.");
 
@@ -201,13 +201,40 @@ public class SDLRenderAdapter : StbGuiRenderAdapter
         SDL.RenderGeometry(renderer, texture_id, tmp_vertex, count, 0, 0);
     }
 
-    public void push_clip_rect(StbGui.stbg_rect rect)
+    public override void push_clip_rect(StbGui.stbg_rect rect)
     {
         SDLHelper.PushClipRect(renderer, rect);
     }
 
-    public void pop_clip_rect()
+    public override void pop_clip_rect()
     {
         SDLHelper.PopClipRect(renderer);
+    }
+
+    protected override void render_begin_frame(StbGui.stbg_color background_color)
+    {
+        SDL.SetRenderDrawColor(renderer, background_color.r, background_color.g, background_color.b, background_color.a);
+        SDL.RenderClear(renderer);
+        SDL.SetRenderDrawBlendMode(renderer, SDL.BlendMode.Blend);
+    }
+
+    protected override void render_end_frame()
+    {
+        Debug.Assert(SDLHelper.HasClipping() == false);
+    }
+
+    protected override void render_draw_rectangle(StbGui.stbg_rect bounds, StbGui.stbg_color background_color)
+    {
+        SDL.SetRenderDrawColor(renderer, background_color.r, background_color.g, background_color.b, background_color.a);
+        SDL.RenderFillRect(renderer, new SDL.FRect() { X = bounds.x0, Y = bounds.y0, W = bounds.x1 - bounds.x0, H = bounds.y1 - bounds.y0 });
+    }
+
+    protected override void render_draw_border(StbGui.stbg_rect bounds, int border_size, StbGui.stbg_color background_color, StbGui.stbg_color color)
+    {
+        SDL.SetRenderDrawColor(renderer, background_color.r, background_color.g, background_color.b, background_color.a);
+        SDL.RenderFillRect(renderer, new SDL.FRect() { X = bounds.x0, Y = bounds.y0, W = bounds.x1 - bounds.x0, H = bounds.y1 - bounds.y0 });
+        SDL.SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+        for (int i = 0; i < border_size; i++)
+            SDL.RenderRect(renderer, new SDL.FRect() { X = bounds.x0 + i, Y = bounds.y0 + i, W = bounds.x1 - bounds.x0 - i * 2, H = bounds.y1 - bounds.y0 - i * 2 });
     }
 }
