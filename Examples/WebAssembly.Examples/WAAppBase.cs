@@ -20,6 +20,8 @@ public abstract class WAAppBase : StbGuiAppBase
     {
         CanvasInterop.Init();
 
+        CanvasInterop.SetTitle(options.WindowName);
+
         return new WARenderAdapter();
     }
 
@@ -219,12 +221,12 @@ public abstract class WAAppBase : StbGuiAppBase
 
     protected override long get_performance_counter()
     {
-        return sw.ElapsedMilliseconds;
+        return (long) sw.Elapsed.TotalMicroseconds;
     }
 
     protected override long get_performance_counter_frequency()
     {
-        return 1000;
+        return 1_000_000; // 1 second = 1.000.000 microseconds
     }
 
     protected override StbGui.stbg_size get_screen_size()

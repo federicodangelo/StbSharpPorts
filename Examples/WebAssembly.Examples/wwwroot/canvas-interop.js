@@ -6,6 +6,8 @@ const canvases = {};
 
 const canvases_tinted = {};
 
+const RENDER = true;
+
 function buildFillStyle(r, g, b, a) {
     return `rgba(${r}, ${g}, ${b}, ${a / 255})`;
 }
@@ -49,6 +51,10 @@ export function init() {
     document.addEventListener('keyup', (evt) => {
         input_events.push({ type: KEY_UP_EVENT_TYPE, alt: evt.altKey ? 1 : 0, ctrl: evt.ctrlKey ? 1 : 0, meta: evt.metaKey ? 1 : 0, shift: evt.shiftKey ? 1 : 0, key: evt.key, code: evt.code });
     });
+}
+
+export function setTitle(title) {
+    document.title = title;
 }
 
 export function setCursor(cursor) {
@@ -96,11 +102,14 @@ export function clearEvents() {
 }
 
 export function clear(r, g, b, a) {
+    if (!RENDER) return;
     ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${a / 255})`;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 export function drawBorder(r1, g1, b1, a1, r2, g2, b2, a2, x, y, w, h, border_size) {
+    if (!RENDER) return;
+
     if (a1 != 0) {
         ctx.fillStyle = buildFillStyle(r1, g1, b1, a1);
         ctx.fillRect(x, y, w, h);
@@ -115,6 +124,8 @@ export function drawBorder(r1, g1, b1, a1, r2, g2, b2, a2, x, y, w, h, border_si
 }
 
 export function drawRectangle(r1, g1, b1, a1, x, y, w, h) {
+    if (!RENDER) return;
+
     if (a1 != 0) {
         ctx.fillStyle = buildFillStyle(r1, g1, b1, a1);
         ctx.fillRect(x, y, w, h);
@@ -122,6 +133,8 @@ export function drawRectangle(r1, g1, b1, a1, x, y, w, h) {
 }
 
 export function pushClip(x, y, w, h) {
+    if (!RENDER) return;
+
     ctx.save();
     ctx.beginPath();
     ctx.rect(x, y, w, h);
@@ -129,6 +142,8 @@ export function pushClip(x, y, w, h) {
 }
 
 export function popClip() {
+    if (!RENDER) return;
+
     ctx.restore();
 }
 
@@ -188,7 +203,8 @@ export function setCanvasPixels(id, width, height, pixels) {
     canvasCtx.putImageData(imageData, 0, 0);
 }
 
-export function copyCanvasPixelsBatch(id, batch_memory_view) {
+export function drawCanvasRectangleBatch(id, batch_memory_view) {
+    if (!RENDER) return;
     const batch = batch_memory_view.slice();
 
     for (let i = 0; i < batch.length; i += 12) {
@@ -205,7 +221,7 @@ export function copyCanvasPixelsBatch(id, batch_memory_view) {
         const b = batch[i + 10];
         const a = batch[i + 11];
 
-        copyCanvasPixels(id, fromX, fromY, fromWidth, fromHeight, toX, toY, toWidth, toHeight, r, g, b, a);
+        drawCanvasRectangle(id, fromX, fromY, fromWidth, fromHeight, toX, toY, toWidth, toHeight, r, g, b, a);
     }
 }
 
@@ -218,7 +234,9 @@ let last_copy_canvas_pixels_a = 0;
 let last_copy_canvas_pixels_canvas_tinted;
 let last_copy_canvas_pixels_fill_style;
 
-export function copyCanvasPixels(id, fromX, fromY, fromWidth, fromHeight, toX, toY, toWidth, toHeight, r, g, b, a) {
+export function drawCanvasRectangle(id, fromX, fromY, fromWidth, fromHeight, toX, toY, toWidth, toHeight, r, g, b, a) {
+    if (!RENDER) return;
+
     if (last_copy_canvas_pixels_id !== id || last_copy_canvas_pixels_r !== r || last_copy_canvas_pixels_g !== g || last_copy_canvas_pixels_b !== b || last_copy_canvas_pixels_a !== a) {
         last_copy_canvas_pixels_r = r;
         last_copy_canvas_pixels_g = g;

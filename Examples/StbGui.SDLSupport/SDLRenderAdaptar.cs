@@ -257,13 +257,13 @@ public class SDLRenderAdapter : StbGuiRenderAdapterBase
         Debug.Assert(clip_rects.Count == 0);
     }
 
-    protected override void render_draw_rectangle(StbGui.stbg_rect bounds, StbGui.stbg_color background_color)
+    protected override void draw_rectangle(StbGui.stbg_rect bounds, StbGui.stbg_color background_color)
     {
         SDL.SetRenderDrawColor(renderer, background_color.r, background_color.g, background_color.b, background_color.a);
         SDL.RenderFillRect(renderer, new SDL.FRect() { X = bounds.x0, Y = bounds.y0, W = bounds.x1 - bounds.x0, H = bounds.y1 - bounds.y0 });
     }
 
-    protected override void render_draw_border(StbGui.stbg_rect bounds, int border_size, StbGui.stbg_color background_color, StbGui.stbg_color color)
+    protected override void draw_border(StbGui.stbg_rect bounds, int border_size, StbGui.stbg_color background_color, StbGui.stbg_color color)
     {
         SDL.SetRenderDrawColor(renderer, background_color.r, background_color.g, background_color.b, background_color.a);
         SDL.RenderFillRect(renderer, new SDL.FRect() { X = bounds.x0, Y = bounds.y0, W = bounds.x1 - bounds.x0, H = bounds.y1 - bounds.y0 });

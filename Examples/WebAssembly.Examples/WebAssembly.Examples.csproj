@@ -34,6 +34,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Watch Include="wwwroot\*.js" />
+    <Watch Include="wwwroot\*.html" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\StbGui\StbGui.csproj" />
     <ProjectReference Include="..\..\StbGui.Extended\StbGui.Extended.csproj" />
     <ProjectReference Include="..\..\StbCommon\StbCommon.csproj" />

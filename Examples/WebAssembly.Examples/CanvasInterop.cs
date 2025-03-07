@@ -35,14 +35,13 @@ public partial class CanvasInterop
     [JSImport("setCanvasPixels", "canvas-interop")]
     public static partial void SetCanvasPixels(int id, int width, int height, [JSMarshalAs<JSType.MemoryView>] Span<byte> pixels);
 
-    [JSImport("copyCanvasPixels", "canvas-interop")]
-    public static partial void CopyCanvasPixels(int id, int fromX, int fromY, int fromWidth, int fromHeight, int toX, int toY, int toWidth, int toHeight, byte r, byte g, byte b, byte a);
+    [JSImport("drawCanvasRectangle", "canvas-interop")]
+    public static partial void DrawCanvasRectangle(int id, double fromX, double fromY, double fromWidth, double fromHeight, double toX, double toY, double toWidth, double toHeight, double r, double g, double b, double a);
 
+    public const int DRAW_CANVAS_RECTANGLE_BATCH_ELEMENT_SIZE = 12;
 
-    public const int COPY_CANVAS_PIXELS_BATCH_ELEMENT_SIZE = 12;
-
-    [JSImport("copyCanvasPixelsBatch", "canvas-interop")]
-    public static partial void CopyCanvasPixelsBatch(int id, [JSMarshalAs<JSType.MemoryView>] Span<int> buffer);
+    [JSImport("drawCanvasRectangleBatch", "canvas-interop")]
+    public static partial void DrawCanvasRectangleBatch(int id, [JSMarshalAs<JSType.MemoryView>] Span<double> buffer);
 
     [JSImport("getEventsCount", "canvas-interop")]
     public static partial int GetEventsCount();
@@ -61,4 +60,7 @@ public partial class CanvasInterop
 
     [JSImport("setCursor", "canvas-interop")]
     public static partial void SetCursor(string cursor);
+
+    [JSImport("setTitle", "canvas-interop")]
+    public static partial void SetTitle(string title);
 }

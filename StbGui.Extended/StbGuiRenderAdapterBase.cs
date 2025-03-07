@@ -34,7 +34,7 @@ public abstract class StbGuiRenderAdapterBase : StbGuiRenderAdapter
                     var bounds = cmd.bounds;
                     var border_size = (int)Math.Ceiling(cmd.size);
 
-                    render_draw_border(bounds, border_size, background_color, color);
+                    draw_border(bounds, border_size, background_color, color);
                     break;
                 }
 
@@ -43,7 +43,7 @@ public abstract class StbGuiRenderAdapterBase : StbGuiRenderAdapter
                     var background_color = cmd.background_color;
                     var bounds = cmd.bounds;
 
-                    render_draw_rectangle(bounds, background_color);
+                    draw_rectangle(bounds, background_color);
                     break;
                 }
 
@@ -72,9 +72,9 @@ public abstract class StbGuiRenderAdapterBase : StbGuiRenderAdapter
 
     protected abstract void render_end_frame();
 
-    protected abstract void render_draw_rectangle(StbGui.stbg_rect bounds, StbGui.stbg_color background_color);
+    protected abstract void draw_rectangle(StbGui.stbg_rect bounds, StbGui.stbg_color background_color);
 
-    protected abstract void render_draw_border(StbGui.stbg_rect bounds, int border_size, StbGui.stbg_color background_color, StbGui.stbg_color color);
+    protected abstract void draw_border(StbGui.stbg_rect bounds, int border_size, StbGui.stbg_color background_color, StbGui.stbg_color color);
 
     public abstract void draw_vertices(StbGuiRenderAdapter.Vertex[] vertices, int count, nint texture_id);
 

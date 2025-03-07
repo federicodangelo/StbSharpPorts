@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using StbSharp;
-using StbSharp.Examples;
 
 class WARenderAdapter : StbGuiRenderAdapterBase
 {
@@ -16,7 +15,7 @@ class WARenderAdapter : StbGuiRenderAdapterBase
         CanvasInterop.DestroyCanvas((int)texture_id);
     }
 
-    private int[] draw_rects_buffer = new int[1024 * CanvasInterop.COPY_CANVAS_PIXELS_BATCH_ELEMENT_SIZE];
+    private double[] draw_rects_buffer = new double[1024 * CanvasInterop.DRAW_CANVAS_RECTANGLE_BATCH_ELEMENT_SIZE];
 
     public override void draw_rects(StbGuiRenderAdapter.Rect[] rects, int count, nint texture_id)
     {
@@ -30,7 +29,7 @@ class WARenderAdapter : StbGuiRenderAdapterBase
                 var target = rect.rect;
                 var c = rect.color;
 
-                CanvasInterop.CopyCanvasPixels((int)texture_id, (int)r.x0, (int)r.y0, (int)(r.x1 - r.x0), (int)(r.y1 - r.y0), (int)target.x0, (int)target.y0, (int)(target.x1 - target.x0), (int)(target.y1 - target.y0), c.r, c.g, c.b, c.a);
+                CanvasInterop.DrawCanvasRectangle((int)texture_id, r.x0, r.y0, r.x1 - r.x0, r.y1 - r.y0, target.x0, target.y0, target.x1 - target.x0, target.y1 - target.y0, c.r, c.g, c.b, c.a);
             }
         }
         else
@@ -46,36 +45,55 @@ class WARenderAdapter : StbGuiRenderAdapterBase
                 var target = rect.rect;
                 var c = rect.color;
 
-                draw_rects_buffer[index++] = (int)r.x0;
-                draw_rects_buffer[index++] = (int)r.y0;
-                draw_rects_buffer[index++] = (int)(r.x1 - r.x0);
-                draw_rects_buffer[index++] = (int)(r.y1 - r.y0);
-                draw_rects_buffer[index++] = (int)target.x0;
-                draw_rects_buffer[index++] = (int)target.y0;
-                draw_rects_buffer[index++] = (int)(target.x1 - target.x0);
-                draw_rects_buffer[index++] = (int)(target.y1 - target.y0);
+                draw_rects_buffer[index++] = r.x0;
+                draw_rects_buffer[index++] = r.y0;
+                draw_rects_buffer[index++] = r.x1 - r.x0;
+                draw_rects_buffer[index++] = r.y1 - r.y0;
+                draw_rects_buffer[index++] = target.x0;
+                draw_rects_buffer[index++] = target.y0;
+                draw_rects_buffer[index++] = target.x1 - target.x0;
+                draw_rects_buffer[index++] = target.y1 - target.y0;
                 draw_rects_buffer[index++] = c.r;
                 draw_rects_buffer[index++] = c.g;
                 draw_rects_buffer[index++] = c.b;
                 draw_rects_buffer[index++] = c.a;
 
-                len += CanvasInterop.COPY_CANVAS_PIXELS_BATCH_ELEMENT_SIZE;
+                len += CanvasInterop.DRAW_CANVAS_RECTANGLE_BATCH_ELEMENT_SIZE;
 
                 if (index == draw_rects_buffer.Length)
                 {
-                    CanvasInterop.CopyCanvasPixelsBatch((int)texture_id, draw_rects_buffer.AsSpan(0, len));
+                    CanvasInterop.DrawCanvasRectangleBatch((int)texture_id, draw_rects_buffer.AsSpan(0, len));
                     index = 0;
                     len = 0;
                 }
             }
 
-            CanvasInterop.CopyCanvasPixelsBatch((int)texture_id, draw_rects_buffer.AsSpan(0, len));
+            CanvasInterop.DrawCanvasRectangleBatch((int)texture_id, draw_rects_buffer.AsSpan(0, len));
         }
     }
 
     public override void draw_vertices(StbGuiRenderAdapter.Vertex[] vertices, int count, nint texture_id)
     {
         //throw new NotImplementedException();
+    }
+
+
+    protected override void draw_rectangle(StbGui.stbg_rect bounds, StbGui.stbg_color background_color)
+    {
+        CanvasInterop.DrawRectangle(
+            background_color.r, background_color.g, background_color.b, background_color.a,
+            bounds.x0, bounds.y0, bounds.x1 - bounds.x0, bounds.y1 - bounds.y0
+        );
+    }
+
+    protected override void draw_border(StbGui.stbg_rect bounds, int border_size, StbGui.stbg_color background_color, StbGui.stbg_color color)
+    {
+        CanvasInterop.DrawBorder(
+            background_color.r, background_color.g, background_color.b, background_color.a,
+            color.r, color.g, color.b, color.a,
+            bounds.x0, bounds.y0, bounds.x1 - bounds.x0, bounds.y1 - bounds.y0,
+            border_size
+        );
     }
 
     public override void pop_clip_rect()
@@ -103,23 +121,5 @@ class WARenderAdapter : StbGuiRenderAdapterBase
     protected override void render_end_frame()
     {
         Debug.Assert(clip_rects_count == 0);
-    }
-
-    protected override void render_draw_rectangle(StbGui.stbg_rect bounds, StbGui.stbg_color background_color)
-    {
-        CanvasInterop.DrawRectangle(
-            background_color.r, background_color.g, background_color.b, background_color.a,
-            bounds.x0, bounds.y0, bounds.x1 - bounds.x0, bounds.y1 - bounds.y0
-        );
-    }
-
-    protected override void render_draw_border(StbGui.stbg_rect bounds, int border_size, StbGui.stbg_color background_color, StbGui.stbg_color color)
-    {
-        CanvasInterop.DrawBorder(
-            background_color.r, background_color.g, background_color.b, background_color.a,
-            color.r, color.g, color.b, color.a,
-            bounds.x0, bounds.y0, bounds.x1 - bounds.x0, bounds.y1 - bounds.y0,
-            border_size
-        );
     }
 }
