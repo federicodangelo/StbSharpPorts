@@ -1,16 +1,19 @@
-import { initBuffers, initShaders } from "./canvas-webgl-shaders.js";
+import { initBuffers, initColorShaders, initTextureColorShaders } from "./canvas-webgl-shaders.js";
 
 let canvas;
 let gl;
-let programInfo;
-let buffers;
-let next_canvas_id = 1;
+
 let projectionMatrix;
 
-const canvases = {};
+let next_texture_id = 1;
+
+let colorProgramInfo;
+let textureColorProgramInfo;
+let buffers;
+
+const textures = {};
 
 const RENDER = true;
-const WIP = true;
 
 function getAlpha(color) {
     return color & 0xFF;
@@ -32,15 +35,15 @@ function getBlue(color) {
 export function initDrawing() {
     canvas = document.getElementById("myCanvas");
     //console.log(canvas);
-    gl = canvas.getContext("webgl");
+    gl = canvas.getContext("webgl", {});
 
     // Disable depth testing (we are going to draw 2D)
     gl.disable(gl.DEPTH_TEST);
 
-    programInfo = initShaders(gl);
-    buffers = initBuffers(gl);
+    colorProgramInfo = initColorShaders(gl);
+    textureColorProgramInfo = initTextureColorShaders(gl);
 
-    console.log({ programInfo, buffers });
+    buffers = initBuffers(gl);
 
     return canvas;
 }
@@ -61,22 +64,14 @@ export function clear(c) {
     gl.colorMask(true, true, true, true)
 
     // Setup viewport and projection matrix
-    const width = gl.canvas.width;
-    const height = gl.canvas.height;
+    const width = canvas.width;
+    const height = canvas.height;
     gl.viewport(0, 0, width, height);
     projectionMatrix = buildOrthographicMatrix(0, width, height, 0, 0, 1);
 
     // Setup blending
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-    // Setup shader
-    gl.useProgram(programInfo.program);
-    gl.uniformMatrix4fv(
-        programInfo.uniformLocations.projectionMatrix,
-        false,
-        projectionMatrix,
-    );
 }
 
 export function buildOrthographicMatrix(left, right, bottom, top, near, far) {
@@ -107,14 +102,14 @@ export function drawBorder(color_fill, color_border, x, y, w, h, border_size) {
     if (!RENDER) return;
 
     if (getAlpha(color_fill) != 0) {
-        drawRectangleWebGL(x, y, w, h, color_fill);
+        drawRectangleColor(x, y, w, h, color_fill);
     }
 
     if (getAlpha(color_border) != 0) {
-        drawRectangleWebGL(x, y, w, border_size, color_border);
-        drawRectangleWebGL(x, y + h - border_size, w, border_size, color_border);
-        drawRectangleWebGL(x, y, border_size, h, color_border);
-        drawRectangleWebGL(x + w - border_size, y, border_size, h, color_border);
+        drawRectangleColor(x, y, w, border_size, color_border);
+        drawRectangleColor(x, y + h - border_size, w, border_size, color_border);
+        drawRectangleColor(x, y, border_size, h, color_border);
+        drawRectangleColor(x + w - border_size, y, border_size, h, color_border);
     }
 }
 
@@ -122,7 +117,7 @@ export function drawRectangle(color, x, y, w, h) {
     if (!RENDER) return;
 
     if (getAlpha(color) != 0) {
-        drawRectangleWebGL(x, y, w, h, color);
+        drawRectangleColor(x, y, w, h, color);
     }
 }
 
@@ -186,64 +181,76 @@ export function popClip() {
 }
 
 export function createCanvas(w, h) {
-    var id = next_canvas_id++;
-
-    const new_canvas = document.createElement("canvas");
-    new_canvas.width = w;
-    new_canvas.height = h;
-
-    canvases[id] = new_canvas;
-
+    var id = next_texture_id++;
+    var texture = gl.createTexture();
+    textures[id] = texture;
     return id;
 }
 
 export function destroyCanvas(id) {
-    if (WIP) return;
-    delete canvases[id];
+    gl.deleteTexture(id);
+    delete textures[id];
 }
 
-function getCanvas(id) {
-    return canvases[id];
+function getTexture(id) {
+    return textures[id];
 }
 
-export function setCanvasPixels(id, width, height, pixels) {
-    if (WIP) return;
+export function setCanvasPixels(id, width, height, pixels_memory_view) {
+    if (!RENDER) return;
 
-    const canvas = getCanvas(id);
+    var texture = getTexture(id);
+    var pixels = new Uint8Array(pixels_memory_view.length);
+    pixels_memory_view.copyTo(pixels);
+    //var pixels = pixels_memory_view.slice();
+
+    /*
+
+    const canvas = getTexture(id);
     const canvasCtx = canvas.getContext("2d");
     const imageData = canvasCtx.createImageData(width, height);
     pixels.copyTo(new Uint8Array(imageData.data.buffer));
-    canvasCtx.putImageData(imageData, 0, 0);
+    canvasCtx.putImageData(imageData, 0, 0);*/
+
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+
+    // Because images have to be downloaded over the internet
+    // they might take a moment until they are ready.
+    // Until then put a single pixel in the texture so we can
+    // use it immediately. When the image has finished downloading
+    // we'll update the texture with the contents of the image.
+    const level = 0;
+    const internalFormat = gl.RGBA;
+    const border = 0;
+    const srcFormat = gl.RGBA;
+    const srcType = gl.UNSIGNED_BYTE;
+    gl.texImage2D(
+        gl.TEXTURE_2D,
+        level,
+        internalFormat,
+        width,
+        height,
+        border,
+        srcFormat,
+        srcType,
+        pixels,
+    );
+
+    gl.generateMipmap(gl.TEXTURE_2D);
+    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 }
-
-
-
-let last_copy_canvas_pixels_id = 0;
-let last_copy_canvas_pixels_color = 0;
-
-let last_copy_canvas_pixels_canvas_tinted;
-let last_copy_canvas_pixels_fill_style;
 
 export function drawCanvasRectangle(id, fromX, fromY, fromWidth, fromHeight, toX, toY, toWidth, toHeight, color) {
     if (!RENDER) return;
-    if (WIP) return;
-
-    if (last_copy_canvas_pixels_id !== id || last_copy_canvas_pixels_color !== color) {
-        last_copy_canvas_pixels_color = color;
-        last_copy_canvas_pixels_id = id;
-
-        if (id != 0) {
-            last_copy_canvas_pixels_canvas_tinted = getCanvasTinted(id, color);
-        } else {
-            last_copy_canvas_pixels_fill_style = buildFillStyle(color);
-        }
-    }
 
     if (id === 0) {
-        ctx.fillStyle = last_copy_canvas_pixels_fill_style;
-        ctx.fillRect(toX, toY, toWidth, toHeight);
+        drawRectangleColor(toX, toY, toWidth, toHeight, color);
     } else {
-        ctx.drawImage(last_copy_canvas_pixels_canvas_tinted, fromX, fromY, fromWidth, fromHeight, toX, toY, toWidth, toHeight);
+        drawRectangleColorTexture(toX, toY, toWidth, toHeight, color, id, fromX, fromY, fromWidth, fromHeight);
     }
 }
 
@@ -251,7 +258,24 @@ export function presentFrame() {
 
 }
 
-function drawRectangleWebGL(x, y, w, h, color) {
+var lastProgram;
+
+function drawRectangleColor(x, y, w, h, color) {
+
+    if (lastProgram != colorProgramInfo) {
+        lastProgram = colorProgramInfo;
+
+        // Setup shader
+        gl.useProgram(colorProgramInfo.program);
+        gl.uniformMatrix4fv(
+            colorProgramInfo.uniformLocations.projectionMatrix,
+            false,
+            projectionMatrix,
+        );
+
+        setPositionAttribute(colorProgramInfo);
+        setColorAttribute(colorProgramInfo);
+    }
 
     setPositionBuffer([
         x, y,
@@ -276,8 +300,88 @@ function drawRectangleWebGL(x, y, w, h, color) {
         r, g, b, a,
     ]);
 
-    setPositionAttribute();
-    setColorAttribute();
+
+    const offset = 0;
+    const vertexCount = 6;
+    gl.drawArrays(gl.TRIANGLES, offset, vertexCount);
+}
+
+var lastTextureId = -1;
+
+function drawRectangleColorTexture(x, y, w, h, color, texture_id, tx, ty, tw, th) {
+
+    if (lastProgram != textureColorProgramInfo) {
+        lastProgram = textureColorProgramInfo;
+        lastTextureId = -1;
+
+        // Setup shader
+        gl.useProgram(textureColorProgramInfo.program);
+        gl.uniformMatrix4fv(
+            textureColorProgramInfo.uniformLocations.projectionMatrix,
+            false,
+            projectionMatrix,
+        );
+
+        // Setup attributes
+        setPositionAttribute(textureColorProgramInfo);
+        setColorAttribute(textureColorProgramInfo);
+        setTextureCoordAttribute(textureColorProgramInfo);
+    }
+
+    if (lastTextureId != texture_id) {
+        lastTextureId = texture_id;
+        const texture = getTexture(texture_id);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.uniform1i(textureColorProgramInfo.uniformLocations.uSampler, 0);
+    }
+
+    // Setup buffers
+
+    // Positions
+
+    setPositionBuffer([
+        x, y,
+        x + w, y,
+        x + w, y + h,
+        x + w, y + h,
+        x, y + h,
+        x, y,
+    ]);
+
+    // Colors
+
+    const r = getRed(color) / 255;
+    const g = getGreen(color) / 255;
+    const b = getBlue(color) / 255;
+    const a = getAlpha(color) / 255;
+
+    setColorsBuffer([
+        r, g, b, a,
+        r, g, b, a,
+        r, g, b, a,
+        r, g, b, a,
+        r, g, b, a,
+        r, g, b, a,
+    ]);
+
+    // Texture coordinates
+    const texture_size = 512; //TODO!!
+
+    const texture_x1 = tx / texture_size;
+    const texture_y1 = 1 - (ty / texture_size);
+    const texture_x2 = (tx + tw) / texture_size;
+    const texture_y2 = 1 - ((ty + th) / texture_size);
+
+    setTextureCoords([
+        texture_x1, texture_y1,
+        texture_x2, texture_y1,
+        texture_x2, texture_y2,
+        
+        texture_x2, texture_y2,
+        texture_x1, texture_y2,
+        texture_x1, texture_y1,
+    ]);
 
     const offset = 0;
     const vertexCount = 6;
@@ -294,7 +398,12 @@ function setColorsBuffer(colors) {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.DYNAMIC_DRAW);
 }
 
-function setPositionAttribute() {
+function setTextureCoords(textureCoords) {
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureCoord);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.DYNAMIC_DRAW);
+}
+
+function setPositionAttribute(programInfo) {
     const numComponents = 2;
     const type = gl.FLOAT;
     const normalize = false;
@@ -313,7 +422,7 @@ function setPositionAttribute() {
     gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
 }
 
-function setColorAttribute() {
+function setColorAttribute(programInfo) {
     const numComponents = 4;
     const type = gl.FLOAT;
     const normalize = false;
@@ -330,4 +439,23 @@ function setColorAttribute() {
         offset,
     );
     gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
+}
+
+function setTextureCoordAttribute(programInfo) {
+    const numComponents = 2;
+    const type = gl.FLOAT;
+    const normalize = false;
+    const stride = 0;
+    const offset = 0;
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureCoord);
+
+    gl.vertexAttribPointer(
+        programInfo.attribLocations.textureCoord,
+        numComponents,
+        type,
+        normalize,
+        stride,
+        offset,
+    );
+    gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
 }

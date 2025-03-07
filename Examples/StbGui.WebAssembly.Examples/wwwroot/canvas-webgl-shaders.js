@@ -54,8 +54,8 @@ function loadShader(gl, type, source) {
     return shader;
 }
 
-export function initShaders(gl) {
-    const vsSource = `
+export function initColorShaders(gl) {
+    const vs = `
         attribute vec2 aVertexPosition;
         attribute vec4 aVertexColor;
 
@@ -69,7 +69,7 @@ export function initShaders(gl) {
         }
     `;
 
-    const fsSource = `
+    const fs = `
         varying lowp vec4 vColor;
         
         void main() {
@@ -78,7 +78,7 @@ export function initShaders(gl) {
     `;
 
 
-    const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+    const shaderProgram = initShaderProgram(gl, vs, fs);
 
     const programInfo = {
         program: shaderProgram,
@@ -94,9 +94,58 @@ export function initShaders(gl) {
     return programInfo;
 }
 
+export function initTextureColorShaders(gl) {
+    const vs_color = `
+        attribute vec2 aVertexPosition;
+        attribute vec4 aVertexColor;
+        attribute vec2 aTextureCoord;
+
+        uniform mat4 uProjectionMatrix;
+
+        varying lowp vec4 vColor;
+        varying highp vec2 vTextureCoord;
+
+        void main() {
+            gl_Position = uProjectionMatrix * vec4(aVertexPosition, 0, 1);
+            vColor = aVertexColor;
+            vTextureCoord = aTextureCoord;
+        }
+    `;
+
+    const fs_color = `
+        varying lowp vec4 vColor;
+        varying highp vec2 vTextureCoord;
+
+        uniform sampler2D uSampler;
+        
+        void main() {
+            gl_FragColor = texture2D(uSampler, vTextureCoord) * vColor;
+        }
+    `;
+
+
+    const shaderProgram = initShaderProgram(gl, vs_color, fs_color);
+
+    const programInfo = {
+        program: shaderProgram,
+        attribLocations: {
+            vertexPosition: gl.getAttribLocation(shaderProgram, "aVertexPosition"),
+            vertexColor: gl.getAttribLocation(shaderProgram, "aVertexColor"),
+            textureCoord: gl.getAttribLocation(shaderProgram, "aTextureCoord"),
+        },
+        uniformLocations: {
+            projectionMatrix: gl.getUniformLocation(shaderProgram, "uProjectionMatrix"),
+            uSampler: gl.getUniformLocation(shaderProgram, "uSampler"),
+        },
+    };
+
+    return programInfo;
+}
+
 export function initBuffers(gl) {
     return {
         position: gl.createBuffer(),
-        color: gl.createBuffer()
+        color: gl.createBuffer(),
+        textureCoord: gl.createBuffer()
     };
 }
