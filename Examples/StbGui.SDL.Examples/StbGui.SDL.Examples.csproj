@@ -37,6 +37,7 @@
     <ProjectReference Include="..\..\StbGui.Extended\StbGui.Extended.csproj" />
     <ProjectReference Include="..\..\StbCommon\StbCommon.csproj" />
     <ProjectReference Include="..\..\StbTrueType\StbTrueType.csproj" />
+    <ProjectReference Include="..\StbGui.Examples\StbGui.Examples.csproj" />
   </ItemGroup>
 
   <ItemGroup>
