@@ -17,6 +17,7 @@ public partial class StbGui
     static private Dictionary<STBG_WIDGET_TYPE, stbg__widget_render_delegate> STBG__WIDGET_RENDER_DICTIONARY = new() {
         { STBG_WIDGET_TYPE.WINDOW, stbg__window_render },
         { STBG_WIDGET_TYPE.BUTTON, stbg__button_render },
+        { STBG_WIDGET_TYPE.BUTTON_IMAGE, stbg__button_image_render },
         { STBG_WIDGET_TYPE.LABEL, stbg__label_render },
         { STBG_WIDGET_TYPE.SCROLLBAR, stbg__scrollbar_render },
         { STBG_WIDGET_TYPE.TEXTBOX, stbg__textbox_render },
@@ -26,6 +27,7 @@ public partial class StbGui
     static private Dictionary<STBG_WIDGET_TYPE, stbg__widget_update_input_delegate?> STBG__WIDGET_UPDATE_INPUT_DICTIONARY = new() {
         { STBG_WIDGET_TYPE.WINDOW, stbg__window_update_input },
         { STBG_WIDGET_TYPE.BUTTON, stbg__button_update_input },
+        { STBG_WIDGET_TYPE.BUTTON_IMAGE, stbg__button_image_update_input },
         { STBG_WIDGET_TYPE.LABEL, null }, // Labels don't handle any input
         { STBG_WIDGET_TYPE.SCROLLBAR, stbg__scrollbar_update_input },
         { STBG_WIDGET_TYPE.TEXTBOX, stbg__textbox_update_input },
@@ -35,6 +37,7 @@ public partial class StbGui
 
     static private stbg__widget_init_default_theme_delegate[] STBG__WIDGET_INIT_DEFAULT_THEME_LIST = [
         stbg__button_init_default_theme,
+        stbg__button_image_init_default_theme,
         stbg__window_init_default_theme,
         stbg__label_init_default_theme,
         stbg__scrollbar_init_default_theme,

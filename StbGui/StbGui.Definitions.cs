@@ -414,6 +414,7 @@ public partial class StbGui
         WINDOW,
         CONTAINER,
         BUTTON,
+        BUTTON_IMAGE,
         LABEL,
         IMAGE,
         SCROLLBAR,

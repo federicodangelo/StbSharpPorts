@@ -676,6 +676,28 @@ public partial class StbGui
     }
 
     /// <summary>
+    /// Adds a button.
+    /// Returns true if the button was pressed.
+    /// </summary>
+    /// <param name="identifier">Button identifier, must be unique in the parent</param>
+    /// <returns>Returns true if the button was pressed</returns>
+    public static bool stbg_button(ReadOnlySpan<char> identifier, image_id image, image_id image_hover, image_id image_pressed, bool border = true, float scale = 1)
+    {
+        stbg__assert(image > 0 && image < context.images.Length, "Invalid image_id");
+
+        ref var button = ref stbg__button_image_create(identifier, image, image_hover, image_pressed, border, scale);
+
+        bool clicked = (button.properties.input_flags & STBG_WIDGET_INPUT_FLAGS.CLICKED) != 0;
+
+        if (clicked)
+        {
+            button.properties.input_flags &= ~STBG_WIDGET_INPUT_FLAGS.CLICKED;
+        }
+
+        return clicked;
+    }
+
+    /// <summary>
     /// Shows a label.
     /// </summary>
     /// <param name="text">Label text, must be unique in the parent</param>

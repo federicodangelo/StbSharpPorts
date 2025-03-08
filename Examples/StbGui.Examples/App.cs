@@ -72,6 +72,8 @@ public class App
     private Memory<char> text_to_edit2 = new Memory<char>(new char[1024]);
     private int text_to_edit2_length;
 
+    private bool show_subimages = true;
+
     public void Render()
     {
         mp.ResetPool();
@@ -172,27 +174,37 @@ public class App
         if (StbGui.stbg_begin_window("Window 5", ref window5_open))
         {
             if (StbGui.stbg_get_last_widget_is_new())
+            {
                 StbGui.stbg_set_last_widget_position(400, 350);
+                StbGui.stbg_set_last_widget_size(400, 300);
+            }
 
             StbGui.stbg_begin_container("hor", StbGui.STBG_CHILDREN_LAYOUT.HORIZONTAL);
             {
                 StbGui.stbg_image("image", test_image_id, 0.5f);
 
-                StbGui.stbg_begin_container("subV1", StbGui.STBG_CHILDREN_LAYOUT.VERTICAL);
+                if (show_subimages)
                 {
-                    StbGui.stbg_image(mp.Concat("subimage", 0), test_sub_images[0], 0.5f);
-                    StbGui.stbg_image(mp.Concat("subimage", 2), test_sub_images[2], 0.5f);
-                }
-                StbGui.stbg_end_container();
+                    StbGui.stbg_begin_container("subV1", StbGui.STBG_CHILDREN_LAYOUT.VERTICAL);
+                    {
+                        StbGui.stbg_image(mp.Concat("subimage", 0), test_sub_images[0], 0.5f);
+                        StbGui.stbg_image(mp.Concat("subimage", 2), test_sub_images[2], 0.5f);
+                    }
+                    StbGui.stbg_end_container();
 
-                StbGui.stbg_begin_container("subV2", StbGui.STBG_CHILDREN_LAYOUT.VERTICAL);
-                {
-                    StbGui.stbg_image(mp.Concat("subimage", 1), test_sub_images[1], 0.5f);
-                    StbGui.stbg_image(mp.Concat("subimage", 3), test_sub_images[3], 0.5f);
+                    StbGui.stbg_begin_container("subV2", StbGui.STBG_CHILDREN_LAYOUT.VERTICAL);
+                    {
+                        StbGui.stbg_image(mp.Concat("subimage", 1), test_sub_images[1], 0.5f);
+                        StbGui.stbg_image(mp.Concat("subimage", 3), test_sub_images[3], 0.5f);
+                    }
+                    StbGui.stbg_end_container();
                 }
-                StbGui.stbg_end_container();
             }
             StbGui.stbg_end_container();
+
+            StbGui.stbg_label("The image below is a button!");
+            if (StbGui.stbg_button("imagebutton", test_sub_images[0], test_sub_images[1], test_sub_images[2], true, 0.25f))
+                show_subimages = !show_subimages;
 
             StbGui.stbg_end_window();
         }

@@ -71,7 +71,7 @@ public partial class StbGui
             ),
             stbg__build_text(label.properties.text, text_color),
             -1, -1,
-            STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE
+            STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE | STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE
         );
     }
 }

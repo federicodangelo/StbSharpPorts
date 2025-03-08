@@ -42,9 +42,9 @@ public partial class StbGui
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static private void stbg__rc_draw_image(stbg_rect rect, image_id image, stbg_color color, stbg_rect source_rect)
+    static private void stbg__rc_draw_image(stbg_rect rect, stbg_image_info image, stbg_color color)
     {
-        stbg__rc_enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.IMAGE, bounds = rect, color = color, image_id = image, source_rect = source_rect });
+        stbg__rc_enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.IMAGE, bounds = rect, color = color, image_id = image.original_image_id, source_rect = image.rect });
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
