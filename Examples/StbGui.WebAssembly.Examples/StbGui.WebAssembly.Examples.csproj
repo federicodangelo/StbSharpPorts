@@ -30,10 +30,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Fonts\*.ttf" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Watch Include="wwwroot\*.js" />
     <Watch Include="wwwroot\*.html" />
   </ItemGroup>
@@ -44,10 +40,6 @@
     <ProjectReference Include="..\..\StbCommon\StbCommon.csproj" />
     <ProjectReference Include="..\..\StbTrueType\StbTrueType.csproj" />
     <ProjectReference Include="..\StbGui.Examples\StbGui.Examples.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="9.0.2" />
   </ItemGroup>
 
 </Project>

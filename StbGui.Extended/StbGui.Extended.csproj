@@ -12,4 +12,9 @@
     <ProjectReference Include="..\StbTrueType\StbTrueType.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Fonts\ProggyClean.ttf" />  
+    <EmbeddedResource Include="Fonts\ProggyTiny.ttf" />  
+  </ItemGroup>
+
 </Project>

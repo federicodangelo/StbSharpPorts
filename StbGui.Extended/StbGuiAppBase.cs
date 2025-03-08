@@ -1,5 +1,7 @@
 #pragma warning disable IDE1006 // Naming Styles
 
+using System.Reflection;
+
 namespace StbSharp;
 
 
@@ -18,8 +20,8 @@ public abstract class StbGuiAppBase : IDisposable
     public class StbGuiAppOptions
     {
         public string WindowName = "StbGui App";
-        public int DefaultWindowWidth = 800;
-        public int DefaultWindowHeight = 600;
+        public int DefaultWindowWidth = 1024;
+        public int DefaultWindowHeight = 768;
         public int MinWindowWidth = 320;
         public int MinWindowHeight = 100;
         public string DefaultFontPath = "Fonts/ProggyClean.ttf";
@@ -34,12 +36,29 @@ public abstract class StbGuiAppBase : IDisposable
     private long frames_count_ms;
     private long frames_count;
 
+    protected byte[] GetResourceFileBytes(string fileName)
+    {
+        var resourceName = "StbGui.Extended." + fileName.Replace("\\", ".").Replace("/", ".");
+
+        using (var memoryStream = new MemoryStream())
+        {
+            using (var stream = typeof(StbGuiAppBase).Assembly.GetManifestResourceStream(resourceName))
+            {
+                if (stream == null)
+                    throw new FileNotFoundException("Resource file not found.");
+
+                stream.CopyTo(memoryStream);
+            }
+            return memoryStream.ToArray();
+        }
+    }
+
 
     public StbGuiAppBase(StbGuiAppOptions options)
     {
         render_adapter = build_render_adapter(options);
 
-        mainFont = new StbGuiFont(options.DefaultFontName, get_file_bytes(options.DefaultFontPath), options.DefaultFontSize, options.FontRenderingOversampling, options.FontRenderingBilinear, render_adapter);
+        mainFont = new StbGuiFont(options.DefaultFontName, GetResourceFileBytes(options.DefaultFontPath), options.DefaultFontSize, options.FontRenderingOversampling, options.FontRenderingBilinear, render_adapter);
 
         init_stb_gui();
 
@@ -185,7 +204,6 @@ public abstract class StbGuiAppBase : IDisposable
     protected abstract ReadOnlySpan<char> get_clipboard_text();
     protected abstract void copy_text_to_clipboard(ReadOnlySpan<char> text);
     protected abstract void set_input_method_editor(StbGui.stbg_input_method_editor_info options);
-    protected abstract byte[] get_file_bytes(string path);
 
     // Main Loop
     protected abstract void on_render_stbgui();

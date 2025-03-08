@@ -2,13 +2,10 @@ namespace StbSharp.Examples;
 
 using System;
 using System.Diagnostics;
-using Microsoft.Extensions.FileProviders;
 using StbSharp;
 
 public abstract class WAAppBase : StbGuiAppBase
 {
-    private readonly EmbeddedFileProvider embeddedFileProvider = new EmbeddedFileProvider(typeof(WAAppBase).Assembly);
-
     private readonly Stopwatch sw = Stopwatch.StartNew();
 
 
@@ -221,7 +218,7 @@ public abstract class WAAppBase : StbGuiAppBase
 
     protected override long get_performance_counter()
     {
-        return (long) sw.Elapsed.TotalMicroseconds;
+        return (long)sw.Elapsed.TotalMicroseconds;
     }
 
     protected override long get_performance_counter_frequency()
@@ -235,23 +232,5 @@ public abstract class WAAppBase : StbGuiAppBase
         int screenHeight = CanvasInterop.GetHeight();
 
         return StbGui.stbg_build_size(screenWidth, screenHeight);
-    }
-
-    protected override byte[] get_file_bytes(string path)
-    {
-
-        var file = embeddedFileProvider.GetFileInfo(path);
-
-        if (!file.Exists)
-            throw new FileNotFoundException(path);
-
-        using (var memoryStream = new MemoryStream())
-        {
-            using (var stream = file.CreateReadStream())
-            {
-                stream.CopyTo(memoryStream);
-            }
-            return memoryStream.ToArray();
-        }
     }
 }

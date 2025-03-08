@@ -27,12 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Fonts\*.ttf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>  
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\StbGui\StbGui.csproj" />
     <ProjectReference Include="..\..\StbGui.Extended\StbGui.Extended.csproj" />
     <ProjectReference Include="..\..\StbCommon\StbCommon.csproj" />

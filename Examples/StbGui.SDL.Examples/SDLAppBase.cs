@@ -372,9 +372,4 @@ public abstract class SDLAppBase : StbGuiAppBase
             SDL.StopTextInput(window);
         }
     }
-
-    protected override byte[] get_file_bytes(string path)
-    {
-        return File.ReadAllBytes(path);
-    }
 }
