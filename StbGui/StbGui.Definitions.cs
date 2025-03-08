@@ -138,7 +138,8 @@ public partial class StbGui
     {
         public image_id id;
         public stbg_size size;
-        public stbg_rect source_rect;
+        public image_id original_image_id;
+        public stbg_rect rect;
     }
 
     public record struct stbg_text
@@ -469,6 +470,8 @@ public partial class StbGui
         public stbg_widget_computed_bounds computed_bounds;
 
         public ReadOnlyMemory<char> text;
+
+        public image_id image;
 
         public Memory<char> text_editable;
         public int text_editable_length;

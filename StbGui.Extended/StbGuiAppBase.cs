@@ -153,6 +153,11 @@ public abstract class StbGuiAppBase : IDisposable
         return add_image_raw(pixels, width, height, bytes_per_pixel);
     }
 
+    public int add_sub_image(int image_id, int x, int y, int width, int height)
+    {
+        return StbGui.stbg_add_sub_image(image_id, x, y, width, height);
+    }
+
     public int add_image_raw(byte[] pixels, int width, int height, int bytes_per_pixel)
     {
         Debug.Assert(pixels != null);

@@ -9,7 +9,7 @@
     <PublishAot>true</PublishAot>
     <TrimMode>full</TrimMode>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
-    
+
     <!-- Use Invariant Globalization only -->
     <InvariantGlobalization>true</InvariantGlobalization>
     <InvariantTimezone>true</InvariantTimezone>
@@ -36,6 +36,6 @@
 
   <ItemGroup>
     <PackageReference Include="SDL3-CS" Version="3.2.4.7" />
-  </ItemGroup>  
+  </ItemGroup>
 
 </Project>

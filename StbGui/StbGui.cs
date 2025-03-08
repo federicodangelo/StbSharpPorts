@@ -371,27 +371,58 @@ public partial class StbGui
     /// </summary>
     public static image_id stbg_add_image(int width, int height)
     {
-        return stbg_add_image(width, height, 0, 0, width, height);
-    }
-
-    /// <summary>
-    /// Adds an image
-    /// </summary>
-    public static image_id stbg_add_image(int width, int height, int uv_x, int uv_y, int uv_width, int uv_height)
-    {
         stbg__assert(context.first_free_image_id + 1 < context.images.Length, "No more room for images");
 
-        var newImage = new stbg_image_info()
+        var new_image = new stbg_image_info()
         {
             id = context.first_free_image_id,
+            original_image_id = context.first_free_image_id,
             size = stbg_build_size(width, height),
-            source_rect = stbg_build_rect(uv_x, uv_y, uv_x + uv_width, uv_y + uv_height),
+            rect = stbg_build_rect(0, 0, width, height),
         };
 
         context.first_free_image_id++;
-        context.images[newImage.id] = newImage;
+        context.images[new_image.id] = new_image;
 
-        return newImage.id;
+        return new_image.id;
+    }
+
+    /// <summary>
+    /// Adds an image that is a sub-image of another image
+    /// </summary>
+    public static image_id stbg_add_sub_image(image_id image_id, int sub_x, int sub_y, int sub_width, int sub_height)
+    {
+        stbg__assert(context.first_free_image_id + 1 < context.images.Length, "No more room for images");
+        stbg__assert(image_id > 0 && image_id < context.images.Length);
+
+        ref var image = ref context.images[image_id];
+
+        stbg__assert(sub_width >= 0 && sub_height >= 0);
+        stbg__assert(sub_x >= image.rect.x0 && sub_x <= image.rect.x1);
+        stbg__assert(sub_y >= image.rect.y0 && sub_y <= image.rect.y1);
+        stbg__assert(sub_x + sub_width >= image.rect.x0 && sub_x + sub_width <= image.rect.x1);
+        stbg__assert(sub_y + sub_height >= image.rect.y0 && sub_y + sub_height <= image.rect.y1);
+
+        var new_image = new stbg_image_info()
+        {
+            id = context.first_free_image_id,
+            size = stbg_build_size(sub_width, sub_height),
+            rect = stbg_build_rect(sub_x, sub_y, sub_x + sub_width, sub_y + sub_height),
+            original_image_id = image.original_image_id,
+        };
+
+        context.first_free_image_id++;
+        context.images[new_image.id] = new_image;
+
+        return new_image.id;
+    }
+
+    /// <summary>
+    /// Returns the given image
+    /// </summary>
+    public static stbg_image_info stbg_get_image(image_id image_id)
+    {
+        return context.images[image_id];
     }
 
     /// <summary>
@@ -683,9 +714,9 @@ public partial class StbGui
     /// <summary>
     /// Shows an image
     /// </summary>
-    public static void stbg_image(ReadOnlySpan<char> identifier, image_id image_id)
+    public static void stbg_image(ReadOnlySpan<char> identifier, image_id image_id, float scale = 1)
     {
         stbg__assert(image_id > 0 && image_id < context.images.Length, "Invalid image_id");
-        stbg__image_create(identifier, image_id);
+        stbg__image_create(identifier, image_id, scale);
     }
 }

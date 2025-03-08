@@ -9,11 +9,12 @@ public class App
     // DefaultFontPath = "Fonts/ProggyClean.ttf", DefaultFontSize = 13
     // DefaultFontPath = "Fonts/ProggyTiny.ttf", DefaultFontSize = 10
 
-    static public StbGuiAppBase.StbGuiAppOptions options = new () { DefaultFontName = "Font", DefaultFontPath = "Fonts/ProggyClean.ttf", DefaultFontSize = 13 };
+    static public StbGuiAppBase.StbGuiAppOptions options = new() { DefaultFontName = "Font", DefaultFontPath = "Fonts/ProggyClean.ttf", DefaultFontSize = 13 };
 
     private readonly StbGuiAppBase appBase;
 
     private int test_image_id;
+    private int[] test_sub_images = new int[4];
 
     private byte[] GetResourceFileBytes(string fileName)
     {
@@ -35,7 +36,7 @@ public class App
     public App(StbGuiAppBase appBase)
     {
         this.appBase = appBase;
-        
+
         var txt = "Hello World THIS IS A VERY LONG TEXT TO EDITTTT";
         txt.AsSpan().CopyTo(text_to_edit.Span);
         text_to_edit_length = txt.Length;
@@ -45,6 +46,10 @@ public class App
         text_to_edit2_length = txt2.Length;
 
         test_image_id = appBase.add_image(GetResourceFileBytes("test.png"), false);
+        test_sub_images[0] = appBase.add_sub_image(test_image_id, 0, 0, 128, 128);
+        test_sub_images[1] = appBase.add_sub_image(test_image_id, 128, 0, 128, 128);
+        test_sub_images[2] = appBase.add_sub_image(test_image_id, 0, 128, 128, 128);
+        test_sub_images[3] = appBase.add_sub_image(test_image_id, 128, 128, 128, 128);
     }
 
     private bool showButton3 = true;
@@ -58,7 +63,8 @@ public class App
     private bool show_scrollbars = true;
     private bool movable = true;
 
-    private bool window_open = true;
+    private bool window2_open = true;
+    private bool window5_open = true;
 
     private Memory<char> text_to_edit = new Memory<char>(new char[1024]);
     private int text_to_edit_length;
@@ -113,7 +119,7 @@ public class App
             StbGui.stbg_end_window();
         }
 
-        if (StbGui.stbg_begin_window("Window 2", ref window_open))
+        if (StbGui.stbg_begin_window("Window 2", ref window2_open))
         {
             if (StbGui.stbg_get_last_widget_is_new())
                 StbGui.stbg_set_last_widget_position(200, 150);
@@ -163,19 +169,40 @@ public class App
             StbGui.stbg_end_window();
         }
 
-        if (StbGui.stbg_begin_window("Window 5"))
+        if (StbGui.stbg_begin_window("Window 5", ref window5_open))
         {
             if (StbGui.stbg_get_last_widget_is_new())
                 StbGui.stbg_set_last_widget_position(400, 350);
 
-            StbGui.stbg_image("iamge", test_image_id);
-            
+            StbGui.stbg_begin_container("hor", StbGui.STBG_CHILDREN_LAYOUT.HORIZONTAL);
+            {
+                StbGui.stbg_image("image", test_image_id, 0.5f);
+
+                StbGui.stbg_begin_container("subV1", StbGui.STBG_CHILDREN_LAYOUT.VERTICAL);
+                {
+                    StbGui.stbg_image(mp.Concat("subimage", 0), test_sub_images[0], 0.5f);
+                    StbGui.stbg_image(mp.Concat("subimage", 2), test_sub_images[2], 0.5f);
+                }
+                StbGui.stbg_end_container();
+
+                StbGui.stbg_begin_container("subV2", StbGui.STBG_CHILDREN_LAYOUT.VERTICAL);
+                {
+                    StbGui.stbg_image(mp.Concat("subimage", 1), test_sub_images[1], 0.5f);
+                    StbGui.stbg_image(mp.Concat("subimage", 3), test_sub_images[3], 0.5f);
+                }
+                StbGui.stbg_end_container();
+            }
+            StbGui.stbg_end_container();
+
             StbGui.stbg_end_window();
         }
 
         StbGui.stbg_label("This is the debug window!");
 
-        if (!window_open && StbGui.stbg_button("Re-open Window 2"))
-            window_open = true;
+        if (!window2_open && StbGui.stbg_button("Re-open Window 2"))
+            window2_open = true;
+
+        if (!window5_open && StbGui.stbg_button("Re-open Window 5"))
+            window5_open = true;
     }
 }
