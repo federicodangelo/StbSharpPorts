@@ -6,12 +6,15 @@ using System;
 using widget_id = int;
 using widget_hash = int;
 using font_id = int;
+using image_id = int;
 
 public partial class StbGui
 {
     public const widget_id STBG_WIDGET_ID_NULL = 0;
 
     public const font_id STBG_FONT_ID_NULL = 0;
+
+    public const image_id STBG_IMAGE_ID_NULL = 0;
 
     private const long MICROSECONDS = 1_000_000;
 
@@ -37,6 +40,8 @@ public partial class StbGui
     public const int DEFAULT_MAX_WIDGETS = 32767;
 
     public const int DEFAULT_MAX_FONTS = 32;
+
+    public const int DEFAULT_MAX_IMAGES = 1024;
 
     public const int DEFAULT_RENDER_QUEUE_SIZE = 128;
 
@@ -65,6 +70,11 @@ public partial class StbGui
         /// Max number of loaded fonts, defaults to DEFAULT_MAX_FONTS
         /// </summary>
         public int max_fonts;
+
+        /// <summary>
+        /// Max number of loaded images, defaults to DEFAULT_MAX_IMAGES
+        /// </summary>
+        public int max_images;
 
         /// <summary>
         /// Behavior of assert calls, defaults to ASSERT
@@ -122,6 +132,13 @@ public partial class StbGui
     {
         public font_id id;
         public string name;
+    }
+
+    public struct stbg_image_info
+    {
+        public image_id id;
+        public stbg_size size;
+        public stbg_rect source_rect;
     }
 
     public record struct stbg_text
@@ -397,6 +414,7 @@ public partial class StbGui
         CONTAINER,
         BUTTON,
         LABEL,
+        IMAGE,
         SCROLLBAR,
         TEXTBOX,
         COUNT, // MUST BE LAST
@@ -429,6 +447,7 @@ public partial class StbGui
     {
         public float f;
         public bool b;
+        public int i;
     }
 
     public struct stbg_widget_parameters
@@ -589,6 +608,9 @@ public partial class StbGui
         public stbg_font[] fonts;
         public font_id first_free_font_id;
 
+        public stbg_image_info[] images;
+        public image_id first_free_image_id;
+
         public bool inside_frame;
 
         public int current_frame;
@@ -680,12 +702,17 @@ public partial class StbGui
         RECTANGLE,
 
         /// <summary>
+        /// Render image using bounds, color (as tint color), image_id and source_rect (to draw only a part of the image)
+        /// </summary>
+        IMAGE,
+
+        /// <summary>
         /// Render border using bounds, size (border size), color (border color) and background_color (used to fill the content)
         /// </summary>
         BORDER,
 
         /// <summary>
-        /// Render text using bounds, color, text, font and font_style
+        /// Render text using bounds, color (as tint color), text, font and font_style
         /// </summary>
         TEXT,
 
@@ -725,10 +752,12 @@ public partial class StbGui
     {
         public STBG_RENDER_COMMAND_TYPE type;
         public float size;
+        public image_id image_id;
         public stbg_rect bounds;
         public stbg_color color;
         public stbg_color background_color;
         public stbg_render_text_parameters text;
+        public stbg_rect source_rect;
     }
 
 

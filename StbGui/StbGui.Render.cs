@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 namespace StbSharp;
 
 using font_id = int;
+using image_id = int;
 
 public partial class StbGui
 {
@@ -38,6 +39,12 @@ public partial class StbGui
     static private void stbg__rc_draw_border(stbg_rect rect, float border_size, stbg_color border_color, stbg_color background_color)
     {
         stbg__rc_enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.BORDER, bounds = rect, size = border_size, color = border_color, background_color = background_color });
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static private void stbg__rc_draw_image(stbg_rect rect, image_id image, stbg_color color, stbg_rect source_rect)
+    {
+        stbg__rc_enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.IMAGE, bounds = rect, color = color, image_id = image, source_rect = source_rect });
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

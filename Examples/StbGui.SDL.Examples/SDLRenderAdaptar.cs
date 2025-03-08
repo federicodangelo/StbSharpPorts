@@ -19,9 +19,16 @@ public class SDLRenderAdapter : StbGuiRenderAdapterBase
         this.renderer = renderer;
     }
 
-    public override nint create_texture(int width, int height, byte[] pixels, StbGuiRenderAdapter.CreateTextureOptions options = default)
+    public override string get_render_backend()
     {
-        var texture_id = SDL.CreateTexture(renderer, SDL.PixelFormat.RGBA8888, SDL.TextureAccess.Static, width, height);
+        return "SDL3";
+    }
+
+    public override nint create_texture(int width, int height, byte[] pixels, int bytes_per_pixel, StbGuiRenderAdapter.CreateTextureOptions options = default)
+    {
+        var format = bytes_per_pixel == 4 ? SDL.PixelFormat.RGBA8888 : SDL.PixelFormat.RGB24;
+
+        var texture_id = SDL.CreateTexture(renderer, format, SDL.TextureAccess.Static, width, height);
 
         if (texture_id == 0)
         {
@@ -34,7 +41,7 @@ public class SDLRenderAdapter : StbGuiRenderAdapterBase
         else
             SDL.SetTextureScaleMode(texture_id, SDL.ScaleMode.Nearest);
 
-        SDL.UpdateTexture(texture_id, new SDL.Rect() { W = width, H = height, }, pixels, width * 4);
+        SDL.UpdateTexture(texture_id, new SDL.Rect() { W = width, H = height, }, pixels, width * bytes_per_pixel);
 
         return texture_id;
     }

@@ -30,11 +30,15 @@ public interface StbGuiRenderAdapter
         public bool use_bilinear_filtering;
     }
 
-    public nint create_texture(int width, int height, byte[] pixels, CreateTextureOptions options = default);
+    public nint create_texture(int width, int height, byte[] pixels, int bytes_per_pixel, CreateTextureOptions options = default);
 
     public void destroy_texture(nint texture_id);
 
     public void register_font(int font_id, StbGuiFont font);
 
     public void process_render_command(StbGui.stbg_render_command cmd);
+
+    public void register_image(int image_id, byte[] pixels, int width, int height, int bytes_per_pixel);
+
+    public string get_render_backend();
 }

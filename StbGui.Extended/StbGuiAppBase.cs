@@ -1,5 +1,6 @@
 #pragma warning disable IDE1006 // Naming Styles
 
+using System.Diagnostics;
 using System.Reflection;
 
 namespace StbSharp;
@@ -32,9 +33,11 @@ public abstract class StbGuiAppBase : IDisposable
     }
 
     private StbGuiRenderAdapter render_adapter;
-    private StbGuiFont mainFont;
+    private StbGuiFont[] fonts;
     private long frames_count_ms;
     private long frames_count;
+
+    public string RenderBackend { get; private set; }
 
     protected byte[] GetResourceFileBytes(string fileName)
     {
@@ -58,9 +61,11 @@ public abstract class StbGuiAppBase : IDisposable
     {
         render_adapter = build_render_adapter(options);
 
-        mainFont = new StbGuiFont(options.DefaultFontName, GetResourceFileBytes(options.DefaultFontPath), options.DefaultFontSize, options.FontRenderingOversampling, options.FontRenderingBilinear, render_adapter);
+        RenderBackend = render_adapter.get_render_backend();
 
-        init_stb_gui();
+        fonts = new StbGuiFont[StbGui.DEFAULT_MAX_FONTS];
+
+        init_stb_gui(options);
 
         frames_count_ms = get_time_milliseconds();
     }
@@ -85,9 +90,11 @@ public abstract class StbGuiAppBase : IDisposable
         };
     }
 
-    private StbGui.stbg_size measure_text(ReadOnlySpan<char> text, StbGui.stbg_font _, StbGui.stbg_font_style style, StbGui.STBG_MEASURE_TEXT_OPTIONS options)
+    private StbGui.stbg_size measure_text(ReadOnlySpan<char> text, StbGui.stbg_font font, StbGui.stbg_font_style style, StbGui.STBG_MEASURE_TEXT_OPTIONS options)
     {
         Span<StbGui.stbg_render_text_style_range> tmp_styles = stackalloc StbGui.stbg_render_text_style_range[1];
+
+        var real_font = fonts[font.id];
 
         tmp_styles[0] = new StbGui.stbg_render_text_style_range()
         {
@@ -96,12 +103,14 @@ public abstract class StbGuiAppBase : IDisposable
             font_style = style.style
         };
 
-        return StbGuiTextHelper.measure_text(text, mainFont, style.size, tmp_styles, options);
+        return StbGuiTextHelper.measure_text(text, real_font, style.size, tmp_styles, options);
     }
 
-    private StbGui.stbg_position get_character_position_in_text(ReadOnlySpan<char> text, StbGui.stbg_font _, StbGui.stbg_font_style style, StbGui.STBG_MEASURE_TEXT_OPTIONS options, int character_index)
+    private StbGui.stbg_position get_character_position_in_text(ReadOnlySpan<char> text, StbGui.stbg_font font, StbGui.stbg_font_style style, StbGui.STBG_MEASURE_TEXT_OPTIONS options, int character_index)
     {
         Span<StbGui.stbg_render_text_style_range> tmp_styles = stackalloc StbGui.stbg_render_text_style_range[1];
+
+        var real_font = fonts[font.id];
 
         tmp_styles[0] = new StbGui.stbg_render_text_style_range()
         {
@@ -110,23 +119,65 @@ public abstract class StbGuiAppBase : IDisposable
             font_style = style.style
         };
 
-        return StbGuiTextHelper.get_character_position_in_text(text, mainFont, style.size, tmp_styles, options, character_index);
+        return StbGuiTextHelper.get_character_position_in_text(text, real_font, style.size, tmp_styles, options, character_index);
     }
 
-    private void init_stb_gui()
+    public int add_font(string name, byte[] bytes, float size, int oversampling = 1, bool bilinear = false)
+    {
+        Debug.Assert(bytes != null);
+
+        var font = new StbGuiFont(name, bytes, size, oversampling, bilinear, render_adapter);
+
+        var font_id = StbGui.stbg_add_font(name);
+        render_adapter.register_font(font_id, font);
+
+        fonts[font_id] = font;
+
+        return font_id;
+    }
+
+    public int add_image(byte[] bytes, bool alpha)
+    {
+        Debug.Assert(bytes != null);
+
+        var ptr = StbImage.stbi_load_from_memory(bytes, bytes.Length, out int width, out int height, out _, alpha ? StbImage.STBI_CHANNELS.rgb_alpha : StbImage.STBI_CHANNELS.rgb);
+        Debug.Assert(!ptr.IsNull);
+
+        var bytes_per_pixel = alpha ? 4 : 3;
+
+        var pixels = ptr.Array;
+
+        Debug.Assert(pixels != null);
+        Debug.Assert(pixels.Length == width * height * bytes_per_pixel);
+
+        return add_image_raw(pixels, width, height, bytes_per_pixel);
+    }
+
+    public int add_image_raw(byte[] pixels, int width, int height, int bytes_per_pixel)
+    {
+        Debug.Assert(pixels != null);
+        Debug.Assert(bytes_per_pixel == 3 || bytes_per_pixel == 4);
+
+        Debug.Assert(pixels.Length == width * height * bytes_per_pixel);
+
+        var image_id = StbGui.stbg_add_image(width, height);
+        render_adapter.register_image(image_id, pixels, width, height, bytes_per_pixel);
+
+        return image_id;
+    }
+
+    private void init_stb_gui(StbGuiAppOptions options)
     {
         var screen_size = get_screen_size();
 
         StbGui.stbg_init(build_external_dependencies(), new());
         StbGui.stbg_set_screen_size((int)screen_size.width, (int)screen_size.height);
 
-        int fontId = StbGui.stbg_add_font(mainFont.name);
-
-        render_adapter.register_font(fontId, mainFont);
+        int default_font_id = add_font(options.DefaultFontName, GetResourceFileBytes(options.DefaultFontPath), options.DefaultFontSize, options.FontRenderingOversampling, options.FontRenderingBilinear);
 
         StbGui.stbg_init_default_theme(
-            fontId,
-            new() { size = mainFont.size, style = StbGui.STBG_FONT_STYLE_FLAGS.NONE, color = StbGui.STBG_COLOR_WHITE }
+            default_font_id,
+            new() { size = fonts[default_font_id].size, style = StbGui.STBG_FONT_STYLE_FLAGS.NONE, color = StbGui.STBG_COLOR_WHITE }
         );
     }
 
@@ -213,6 +264,13 @@ public abstract class StbGuiAppBase : IDisposable
 
     public virtual void Dispose()
     {
-        mainFont.Dispose();
+        foreach (var font in fonts)
+        {
+            if (font != null)
+                font.Dispose();
+        }
+
+        fonts.AsSpan().Clear();
+
     }
 }

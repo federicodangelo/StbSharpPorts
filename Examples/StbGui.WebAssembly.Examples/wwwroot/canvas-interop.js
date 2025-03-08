@@ -23,6 +23,8 @@ export const getInputEventProperty = input.getInputEventProperty;
 export const getInputEventPropertyString = input.getInputEventPropertyString;
 export const clearInputEvents = input.clearInputEvents;
 
+export const getRenderBackend = drawing.getRenderBackend;
+
 export const getWidth = drawing.getWidth;
 export const getHeight = drawing.getHeight;
 

@@ -108,6 +108,7 @@ public record class StbGuiFont : IDisposable
 
         texture_id = render_adapter.create_texture(width, height,
             pixels,
+            4,
             new StbGuiRenderAdapter.CreateTextureOptions()
             {
                 use_bilinear_filtering = use_bilinear_filtering

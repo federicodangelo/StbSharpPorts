@@ -13,4 +13,8 @@
     <ProjectReference Include="..\..\StbTrueType\StbTrueType.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\test.png" />  
+  </ItemGroup>
+
 </Project>

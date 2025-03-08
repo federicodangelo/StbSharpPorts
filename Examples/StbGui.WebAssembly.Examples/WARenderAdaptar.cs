@@ -19,9 +19,14 @@ class WARenderAdapter : StbGuiRenderAdapterBase
     private int draw_batch_buffer_index = 0;
 #endif
 
-    public override nint create_texture(int width, int height,  byte[] pixels, StbGuiRenderAdapter.CreateTextureOptions options = default)
+    public override string get_render_backend()
     {
-        return CanvasInterop.CreateTexture(width, height, pixels);
+        return CanvasInterop.GetRenderBackend();
+    }
+
+    public override nint create_texture(int width, int height,  byte[] pixels, int bytes_per_pixel, StbGuiRenderAdapter.CreateTextureOptions options = default)
+    {
+        return CanvasInterop.CreateTexture(width, height, pixels, bytes_per_pixel);
     }
 
     public override void destroy_texture(nint texture_id)

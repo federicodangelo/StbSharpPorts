@@ -28,6 +28,10 @@ function getBlue(color) {
     return (color >> 16) & 0xFF;
 }
 
+export function getRenderBackend() {
+    return "canvas2d";
+}
+
 export function initDrawing() {
     canvas = document.getElementById("myCanvas");
     //console.log(canvas);
@@ -91,8 +95,9 @@ export function popClip() {
     ctx.restore();
 }
 
-export function createTexture(w, h, pixels) {
-    var id = next_canvas_id++;
+export function createTexture(w, h, pixels, bytes_per_pixel) {
+    let id = next_canvas_id++;
+    let source = pixels.slice();
 
     const new_canvas = document.createElement("canvas");
     new_canvas.width = w;
@@ -100,7 +105,28 @@ export function createTexture(w, h, pixels) {
 
     const canvasCtx = new_canvas.getContext("2d");
     const imageData = canvasCtx.createImageData(w, h);
-    pixels.copyTo(new Uint8Array(imageData.data.buffer));
+
+    let target = imageData.data;
+    let target_idx = 0;
+
+    if (bytes_per_pixel == 4) {
+        for (let i = 0; i < source.length; i += 4) {
+            target[target_idx + 0] = source[i + 0];
+            target[target_idx + 1] = source[i + 1];
+            target[target_idx + 2] = source[i + 2];
+            target[target_idx + 3] = source[i + 3];
+            target_idx += 4;
+        }
+    } else if (bytes_per_pixel == 3) {
+        for (let i = 0; i < source.length; i += 3) {
+            target[target_idx + 0] = source[i + 0];
+            target[target_idx + 1] = source[i + 1];
+            target[target_idx + 2] = source[i + 2];
+            target[target_idx + 3] = 255;
+            target_idx += 4;
+        }
+    }
+
     canvasCtx.putImageData(imageData, 0, 0);
 
     canvases[id] = new_canvas;

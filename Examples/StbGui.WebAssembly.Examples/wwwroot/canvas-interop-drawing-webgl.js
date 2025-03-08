@@ -31,6 +31,10 @@ function getBlue(color) {
     return (color >> 16) & 0xFF;
 }
 
+export function getRenderBackend() {
+    return "webgl";
+}
+
 export function initDrawing() {
     canvas = document.getElementById("myCanvas");
     //console.log(canvas);
@@ -215,16 +219,16 @@ export function popClip() {
     }
 }
 
-export function createTexture(width, height, pixels_memory_view) {
+export function createTexture(width, height, pixels_memory_view, bytes_per_pixel) {
     var texture = gl.createTexture();
     var pixels = pixels_memory_view.slice();
 
     gl.bindTexture(gl.TEXTURE_2D, texture);
 
     const level = 0;
-    const internalFormat = gl.RGBA;
+    const internalFormat = bytes_per_pixel == 4 ? gl.RGBA : gl.RGB;
     const border = 0;
-    const srcFormat = gl.RGBA;
+    const srcFormat = bytes_per_pixel == 4 ? gl.RGBA : gl.RGB;
     const srcType = gl.UNSIGNED_BYTE;
     gl.texImage2D(
         gl.TEXTURE_2D,

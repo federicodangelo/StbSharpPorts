@@ -6,6 +6,7 @@ using System;
 using widget_id = int;
 using widget_hash = int;
 using font_id = int;
+using image_id = int;
 
 // Reference:
 // - https://www.rfleury.com/p/posts-table-of-contents
@@ -366,6 +367,34 @@ public partial class StbGui
     }
 
     /// <summary>
+    /// Adds an image
+    /// </summary>
+    public static image_id stbg_add_image(int width, int height)
+    {
+        return stbg_add_image(width, height, 0, 0, width, height);
+    }
+
+    /// <summary>
+    /// Adds an image
+    /// </summary>
+    public static image_id stbg_add_image(int width, int height, int uv_x, int uv_y, int uv_width, int uv_height)
+    {
+        stbg__assert(context.first_free_image_id + 1 < context.images.Length, "No more room for images");
+
+        var newImage = new stbg_image_info()
+        {
+            id = context.first_free_image_id,
+            size = stbg_build_size(width, height),
+            source_rect = stbg_build_rect(uv_x, uv_y, uv_x + uv_width, uv_y + uv_height),
+        };
+
+        context.first_free_image_id++;
+        context.images[newImage.id] = newImage;
+
+        return newImage.id;
+    }
+
+    /// <summary>
     /// Returns the font with the specified id
     /// </summary>
     /// <param name="font_id">Font id</param>
@@ -649,5 +678,14 @@ public partial class StbGui
     {
         stbg__assert(visible_lines >= 1);
         stbg__textbox_create(identifier, text, ref text_length, visible_lines);
+    }
+
+    /// <summary>
+    /// Shows an image
+    /// </summary>
+    public static void stbg_image(ReadOnlySpan<char> identifier, image_id image_id)
+    {
+        stbg__assert(image_id > 0 && image_id < context.images.Length, "Invalid image_id");
+        stbg__image_create(identifier, image_id);
     }
 }

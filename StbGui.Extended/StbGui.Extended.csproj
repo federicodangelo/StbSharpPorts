@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\StbGui\StbGui.csproj" />
+    <ProjectReference Include="..\StbImage\StbImage.csproj" />
     <ProjectReference Include="..\StbTrueType\StbTrueType.csproj" />
   </ItemGroup>
 

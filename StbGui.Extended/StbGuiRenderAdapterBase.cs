@@ -6,9 +6,20 @@ public abstract class StbGuiRenderAdapterBase : StbGuiRenderAdapter
 {
     private Dictionary<int, StbGuiFont> fonts = new();
 
+    private Dictionary<int, nint> images = new();
+
+    private StbGuiRenderAdapter.Rect[] tmp_rect = new StbGuiRenderAdapter.Rect[1];
+
     public void register_font(int font_id, StbGuiFont font)
     {
         fonts[font_id] = font;
+    }
+
+
+    public void register_image(int image_id, byte[] pixels, int width, int height, int bytes_per_pixel)
+    {
+        nint texture_id = create_texture(width, height, pixels, bytes_per_pixel, new() { use_bilinear_filtering = false });
+        images[image_id] = texture_id;
     }
 
     public void process_render_command(StbGui.stbg_render_command cmd)
@@ -58,6 +69,24 @@ public abstract class StbGuiRenderAdapterBase : StbGuiRenderAdapter
                     break;
                 }
 
+            case StbGui.STBG_RENDER_COMMAND_TYPE.IMAGE:
+            {
+                var image_id = cmd.image_id;
+                var color = cmd.color;
+                var bounds = cmd.bounds;
+                var source_rect = cmd.source_rect;
+                var texture_id = images[image_id];
+
+                tmp_rect[0] = new StbGuiRenderAdapter.Rect() { 
+                    rect = bounds,
+                    tex_coord_rect = source_rect,
+                    color = color
+                };
+
+                draw_texture_rects(tmp_rect, 1, texture_id);
+                break;
+            }
+
             case StbGui.STBG_RENDER_COMMAND_TYPE.PUSH_CLIPPING_RECT:
                 push_clip_rect(cmd.bounds);
                 break;
@@ -82,7 +111,9 @@ public abstract class StbGuiRenderAdapterBase : StbGuiRenderAdapter
 
     public abstract void pop_clip_rect();
 
-    public abstract nint create_texture(int width, int height, byte[] pixels, StbGuiRenderAdapter.CreateTextureOptions options);
+    public abstract nint create_texture(int width, int height, byte[] pixels, int bytes_per_pixel, StbGuiRenderAdapter.CreateTextureOptions options);
 
     public abstract void destroy_texture(nint texture_id);
+
+    public abstract string get_render_backend();
 }

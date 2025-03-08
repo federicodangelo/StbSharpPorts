@@ -35,6 +35,9 @@ public partial class StbGui
         if (options.max_fonts == 0)
             options.max_fonts = DEFAULT_MAX_FONTS;
 
+        if (options.max_images == 0)
+            options.max_images = DEFAULT_MAX_IMAGES;
+
         if (options.string_memory_pool_size == 0)
             options.string_memory_pool_size = DEFAULT_STRING_MEMORY_POOL_SIZE;
 
@@ -48,6 +51,7 @@ public partial class StbGui
         var hash_table = new stbg_hash_entry[options.hash_table_size];
         var fonts = new stbg_font[options.max_fonts + 1]; // first slot is never used (null font)
         var render_commands_queue = new stbg_render_command[options.render_commands_queue_size];
+        var images = new stbg_image_info[options.max_images + 1]; // first slot is never used (null image)
 
         // init ids and flags
         for (int i = 0; i < widgets.Length; i++)
@@ -71,6 +75,8 @@ public partial class StbGui
         context.hash_table = hash_table;
         context.fonts = fonts;
         context.first_free_font_id = 1;
+        context.images = images;
+        context.first_free_image_id = 1;
         context.init_options = options;
         context.external_dependencies = external_dependencies;
         context.theme.styles = new double[(int)STBG_WIDGET_STYLE.COUNT];

@@ -14,6 +14,9 @@ public partial class CanvasInterop
     [JSImport("init", "canvas-interop")]
     public static partial void Init();
 
+    [JSImport("getRenderBackend", "canvas-interop")]
+    public static partial string GetRenderBackend();
+
     [JSImport("getWidth", "canvas-interop")]
     public static partial int GetWidth();
 
@@ -36,7 +39,7 @@ public partial class CanvasInterop
     public static partial void PopClip();
 
     [JSImport("createTexture", "canvas-interop")]
-    public static partial int CreateTexture(int width, int height, [JSMarshalAs<JSType.MemoryView>] Span<byte> pixels);
+    public static partial int CreateTexture(int width, int height, [JSMarshalAs<JSType.MemoryView>] Span<byte> pixels, int bytes_per_pixel);
 
     [JSImport("destroyTexture", "canvas-interop")]
     public static partial void DestroyTexture(int id);

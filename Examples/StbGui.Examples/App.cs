@@ -1,5 +1,6 @@
 ﻿namespace StbSharp.Examples;
 
+using System.Reflection;
 using StbSharp;
 
 public class App
@@ -12,6 +13,25 @@ public class App
 
     private readonly StbGuiAppBase appBase;
 
+    private int test_image_id;
+
+    private byte[] GetResourceFileBytes(string fileName)
+    {
+        var resourceName = "StbGui.Examples.Resources." + fileName.Replace("\\", ".").Replace("/", ".");
+
+        using (var memoryStream = new MemoryStream())
+        {
+            using (var stream = typeof(App).Assembly.GetManifestResourceStream(resourceName))
+            {
+                if (stream == null)
+                    throw new FileNotFoundException("Resource file not found.");
+
+                stream.CopyTo(memoryStream);
+            }
+            return memoryStream.ToArray();
+        }
+    }
+
     public App(StbGuiAppBase appBase)
     {
         this.appBase = appBase;
@@ -23,6 +43,8 @@ public class App
         var txt2 = "Hello World THIS IS MULTILINE!\nYESSS!!!";
         txt2.AsSpan().CopyTo(text_to_edit2.Span);
         text_to_edit2_length = txt2.Length;
+
+        test_image_id = appBase.add_image(GetResourceFileBytes("test.png"), false);
     }
 
     private bool showButton3 = true;
@@ -49,6 +71,7 @@ public class App
         mp.ResetPool();
 
         StbGui.stbg_label(mp.Concat("FPS: ", appBase.Metrics.Fps));
+        StbGui.stbg_label(mp.Concat("Render Backend: ", appBase.RenderBackend));
         StbGui.stbg_label(mp.Concat("Allocated Bytes Delta: ", appBase.Metrics.LastFrameAllocatedBytes));
         StbGui.stbg_label(mp.Concat(mp.Concat("Process input time : ", StbGui.stbg_get_average_performance_metrics().process_input_time_us / 1000.0f, 3), " ms"));
         StbGui.stbg_label(mp.Concat(mp.Concat("Layout widgets time: ", StbGui.stbg_get_average_performance_metrics().layout_widgets_time_us / 1000.0f, 3), " ms"));
@@ -137,6 +160,16 @@ public class App
 
             StbGui.stbg_button("Test Button XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 
+            StbGui.stbg_end_window();
+        }
+
+        if (StbGui.stbg_begin_window("Window 5"))
+        {
+            if (StbGui.stbg_get_last_widget_is_new())
+                StbGui.stbg_set_last_widget_position(400, 350);
+
+            StbGui.stbg_image("iamge", test_image_id);
+            
             StbGui.stbg_end_window();
         }
 
