@@ -19,7 +19,7 @@ public class SDLRenderAdapter : StbGuiRenderAdapterBase
         this.renderer = renderer;
     }
 
-    public override nint create_texture(int width, int height, StbGuiRenderAdapter.CreateTextureOptions options = default)
+    public override nint create_texture(int width, int height, byte[] pixels, StbGuiRenderAdapter.CreateTextureOptions options = default)
     {
         var texture_id = SDL.CreateTexture(renderer, SDL.PixelFormat.RGBA8888, SDL.TextureAccess.Static, width, height);
 
@@ -34,16 +34,9 @@ public class SDLRenderAdapter : StbGuiRenderAdapterBase
         else
             SDL.SetTextureScaleMode(texture_id, SDL.ScaleMode.Nearest);
 
-        return texture_id;
-    }
+        SDL.UpdateTexture(texture_id, new SDL.Rect() { W = width, H = height, }, pixels, width * 4);
 
-    public override void set_texture_pixels(nint texture_id, StbGui.stbg_size size, byte[] pixels)
-    {
-        if (!SDL.UpdateTexture(texture_id, new SDL.Rect() { W = (int)size.width, H = (int)size.height, }, pixels, (int)size.width * 4))
-        {
-            SDL.LogError(SDL.LogCategory.System, $"SDL failed to update texture: {SDL.GetError()}");
-            return;
-        }
+        return texture_id;
     }
 
     public override void destroy_texture(nint texture_id)

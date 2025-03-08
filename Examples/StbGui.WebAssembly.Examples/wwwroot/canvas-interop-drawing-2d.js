@@ -9,7 +9,23 @@ const canvases_tinted = {};
 const RENDER = true;
 
 function buildFillStyle(argb) {
-    return "#" + argb.toString(16).padStart(8, '0');
+    return `#${getRed(argb).toString(16).padStart(2, '0')}${getGreen(argb).toString(16).padStart(2, '0')}${getBlue(argb).toString(16).padStart(2, '0')}${getAlpha(argb).toString(16).padStart(2, '0')}`;
+}
+
+function getAlpha(color) {
+    return (color >> 24) & 0xFF;
+}
+
+function getRed(color) {
+    return (color >> 0) & 0xFF;
+}
+
+function getGreen(color) {
+    return (color >> 8) & 0xFF;
+}
+
+function getBlue(color) {
+    return (color >> 16) & 0xFF;
 }
 
 export function initDrawing() {
@@ -33,10 +49,6 @@ export function clear(c) {
     if (!RENDER) return;
     ctx.fillStyle = buildFillStyle(c);
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-}
-
-function getAlpha(color) {
-    return color & 0xFF;
 }
 
 export function drawBorder(color_fill, color_border, x, y, w, h, border_size) {
@@ -79,19 +91,24 @@ export function popClip() {
     ctx.restore();
 }
 
-export function createCanvas(w, h) {
+export function createTexture(w, h, pixels) {
     var id = next_canvas_id++;
 
     const new_canvas = document.createElement("canvas");
     new_canvas.width = w;
     new_canvas.height = h;
 
+    const canvasCtx = new_canvas.getContext("2d");
+    const imageData = canvasCtx.createImageData(w, h);
+    pixels.copyTo(new Uint8Array(imageData.data.buffer));
+    canvasCtx.putImageData(imageData, 0, 0);
+
     canvases[id] = new_canvas;
 
     return id;
 }
 
-export function destroyCanvas(id) {
+export function destroyTexture(id) {
     delete canvases[id];
 }
 
@@ -127,23 +144,13 @@ function getCanvasTinted(id, color) {
     return canvas_tinted;
 }
 
-export function setCanvasPixels(id, width, height, pixels) {
-    const canvas = getCanvas(id);
-    const canvasCtx = canvas.getContext("2d");
-    const imageData = canvasCtx.createImageData(width, height);
-    pixels.copyTo(new Uint8Array(imageData.data.buffer));
-    canvasCtx.putImageData(imageData, 0, 0);
-}
-
-
-
 let last_copy_canvas_pixels_id = 0;
 let last_copy_canvas_pixels_color = 0;
 
 let last_copy_canvas_pixels_canvas_tinted;
 let last_copy_canvas_pixels_fill_style;
 
-export function drawCanvasRectangle(id, fromX, fromY, fromWidth, fromHeight, toX, toY, toWidth, toHeight, color) {
+export function drawTextureRectangle(id, fromX, fromY, fromWidth, fromHeight, toX, toY, toWidth, toHeight, color) {
     if (!RENDER) return;
 
     if (last_copy_canvas_pixels_id !== id || last_copy_canvas_pixels_color !== color) {

@@ -27,16 +27,17 @@ export const getWidth = drawing.getWidth;
 export const getHeight = drawing.getHeight;
 
 export const clear = drawing.clear;
+
 export const drawBorder = drawing.drawBorder;
 export const drawRectangle = drawing.drawRectangle;
+
+export const createTexture = drawing.createTexture;
+export const destroyTexture = drawing.destroyTexture;
+export const drawTextureRectangle = drawing.drawTextureRectangle;
+
 export const pushClip = drawing.pushClip;
 export const popClip = drawing.popClip;
 
-export const createCanvas = drawing.createCanvas;
-export const destroyCanvas = drawing.destroyCanvas;
-
-export const setCanvasPixels = drawing.setCanvasPixels;
-export const drawCanvasRectangle = drawing.drawCanvasRectangle;
 export const presentFrame = drawing.presentFrame;
 
 
@@ -61,10 +62,10 @@ export function drawCanvasRectangleBatch(id, batch_memory_view) {
 
 const DRAW_BATCH_BORDER = 1;
 const DRAW_BATCH_RECTANGLE = 2;
-const DRAW_BATCH_CANVAS_RECTANGLE = 3;
-const DRAW_BATCH_CANVAS_RECTANGLE_BATCH = 4;
-const DRAW_BATCH_CANVAS_PUSH_CLIP_RECT = 5;
-const DRAW_BATCH_CANVAS_POP_CLIP_RECT = 6;
+const DRAW_BATCH_TEXTURE_RECTANGLE = 3;
+const DRAW_BATCH_TEXTURE_RECTANGLE_BATCH = 4;
+const DRAW_BATCH_PUSH_CLIP_RECT = 5;
+const DRAW_BATCH_POP_CLIP_RECT = 6;
 
 export function drawBatch(batch_memory_view) {
     const batch = batch_memory_view.slice();
@@ -81,21 +82,21 @@ export function drawBatch(batch_memory_view) {
             case DRAW_BATCH_RECTANGLE:
                 drawRectangle(batch[i++], batch[i++], batch[i++], batch[i++], batch[i++]);
                 break;
-            case DRAW_BATCH_CANVAS_RECTANGLE:
-                drawCanvasRectangle(batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++]);
+            case DRAW_BATCH_TEXTURE_RECTANGLE:
+                drawTextureRectangle(batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++]);
                 break;
-            case DRAW_BATCH_CANVAS_RECTANGLE_BATCH: {
+            case DRAW_BATCH_TEXTURE_RECTANGLE_BATCH: {
                 const id = batch[i++];
                 const batch_count = batch[i++];
                 for (let j = 0; j < batch_count; j++) {
-                    drawCanvasRectangle(id, batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++]);
+                    drawTextureRectangle(id, batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++]);
                 }
                 break;
             }
-            case DRAW_BATCH_CANVAS_PUSH_CLIP_RECT:
+            case DRAW_BATCH_PUSH_CLIP_RECT:
                 pushClip(batch[i++], batch[i++], batch[i++], batch[i++]);
                 break;
-            case DRAW_BATCH_CANVAS_POP_CLIP_RECT:
+            case DRAW_BATCH_POP_CLIP_RECT:
                 popClip();
                 break;
         }

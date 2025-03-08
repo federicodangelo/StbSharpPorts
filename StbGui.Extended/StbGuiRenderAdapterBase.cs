@@ -84,9 +84,7 @@ public abstract class StbGuiRenderAdapterBase : StbGuiRenderAdapter
 
     public abstract void pop_clip_rect();
 
-    public abstract nint create_texture(int width, int height, StbGuiRenderAdapter.CreateTextureOptions options);
-
-    public abstract void set_texture_pixels(nint texture_id, StbGui.stbg_size size, byte[] pixels);
+    public abstract nint create_texture(int width, int height, byte[] pixels, StbGuiRenderAdapter.CreateTextureOptions options);
 
     public abstract void destroy_texture(nint texture_id);
 }

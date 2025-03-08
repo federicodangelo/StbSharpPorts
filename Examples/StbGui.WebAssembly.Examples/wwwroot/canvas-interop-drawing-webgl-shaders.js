@@ -146,6 +146,7 @@ export function initBuffers(gl) {
     return {
         position: gl.createBuffer(),
         color: gl.createBuffer(),
-        textureCoord: gl.createBuffer()
+        textureCoord: gl.createBuffer(),
+        indices: gl.createBuffer(),
     };
 }

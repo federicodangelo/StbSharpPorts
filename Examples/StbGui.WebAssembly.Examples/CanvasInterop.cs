@@ -3,12 +3,12 @@ using StbSharp;
 
 public partial class CanvasInterop
 {
-    static public long BuildRGBA(StbGui.stbg_color color)
+    static public ulong BuildRGBA(StbGui.stbg_color color)
     {
-        return ((long) color.r) << 24 |
-               ((long) color.g) << 16 |
-               ((long) color.b) << 8 |
-               ((long) color.a);
+        return ((ulong) color.a) << 24 |
+               ((ulong) color.b) << 16 |
+               ((ulong) color.g) << 8 |
+               ((ulong) color.r);
     }
 
     [JSImport("init", "canvas-interop")]
@@ -35,22 +35,19 @@ public partial class CanvasInterop
     [JSImport("popClip", "canvas-interop")]
     public static partial void PopClip();
 
-    [JSImport("createCanvas", "canvas-interop")]
-    public static partial int CreateCanvas(int width, int height);
+    [JSImport("createTexture", "canvas-interop")]
+    public static partial int CreateTexture(int width, int height, [JSMarshalAs<JSType.MemoryView>] Span<byte> pixels);
 
-    [JSImport("destroyCanvas", "canvas-interop")]
-    public static partial void DestroyCanvas(int id);
+    [JSImport("destroyTexture", "canvas-interop")]
+    public static partial void DestroyTexture(int id);
 
-    [JSImport("setCanvasPixels", "canvas-interop")]
-    public static partial void SetCanvasPixels(int id, int width, int height, [JSMarshalAs<JSType.MemoryView>] Span<byte> pixels);
+    [JSImport("drawTextureRectangle", "canvas-interop")]
+    public static partial void DrawTextureRectangle(int id, double fromX, double fromY, double fromWidth, double fromHeight, double toX, double toY, double toWidth, double toHeight, double color);
 
-    [JSImport("drawCanvasRectangle", "canvas-interop")]
-    public static partial void DrawCanvasRectangle(int id, double fromX, double fromY, double fromWidth, double fromHeight, double toX, double toY, double toWidth, double toHeight, double color);
+    public const int DRAW_TEXTURE_RECTANGLE_BATCH_ELEMENT_SIZE = 9;
 
-    public const int DRAW_CANVAS_RECTANGLE_BATCH_ELEMENT_SIZE = 9;
-
-    [JSImport("drawCanvasRectangleBatch", "canvas-interop")]
-    public static partial void DrawCanvasRectangleBatch(int id, [JSMarshalAs<JSType.MemoryView>] Span<double> buffer);
+    [JSImport("drawTextureRectangleBatch", "canvas-interop")]
+    public static partial void DrawTextureRectangleBatch(int id, [JSMarshalAs<JSType.MemoryView>] Span<double> buffer);
 
     [JSImport("drawBatch", "canvas-interop")]
     public static partial void DrawBatch([JSMarshalAs<JSType.MemoryView>] Span<double> buffer);

@@ -107,13 +107,12 @@ public record class StbGuiFont : IDisposable
         }
 
         texture_id = render_adapter.create_texture(width, height,
+            pixels,
             new StbGuiRenderAdapter.CreateTextureOptions()
             {
                 use_bilinear_filtering = use_bilinear_filtering
             }
         );
-
-        render_adapter.set_texture_pixels(texture_id, StbGui.stbg_build_size(width, height), pixels);
     }
 
     public int GetCodepointKernAdvance(int ch1, int ch2)

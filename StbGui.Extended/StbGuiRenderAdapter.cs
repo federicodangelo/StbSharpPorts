@@ -32,9 +32,7 @@ public interface StbGuiRenderAdapter
         public bool use_bilinear_filtering;
     }
 
-    public nint create_texture(int width, int height, CreateTextureOptions options = default);
-
-    public void set_texture_pixels(nint texture_id, StbGui.stbg_size size, byte[] pixels);
+    public nint create_texture(int width, int height, byte[] pixels, CreateTextureOptions options = default);
 
     public void destroy_texture(nint texture_id);
 

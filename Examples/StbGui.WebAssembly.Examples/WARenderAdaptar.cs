@@ -19,14 +19,14 @@ class WARenderAdapter : StbGuiRenderAdapterBase
     private int draw_batch_buffer_index = 0;
 #endif
 
-    public override nint create_texture(int width, int height, StbGuiRenderAdapter.CreateTextureOptions options = default)
+    public override nint create_texture(int width, int height,  byte[] pixels, StbGuiRenderAdapter.CreateTextureOptions options = default)
     {
-        return CanvasInterop.CreateCanvas(width, height);
+        return CanvasInterop.CreateTexture(width, height, pixels);
     }
 
     public override void destroy_texture(nint texture_id)
     {
-        CanvasInterop.DestroyCanvas((int)texture_id);
+        CanvasInterop.DestroyTexture((int)texture_id);
     }
 
 #if USE_DRAW_BUFFER
@@ -237,11 +237,6 @@ class WARenderAdapter : StbGuiRenderAdapterBase
 #else
         CanvasInterop.PushClip(rect.x0, rect.y0, rect.x1 - rect.x0, rect.y1 - rect.y0);
 #endif
-    }
-
-    public override void set_texture_pixels(nint texture_id, StbGui.stbg_size size, byte[] pixels)
-    {
-        CanvasInterop.SetCanvasPixels((int)texture_id, (int)size.width, (int)size.height, pixels);
     }
 
     protected override void render_begin_frame(StbGui.stbg_color background_color)

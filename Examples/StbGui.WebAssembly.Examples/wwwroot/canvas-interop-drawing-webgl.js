@@ -1,4 +1,4 @@
-import { initBuffers, initColorShaders, initTextureColorShaders } from "./canvas-webgl-shaders.js";
+import { initBuffers, initColorShaders, initTextureColorShaders } from "./canvas-interop-drawing-webgl-shaders.js";
 
 let canvas;
 let gl;
@@ -39,12 +39,26 @@ export function initDrawing() {
 
     // Disable depth testing (we are going to draw 2D)
     gl.disable(gl.DEPTH_TEST);
+    gl.depthMask(false);
 
     colorProgramInfo = initColorShaders(gl);
     textureColorProgramInfo = initTextureColorShaders(gl);
 
+    // Init buffers
     buffers = initBuffers(gl);
 
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+    gl.bufferData(gl.ARRAY_BUFFER, tempVertPositions.byteLength, gl.DYNAMIC_DRAW);
+    
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
+    gl.bufferData(gl.ARRAY_BUFFER, tempVertColors.byteLength, gl.DYNAMIC_DRAW);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureCoord);
+    gl.bufferData(gl.ARRAY_BUFFER, tempVertTextureCoords.byteLength, gl.DYNAMIC_DRAW);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, tempVertIndices.byteLength, gl.DYNAMIC_DRAW);
+    
     return canvas;
 }
 
@@ -184,30 +198,12 @@ export function popClip() {
     }
 }
 
-export function createCanvas(w, h) {
-    var id = next_texture_id++;
+export function createTexture(width, height, pixels_memory_view) {
     var texture = gl.createTexture();
-    textures[id] = texture;
-    return id;
-}
-
-export function destroyCanvas(id) {
-    gl.deleteTexture(id);
-    delete textures[id];
-}
-
-function getTexture(id) {
-    return textures[id];
-}
-
-export function setCanvasPixels(id, width, height, pixels_memory_view) {
-    if (!RENDER) return;
-
-    var texture = getTexture(id);
     var pixels = pixels_memory_view.slice();
 
     gl.bindTexture(gl.TEXTURE_2D, texture);
-    
+
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
     const level = 0;
@@ -231,9 +227,22 @@ export function setCanvasPixels(id, width, height, pixels_memory_view) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    var id = next_texture_id++;
+    textures[id] = { texture, width, height, id };
+    return id;
 }
 
-export function drawCanvasRectangle(id, fromX, fromY, fromWidth, fromHeight, toX, toY, toWidth, toHeight, color) {
+export function destroyTexture(id) {
+    gl.deleteTexture(id);
+    delete textures[id].texture;
+}
+
+function getTextureInfo(id) {
+    return textures[id];
+}
+
+export function drawTextureRectangle(id, fromX, fromY, fromWidth, fromHeight, toX, toY, toWidth, toHeight, color) {
     if (!RENDER) return;
 
     if (id === 0) {
@@ -248,53 +257,73 @@ export function presentFrame() {
 }
 
 var lastProgram;
+var lastProgramUsesPositions = false;
+var lastProgramUsesColors = false;
+var lastProgramUsesTextureCoords = false;
 
-const tempVerticesCount = 1024;
+const tempRectanglesCount = 8192;
+const tempVerticesCount = tempRectanglesCount * 4; // 4 vertices per rectangle
 
-var tempVertPositions = new Float32Array(tempVerticesCount * 2);
-var tempVertColors = new Float32Array(tempVerticesCount * 4);
-var tempVertTextureCoords = new Float32Array(tempVerticesCount * 2);
+var tempVertPositions = new Float32Array(tempVerticesCount * 2);        // x,y
+var tempVertColors = new Uint32Array(tempVerticesCount);                // rgba (encoded in a single uint32)
+var tempVertTextureCoords = new Float32Array(tempVerticesCount * 2);    // u,v
+var tempVertIndices = new Uint16Array(tempRectanglesCount * 6);         // 6 indices per rectangle (2 triangles)
+
 var tempVertIndex = 0;
+var tempVertIndicesIndex = 0;
 
-function addVertexColor(x, y, r, g, b, a) {
-    if (tempVertIndex + 1 == tempVerticesCount) {
+function submitVerticesIfNoRoom(vertices, indexes) {
+    if (tempVertIndex + vertices >= tempVerticesCount ||
+        tempVertIndicesIndex + indexes >= tempVerticesCount) {
+
         submitVertices();
     }
+}
 
+function addVertexColor(x, y, c) {
     tempVertPositions[tempVertIndex * 2] = x;
     tempVertPositions[tempVertIndex * 2 + 1] = y;
-    tempVertColors[tempVertIndex * 4] = r;
-    tempVertColors[tempVertIndex * 4 + 1] = g;
-    tempVertColors[tempVertIndex * 4 + 2] = b;
-    tempVertColors[tempVertIndex * 4 + 3] = a;
+    tempVertColors[tempVertIndex] = c;
     tempVertIndex++;
 }
 
-function addVertexColorTexture(x, y, r, g, b, a, tx, ty) {
-    if (tempVertIndex + 1 == tempVerticesCount) {
-        submitVertices();
-    }
-
+function addVertexColorTexture(x, y, c, tx, ty) {
     tempVertPositions[tempVertIndex * 2] = x;
     tempVertPositions[tempVertIndex * 2 + 1] = y;
-    tempVertColors[tempVertIndex * 4] = r;
-    tempVertColors[tempVertIndex * 4 + 1] = g;
-    tempVertColors[tempVertIndex * 4 + 2] = b;
-    tempVertColors[tempVertIndex * 4 + 3] = a;
+    tempVertColors[tempVertIndex] = c;
     tempVertTextureCoords[tempVertIndex * 2] = tx;
     tempVertTextureCoords[tempVertIndex * 2 + 1] = ty;
     tempVertIndex++;
 }
 
+function addRectangleIndices() {
+    const index = tempVertIndex - 4;
+
+    tempVertIndices[tempVertIndicesIndex++] = index;
+    tempVertIndices[tempVertIndicesIndex++] = index + 1;
+    tempVertIndices[tempVertIndicesIndex++] = index + 2;
+    tempVertIndices[tempVertIndicesIndex++] = index + 2;
+    tempVertIndices[tempVertIndicesIndex++] = index + 3;
+    tempVertIndices[tempVertIndicesIndex++] = index;
+}
+
 function submitVertices() {
     if (tempVertIndex == 0) return;
-    setPositionBuffer(tempVertPositions);
-    setColorsBuffer(tempVertColors);
-    if (lastProgram == textureColorProgramInfo) {
-        setTextureCoords(tempVertTextureCoords);
-    }
-    gl.drawArrays(gl.TRIANGLES, 0, tempVertIndex);
+
+    if (lastProgramUsesPositions)
+        setPositionBuffer(tempVertPositions.subarray(0, tempVertIndex * 2));
+
+    if (lastProgramUsesColors)
+        setColorsBuffer(tempVertColors.subarray(0, tempVertIndex));
+
+    if (lastProgramUsesTextureCoords)
+        setTextureCoords(tempVertTextureCoords.subarray(0, tempVertIndex * 2));
+
+    setElementInidices(tempVertIndices.subarray(0, tempVertIndicesIndex));
+
+    gl.drawElements(gl.TRIANGLES, tempVertIndicesIndex, gl.UNSIGNED_SHORT, 0);
     tempVertIndex = 0;
+    tempVertIndicesIndex = 0;
 }
 
 function drawRectangleColor(x, y, w, h, color) {
@@ -312,24 +341,27 @@ function drawRectangleColor(x, y, w, h, color) {
             projectionMatrix,
         );
 
+        // Setup attributes
         setPositionAttribute(colorProgramInfo);
         setColorAttribute(colorProgramInfo);
+
+        lastProgramUsesPositions = true;
+        lastProgramUsesColors = true;
+        lastProgramUsesTextureCoords = false;
     }
 
-    const r = getRed(color) / 255;
-    const g = getGreen(color) / 255;
-    const b = getBlue(color) / 255;
-    const a = getAlpha(color) / 255;
+    submitVerticesIfNoRoom(4, 6);
 
-    addVertexColor(x, y, r, g, b, a);
-    addVertexColor(x + w, y, r, g, b, a);
-    addVertexColor(x + w, y + h, r, g, b, a);
-    addVertexColor(x + w, y + h, r, g, b, a);
-    addVertexColor(x, y + h, r, g, b, a);
-    addVertexColor(x, y, r, g, b, a);
+    addVertexColor(x, y, color);
+    addVertexColor(x + w, y, color);
+    addVertexColor(x + w, y + h, color);
+    addVertexColor(x, y + h, color);
+
+    addRectangleIndices();
 }
 
 var lastTextureId = -1;
+var lastTextureInfo = null;
 
 function drawRectangleColorTexture(x, y, w, h, color, texture_id, tx, ty, tw, th) {
 
@@ -351,56 +383,57 @@ function drawRectangleColorTexture(x, y, w, h, color, texture_id, tx, ty, tw, th
         setPositionAttribute(textureColorProgramInfo);
         setColorAttribute(textureColorProgramInfo);
         setTextureCoordAttribute(textureColorProgramInfo);
+
+        lastProgramUsesColors = true;
+        lastProgramUsesPositions = true;
+        lastProgramUsesTextureCoords = true;
     }
 
     if (lastTextureId != texture_id) {
         submitVertices();
 
         lastTextureId = texture_id;
-        const texture = getTexture(texture_id);
+        lastTextureInfo = getTextureInfo(texture_id);
+
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.bindTexture(gl.TEXTURE_2D, lastTextureInfo.texture);
         gl.uniform1i(textureColorProgramInfo.uniformLocations.uSampler, 0);
     }
 
-    // Setup buffers
+    const texture_x1 = tx / lastTextureInfo.width;
+    const texture_y1 = 1 - (ty / lastTextureInfo.height);
+    const texture_x2 = (tx + tw) / lastTextureInfo.width;
+    const texture_y2 = 1 - ((ty + th) / lastTextureInfo.height);
 
-    // Positions
+    submitVerticesIfNoRoom(4, 6);
 
-    const r = getRed(color) / 255;
-    const g = getGreen(color) / 255;
-    const b = getBlue(color) / 255;
-    const a = getAlpha(color) / 255;
+    addVertexColorTexture(x, y, color, texture_x1, texture_y1);
+    addVertexColorTexture(x + w, y, color, texture_x2, texture_y1);
+    addVertexColorTexture(x + w, y + h, color, texture_x2, texture_y2);
+    addVertexColorTexture(x, y + h, color, texture_x1, texture_y2);
 
-    // Texture coordinates
-    const texture_size = 512; //TODO!!
+    addRectangleIndices();
 
-    const texture_x1 = tx / texture_size;
-    const texture_y1 = 1 - (ty / texture_size);
-    const texture_x2 = (tx + tw) / texture_size;
-    const texture_y2 = 1 - ((ty + th) / texture_size);
-
-    addVertexColorTexture(x, y, r, g, b, a, texture_x1, texture_y1);
-    addVertexColorTexture(x + w, y, r, g, b, a, texture_x2, texture_y1);
-    addVertexColorTexture(x + w, y + h, r, g, b, a, texture_x2, texture_y2);
-    addVertexColorTexture(x + w, y + h, r, g, b, a, texture_x2, texture_y2);
-    addVertexColorTexture(x, y + h, r, g, b, a, texture_x1, texture_y2);
-    addVertexColorTexture(x, y, r, g, b, a, texture_x1, texture_y1);
 }
 
 function setPositionBuffer(positions) {
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
-    gl.bufferData(gl.ARRAY_BUFFER, positions, gl.DYNAMIC_DRAW);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, positions);
 }
 
 function setColorsBuffer(colors) {
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
-    gl.bufferData(gl.ARRAY_BUFFER, colors, gl.DYNAMIC_DRAW);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, colors);
 }
 
 function setTextureCoords(textureCoords) {
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureCoord);
-    gl.bufferData(gl.ARRAY_BUFFER, textureCoords, gl.DYNAMIC_DRAW);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, textureCoords);
+}
+
+function setElementInidices(indices) {
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+    gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, indices);
 }
 
 function setPositionAttribute(programInfo) {
@@ -424,8 +457,8 @@ function setPositionAttribute(programInfo) {
 
 function setColorAttribute(programInfo) {
     const numComponents = 4;
-    const type = gl.FLOAT;
-    const normalize = false;
+    const type = gl.UNSIGNED_BYTE;
+    const normalize = true;
     const stride = 0;
     const offset = 0;
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
