@@ -2,7 +2,7 @@ using StbSharp;
 
 public class DummyRenderAdapter : StbGuiRenderAdapter
 {
-    public nint create_texture(int width, int height, StbGuiRenderAdapter.CreateTextureOptions options = default)
+    public nint create_texture(int width, int height, byte[] pixels, StbGuiRenderAdapter.CreateTextureOptions options = default)
     {
         return 1;
     }
@@ -32,10 +32,6 @@ public class DummyRenderAdapter : StbGuiRenderAdapter
     }
 
     public void register_font(int font_id, StbGuiFont font)
-    {
-    }
-
-    public void set_texture_pixels(nint texture_id, StbGui.stbg_size size, byte[] pixels)
     {
     }
 }
