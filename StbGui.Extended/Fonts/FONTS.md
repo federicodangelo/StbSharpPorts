@@ -1,26 +1,23 @@
-Fonts taken from https://github.com/ocornut/imgui/tree/master/misc/fonts
+Fonts taken from https://github.com/bluescan/proggyfonts/
 
-_(You may browse this at https://github.com/ocornut/imgui/blob/master/docs/FONTS.md or view this file with any Markdown viewer)_
+MIT License
 
-## Dear ImGui: Using Fonts
+Copyright (c) 2004, 2005 Tristan Grimmer
 
-The code in imgui.cpp embeds a copy of 'ProggyClean.ttf' (by Tristan Grimmer),
-a 13 pixels high, pixel-perfect font used by default. We embed it in the source code so you can use Dear ImGui without any file system access. ProggyClean does not scale smoothly, therefore it is recommended that you load your own file when using Dear ImGui in an application aiming to look nice and wanting to support multiple resolutions.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-You may also load external .TTF/.OTF files.
-In the [misc/fonts/](https://github.com/ocornut/imgui/tree/master/misc/fonts) folder you can find a few suggested fonts, provided as a convenience.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-## Credits/Licenses For Fonts Included In Repository
-
-Some fonts files are available in the `misc/fonts/` folder:
-
-**ProggyClean.ttf**, by Tristan Grimmer
-<br>MIT License
-<br>(recommended loading setting: Size = 13.0, GlyphOffset.y = +1)
-<br>http://www.proggyfonts.net/
-
-**ProggyTiny.ttf**, by Tristan Grimmer
-<br>MIT License
-<br>(recommended loading setting: Size = 10.0, GlyphOffset.y = +1)
-<br>http://www.proggyfonts.net/
-
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

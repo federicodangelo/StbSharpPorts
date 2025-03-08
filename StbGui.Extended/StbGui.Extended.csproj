@@ -13,8 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Fonts\ProggyClean.ttf" />  
-    <EmbeddedResource Include="Fonts\ProggyTiny.ttf" />  
+    <EmbeddedResource Include="Fonts\*.ttf" />  
   </ItemGroup>
 
 </Project>
