@@ -15,10 +15,6 @@ public class DummyRenderAdapter : StbGuiRenderAdapter
     {
     }
 
-    public void draw_texture_vertices(StbGuiRenderAdapter.Vertex[] vertices, int count, nint texture_id)
-    {
-    }
-
     public void pop_clip_rect()
     {
     }

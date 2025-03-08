@@ -10,10 +10,10 @@ class WARenderAdapter : StbGuiRenderAdapterBase
 #if USE_DRAW_BUFFER
     private const int DRAW_BATCH_BORDER = 1;
     private const int DRAW_BATCH_RECTANGLE = 2;
-    private const int DRAW_BATCH_CANVAS_RECTANGLE = 3;
-    private const int DRAW_BATCH_CANVAS_RECTANGLE_BATCH = 4;
-    private const int DRAW_BATCH_CANVAS_PUSH_CLIP_RECT = 5;
-    private const int DRAW_BATCH_CANVAS_POP_CLIP_RECT = 6;
+    private const int DRAW_BATCH_TEXTURE_RECTANGLE = 3;
+    private const int DRAW_BATCH_TEXTURE_RECTANGLE_BATCH = 4;
+    private const int DRAW_BATCH_PUSH_CLIP_RECT = 5;
+    private const int DRAW_BATCH_POP_CLIP_RECT = 6;
 
     private double[] draw_batch_buffer = new double[8192];
     private int draw_batch_buffer_index = 0;
@@ -54,7 +54,7 @@ class WARenderAdapter : StbGuiRenderAdapterBase
 #endif
 
 #if !USE_DRAW_BUFFER
-    private double[] draw_rects_buffer = new double[1024 * CanvasInterop.DRAW_CANVAS_RECTANGLE_BATCH_ELEMENT_SIZE];
+    private double[] draw_rects_buffer = new double[1024 * CanvasInterop.DRAW_TEXTURE_RECTANGLE_BATCH_ELEMENT_SIZE];
 #endif
 
     public override void draw_texture_rects(StbGuiRenderAdapter.Rect[] rects, int count, nint texture_id)
@@ -92,7 +92,7 @@ class WARenderAdapter : StbGuiRenderAdapterBase
 
             var batch_count = Math.Min(rects_per_batch, count - rect_index);
 
-            draw_batch_buffer[draw_batch_buffer_index++] = DRAW_BATCH_CANVAS_RECTANGLE_BATCH;
+            draw_batch_buffer[draw_batch_buffer_index++] = DRAW_BATCH_TEXTURE_RECTANGLE_BATCH;
             draw_batch_buffer[draw_batch_buffer_index++] = texture_id;
             draw_batch_buffer[draw_batch_buffer_index++] = batch_count;
 
@@ -126,7 +126,7 @@ class WARenderAdapter : StbGuiRenderAdapterBase
                 var target = rect.rect;
                 var c = rect.color;
 
-                CanvasInterop.DrawCanvasRectangle((int)texture_id, r.x0, r.y0, r.x1 - r.x0, r.y1 - r.y0, target.x0, target.y0, target.x1 - target.x0, target.y1 - target.y0, CanvasInterop.BuildRGBA(c));
+                CanvasInterop.DrawTextureRectangle((int)texture_id, r.x0, r.y0, r.x1 - r.x0, r.y1 - r.y0, target.x0, target.y0, target.x1 - target.x0, target.y1 - target.y0, CanvasInterop.BuildRGBA(c));
             }
         }
         else
@@ -152,24 +152,19 @@ class WARenderAdapter : StbGuiRenderAdapterBase
                 draw_rects_buffer[index++] = target.y1 - target.y0;
                 draw_rects_buffer[index++] = CanvasInterop.BuildRGBA(c);
 
-                len += CanvasInterop.DRAW_CANVAS_RECTANGLE_BATCH_ELEMENT_SIZE;
+                len += CanvasInterop.DRAW_TEXTURE_RECTANGLE_BATCH_ELEMENT_SIZE;
 
                 if (index == draw_rects_buffer.Length)
                 {
-                    CanvasInterop.DrawCanvasRectangleBatch((int)texture_id, draw_rects_buffer.AsSpan(0, len));
+                    CanvasInterop.DrawTextureRectangleBatch((int)texture_id, draw_rects_buffer.AsSpan(0, len));
                     index = 0;
                     len = 0;
                 }
             }
 
-            CanvasInterop.DrawCanvasRectangleBatch((int)texture_id, draw_rects_buffer.AsSpan(0, len));
+            CanvasInterop.DrawTextureRectangleBatch((int)texture_id, draw_rects_buffer.AsSpan(0, len));
         }
 #endif
-    }
-
-    public override void draw_texture_vertices(StbGuiRenderAdapter.Vertex[] vertices, int count, nint texture_id)
-    {
-        //throw new NotImplementedException();
     }
 
     protected override void draw_rectangle(StbGui.stbg_rect bounds, StbGui.stbg_color background_color)
@@ -217,7 +212,7 @@ class WARenderAdapter : StbGuiRenderAdapterBase
         clip_rects_count--;
 #if USE_DRAW_BUFFER
         flush_draw_buffer_if_doesnt_fit(1);
-        draw_batch_buffer[draw_batch_buffer_index++] = DRAW_BATCH_CANVAS_POP_CLIP_RECT;
+        draw_batch_buffer[draw_batch_buffer_index++] = DRAW_BATCH_POP_CLIP_RECT;
 #else
         CanvasInterop.PopClip();
 #endif
@@ -229,7 +224,7 @@ class WARenderAdapter : StbGuiRenderAdapterBase
         clip_rects_count++;
 #if USE_DRAW_BUFFER
         flush_draw_buffer_if_doesnt_fit(1 + 4);
-        draw_batch_buffer[draw_batch_buffer_index++] = DRAW_BATCH_CANVAS_PUSH_CLIP_RECT;
+        draw_batch_buffer[draw_batch_buffer_index++] = DRAW_BATCH_PUSH_CLIP_RECT;
         draw_batch_buffer[draw_batch_buffer_index++] = rect.x0;
         draw_batch_buffer[draw_batch_buffer_index++] = rect.y0;
         draw_batch_buffer[draw_batch_buffer_index++] = rect.x1 - rect.x0;

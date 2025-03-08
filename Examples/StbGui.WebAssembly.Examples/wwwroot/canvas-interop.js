@@ -41,8 +41,7 @@ export const popClip = drawing.popClip;
 export const presentFrame = drawing.presentFrame;
 
 
-export function drawCanvasRectangleBatch(id, batch_memory_view) {
-    if (!RENDER) return;
+export function drawTextureRectangleBatch(id, batch_memory_view) {
     const batch = batch_memory_view.slice();
 
     for (let i = 0; i < batch.length; i += 9) {
@@ -56,7 +55,7 @@ export function drawCanvasRectangleBatch(id, batch_memory_view) {
         const toHeight = batch[i + 7];
         const color = batch[i + 8];
 
-        drawCanvasRectangle(id, fromX, fromY, fromWidth, fromHeight, toX, toY, toWidth, toHeight, color);
+        drawTextureRectangle(id, fromX, fromY, fromWidth, fromHeight, toX, toY, toWidth, toHeight, color);
     }
 }
 

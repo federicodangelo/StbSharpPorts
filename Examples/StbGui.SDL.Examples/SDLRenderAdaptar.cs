@@ -160,42 +160,6 @@ public class SDLRenderAdapter : StbGuiRenderAdapterBase
         SDL.RenderGeometry(renderer, texture_id, tmp_v, vertex_index, tmp_i, indices_index);
     }
 
-    public override void draw_texture_vertices(StbGuiRenderAdapter.Vertex[] vertices, int count, nint texture_id)
-    {
-        Debug.Assert(count <= tmp_vertex.Length, "Vertex count exceeds temporary vertex buffer size.");
-
-        var tmp_v = tmp_vertex;
-
-        if (texture_id != 0)
-        {
-            if (!SDL.GetTextureSize(texture_id, out float pixels_width, out float pixels_height))
-            {
-                SDL.LogError(SDL.LogCategory.System, $"SDL failed to get texture size: {SDL.GetError()}");
-                return;
-            }
-
-            for (int i = 0; i < count; i++)
-            {
-                var c = vertices[i].color;
-                var t = vertices[i].tex_coord;
-                tmp_v[i].Color = new SDL.FColor() { R = c.r / 255.0f, G = c.g / 255.0f, B = c.b / 255.0f, A = c.a / 255.0f };
-                tmp_v[i].TexCoord = new SDL.FPoint() { X = t.x / pixels_width, Y = t.y / pixels_height };
-                tmp_v[i].Position = new SDL.FPoint() { X = vertices[i].position.x, Y = vertices[i].position.y };
-            }
-        }
-        else
-        {
-            for (int i = 0; i < count; i++)
-            {
-                var c = vertices[i].color;
-                tmp_v[i].Color = new SDL.FColor() { R = c.r / 255.0f, G = c.g / 255.0f, B = c.b / 255.0f, A = c.a / 255.0f };
-                tmp_v[i].Position = new SDL.FPoint() { X = vertices[i].position.x, Y = vertices[i].position.y };
-            }
-        }
-
-        SDL.RenderGeometry(renderer, texture_id, tmp_vertex, count, 0, 0);
-    }
-
     public override void push_clip_rect(StbGui.stbg_rect rect)
     {
         var prev_clip = clip_rects.Count > 0 ? clip_rects.Peek() : StbGui.stbg_build_rect_infinite();
