@@ -103,7 +103,7 @@ export function initTextureColorShaders(gl) {
         uniform mat4 uProjectionMatrix;
 
         varying lowp vec4 vColor;
-        varying highp vec2 vTextureCoord;
+        varying mediump vec2 vTextureCoord;
 
         void main() {
             gl_Position = uProjectionMatrix * vec4(aVertexPosition, 0, 1);
@@ -114,7 +114,7 @@ export function initTextureColorShaders(gl) {
 
     const fs_color = `
         varying lowp vec4 vColor;
-        varying highp vec2 vTextureCoord;
+        varying mediump vec2 vTextureCoord;
 
         uniform sampler2D uSampler;
         
@@ -140,13 +140,4 @@ export function initTextureColorShaders(gl) {
     };
 
     return programInfo;
-}
-
-export function initBuffers(gl) {
-    return {
-        position: gl.createBuffer(),
-        color: gl.createBuffer(),
-        textureCoord: gl.createBuffer(),
-        indices: gl.createBuffer(),
-    };
 }

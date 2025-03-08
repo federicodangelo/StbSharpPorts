@@ -1,4 +1,4 @@
-import { initBuffers, initColorShaders, initTextureColorShaders } from "./canvas-interop-drawing-webgl-shaders.js";
+import { initColorShaders, initTextureColorShaders } from "./canvas-interop-drawing-webgl-shaders.js";
 
 let canvas;
 let gl;
@@ -16,21 +16,20 @@ const textures = {};
 const RENDER = true;
 
 function getAlpha(color) {
-    return color & 0xFF;
-}
-
-function getRed(color) {
     return (color >> 24) & 0xFF;
 }
 
-function getGreen(color) {
-    return (color >> 16) & 0xFF;
+function getRed(color) {
+    return (color >> 0) & 0xFF;
 }
 
-function getBlue(color) {
+function getGreen(color) {
     return (color >> 8) & 0xFF;
 }
 
+function getBlue(color) {
+    return (color >> 16) & 0xFF;
+}
 
 export function initDrawing() {
     canvas = document.getElementById("myCanvas");
@@ -41,15 +40,29 @@ export function initDrawing() {
     gl.disable(gl.DEPTH_TEST);
     gl.depthMask(false);
 
+    // Setup color
+    gl.colorMask(true, true, true, true)
+
+    // Setup blending
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+    // Compile shaders
     colorProgramInfo = initColorShaders(gl);
     textureColorProgramInfo = initTextureColorShaders(gl);
 
     // Init buffers
-    buffers = initBuffers(gl);
+    buffers = {
+        position: gl.createBuffer(),
+        color: gl.createBuffer(),
+        textureCoord: gl.createBuffer(),
+        indices: gl.createBuffer(),
+    };
+
 
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
     gl.bufferData(gl.ARRAY_BUFFER, tempVertPositions.byteLength, gl.DYNAMIC_DRAW);
-    
+
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
     gl.bufferData(gl.ARRAY_BUFFER, tempVertColors.byteLength, gl.DYNAMIC_DRAW);
 
@@ -58,7 +71,7 @@ export function initDrawing() {
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, tempVertIndices.byteLength, gl.DYNAMIC_DRAW);
-    
+
     return canvas;
 }
 
@@ -70,25 +83,29 @@ export function getHeight() {
     return canvas.height;
 }
 
+let lastWidth = -1;
+let lastHeight = -1;
+
 export function clear(c) {
     if (!RENDER) return;
-    gl.clearColor(getRed(c) / 255, getGreen(c) / 255, getBlue(c) / 255, getAlpha(c) / 255);
-    // Clear the color buffer with specified clear color
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.colorMask(true, true, true, true)
 
     // Setup viewport and projection matrix
-    const width = canvas.width;
-    const height = canvas.height;
-    gl.viewport(0, 0, width, height);
-    projectionMatrix = buildOrthographicMatrix(0, width, height, 0, 0, 1);
+    const width = getWidth();
+    const height = getHeight();
 
-    // Setup blending
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    if (width != lastWidth || height != lastHeight) {
+        lastWidth = width;
+        lastHeight = height;
+        gl.viewport(0, 0, width, height);
+        projectionMatrix = buildOrthographicMatrix(0, width, height, 0, 0, 1);
+    }
+
+    // Clear
+    gl.clearColor(getRed(c) / 255, getGreen(c) / 255, getBlue(c) / 255, getAlpha(c) / 255);
+    gl.clear(gl.COLOR_BUFFER_BIT);
 }
 
-export function buildOrthographicMatrix(left, right, bottom, top, near, far) {
+function buildOrthographicMatrix(left, right, bottom, top, near, far) {
     var out = new Float32Array(16);
     var lr = 1 / (left - right);
     var bt = 1 / (bottom - top);
@@ -204,8 +221,6 @@ export function createTexture(width, height, pixels_memory_view) {
 
     gl.bindTexture(gl.TEXTURE_2D, texture);
 
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-
     const level = 0;
     const internalFormat = gl.RGBA;
     const border = 0;
@@ -264,9 +279,9 @@ var lastProgramUsesTextureCoords = false;
 const tempRectanglesCount = 8192;
 const tempVerticesCount = tempRectanglesCount * 4; // 4 vertices per rectangle
 
-var tempVertPositions = new Float32Array(tempVerticesCount * 2);        // x,y
+var tempVertPositions = new Float32Array(tempVerticesCount * 2);        // x,y (can be changed to Uint16Array if needed)
 var tempVertColors = new Uint32Array(tempVerticesCount);                // rgba (encoded in a single uint32)
-var tempVertTextureCoords = new Float32Array(tempVerticesCount * 2);    // u,v
+var tempVertTextureCoords = new Float32Array(tempVerticesCount * 2);    // u,v (can be changed to Uint16Array if needed)
 var tempVertIndices = new Uint16Array(tempRectanglesCount * 6);         // 6 indices per rectangle (2 triangles)
 
 var tempVertIndex = 0;
@@ -319,7 +334,7 @@ function submitVertices() {
     if (lastProgramUsesTextureCoords)
         setTextureCoords(tempVertTextureCoords.subarray(0, tempVertIndex * 2));
 
-    setElementInidices(tempVertIndices.subarray(0, tempVertIndicesIndex));
+    setElementIndices(tempVertIndices.subarray(0, tempVertIndicesIndex));
 
     gl.drawElements(gl.TRIANGLES, tempVertIndicesIndex, gl.UNSIGNED_SHORT, 0);
     tempVertIndex = 0;
@@ -401,9 +416,9 @@ function drawRectangleColorTexture(x, y, w, h, color, texture_id, tx, ty, tw, th
     }
 
     const texture_x1 = tx / lastTextureInfo.width;
-    const texture_y1 = 1 - (ty / lastTextureInfo.height);
+    const texture_y1 =  ty / lastTextureInfo.height;
     const texture_x2 = (tx + tw) / lastTextureInfo.width;
-    const texture_y2 = 1 - ((ty + th) / lastTextureInfo.height);
+    const texture_y2 =  (ty + th) / lastTextureInfo.height;
 
     submitVerticesIfNoRoom(4, 6);
 
@@ -413,7 +428,6 @@ function drawRectangleColorTexture(x, y, w, h, color, texture_id, tx, ty, tw, th
     addVertexColorTexture(x, y + h, color, texture_x1, texture_y2);
 
     addRectangleIndices();
-
 }
 
 function setPositionBuffer(positions) {
@@ -431,7 +445,7 @@ function setTextureCoords(textureCoords) {
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, textureCoords);
 }
 
-function setElementInidices(indices) {
+function setElementIndices(indices) {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
     gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, indices);
 }
