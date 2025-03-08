@@ -276,20 +276,23 @@ var lastProgramUsesPositions = false;
 var lastProgramUsesColors = false;
 var lastProgramUsesTextureCoords = false;
 
-const tempRectanglesCount = 8192;
-const tempVerticesCount = tempRectanglesCount * 4; // 4 vertices per rectangle
+const RECTANGLE_VERTICES = 4;
+const RECTANGLE_INDICES = 6;
 
-var tempVertPositions = new Float32Array(tempVerticesCount * 2);        // x,y (can be changed to Uint16Array if needed)
-var tempVertColors = new Uint32Array(tempVerticesCount);                // rgba (encoded in a single uint32)
-var tempVertTextureCoords = new Float32Array(tempVerticesCount * 2);    // u,v (can be changed to Uint16Array if needed)
-var tempVertIndices = new Uint16Array(tempRectanglesCount * 6);         // 6 indices per rectangle (2 triangles)
+const TEMP_RECTANGLES_COUNT = 8192;
+const TEMP_VERTICES_COUNT = TEMP_RECTANGLES_COUNT * RECTANGLE_VERTICES;             // 4 vertices per rectangle
+
+var tempVertPositions = new Float32Array(TEMP_VERTICES_COUNT * 2);                  // x,y (can be changed to Uint16Array if needed)
+var tempVertColors = new Uint32Array(TEMP_VERTICES_COUNT);                          // rgba (encoded in a single uint32)
+var tempVertTextureCoords = new Float32Array(TEMP_VERTICES_COUNT * 2);              // u,v (can be changed to Uint16Array if needed)
+var tempVertIndices = new Uint16Array(TEMP_RECTANGLES_COUNT * RECTANGLE_INDICES);   // 6 indices per rectangle (2 triangles)
 
 var tempVertIndex = 0;
 var tempVertIndicesIndex = 0;
 
 function submitVerticesIfNoRoom(vertices, indexes) {
-    if (tempVertIndex + vertices >= tempVerticesCount ||
-        tempVertIndicesIndex + indexes >= tempVerticesCount) {
+    if (tempVertIndex + vertices >= TEMP_VERTICES_COUNT ||
+        tempVertIndicesIndex + indexes >= TEMP_VERTICES_COUNT) {
 
         submitVertices();
     }
@@ -365,7 +368,7 @@ function drawRectangleColor(x, y, w, h, color) {
         lastProgramUsesTextureCoords = false;
     }
 
-    submitVerticesIfNoRoom(4, 6);
+    submitVerticesIfNoRoom(RECTANGLE_VERTICES, RECTANGLE_INDICES);
 
     addVertexColor(x, y, color);
     addVertexColor(x + w, y, color);
@@ -420,7 +423,7 @@ function drawRectangleColorTexture(x, y, w, h, color, texture_id, tx, ty, tw, th
     const texture_x2 = (tx + tw) / lastTextureInfo.width;
     const texture_y2 =  (ty + th) / lastTextureInfo.height;
 
-    submitVerticesIfNoRoom(4, 6);
+    submitVerticesIfNoRoom(RECTANGLE_VERTICES, RECTANGLE_INDICES);
 
     addVertexColorTexture(x, y, color, texture_x1, texture_y1);
     addVertexColorTexture(x + w, y, color, texture_x2, texture_y1);
