@@ -97,15 +97,21 @@ public abstract class SDLAppBase : StbGuiAppBase
         }
     }
 
-    protected override void present_frame(long frame_ms)
+    private uint displayModeDisplay = uint.MaxValue;
+    private SDL.DisplayMode? displayMode = null;
+
+    protected override void present_frame(long frame_ms, bool rendered)
     {
-        SDL.RenderPresent(renderer);
-        
+        if (rendered)        
+        {
+            SDL.RenderPresent(renderer);
+        }
+
         var window_flags = SDL.GetWindowFlags(window);
 
         var background_window = !((window_flags & SDL.WindowFlags.InputFocus) != 0);
 
-        if (use_fake_vsync || background_window)
+        if (use_fake_vsync || background_window || !rendered)
         {
             var refresh_rate = 60;
 
@@ -113,7 +119,11 @@ public abstract class SDLAppBase : StbGuiAppBase
             {
                 var display = SDL.GetDisplayForWindow(window);
 
-                var displayMode = SDL.GetCurrentDisplayMode(display);
+                if (display != displayModeDisplay)
+                {
+                    displayModeDisplay = display;
+                    displayMode = SDL.GetCurrentDisplayMode(display);
+                }
 
                 if (displayMode.HasValue)
                 {
@@ -130,7 +140,7 @@ public abstract class SDLAppBase : StbGuiAppBase
 
             if (frame_ms < frame_delay_ms)
             {
-                SDL.Delay((uint)(frame_delay_ms - frame_ms));
+                SDL.Delay((uint)(frame_delay_ms - frame_ms + 1));
             }
         }
     }

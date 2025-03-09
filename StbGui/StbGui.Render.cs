@@ -1,11 +1,13 @@
 #pragma warning disable IDE1006 // Naming Styles
 
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace StbSharp;
 
 using font_id = int;
 using image_id = int;
+using widget_id = int;
 
 public partial class StbGui
 {
@@ -138,9 +140,21 @@ public partial class StbGui
         render_context.render_commands_queue_index = 0;
     }
 
-    static private void stbg__render()
+    static private bool stbg__render()
     {
         stbg__assert_internal(context.render_context.render_commands_queue_index == 0, "Pending render commands left in render queue from a previous frame");
+
+        stbg__process_force_render_queue();
+
+        long render_hash = stbg__get_render_hash();
+
+        if (context.last_render_hash == render_hash)
+        {
+            // No changes in input or widgets, skip rendering
+            return false;
+        }
+
+        context.last_render_hash = render_hash;
 
         stbg__rc_enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME, bounds = { x1 = context.screen_size.width, y1 = context.screen_size.height }, background_color = stbg_get_widget_style_color(STBG_WIDGET_STYLE.ROOT_BACKGROUND_COLOR) });
 
@@ -151,6 +165,164 @@ public partial class StbGui
         stbg__rc_enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.END_FRAME });
 
         stbg__rc_flush_queue();
+
+        return true;
+    }
+
+    private static void stbg__process_force_render_queue()
+    {
+        ref var queue = ref context.force_render_queue;
+
+        if (queue.count == 0)
+            return;
+
+        var current_time = context.current_time_milliseconds;
+        var needs_compacting = false;
+
+        for (int i = 0; i < queue.count; i++)
+        {
+            ref var entry = ref queue.entries[i];
+
+            if (entry.at_time <= current_time)
+            {
+                ref var widget = ref stbg__get_widget_by_id_internal(entry.widget_id);
+
+                if (widget.hash == entry.widget_hash)
+                {
+                    widget.flags |= STBG_WIDGET_FLAGS.FORCE_RENDER;
+                }
+
+                entry = new stbg_force_render_queue_entry();
+                needs_compacting = true;
+            }
+        }
+
+        if (needs_compacting)
+        {
+            for (int i = 0; i < queue.count; i++)
+            {
+                if (queue.entries[i].widget_id == STBG_WIDGET_ID_NULL)
+                {
+                    // Compact the queue by copying entries after this one to this position
+                    queue.entries.AsSpan().Slice(i + 1, queue.count - i - 1).CopyTo(queue.entries.AsSpan(i));
+
+                    queue.count--;
+                    i--;
+                }
+            }
+        }
+    }
+
+    private static long stbg__get_render_hash()
+    {
+        long hash = 0x1234567890123456L;
+        hash = stbg__hash_widgets(hash);
+        hash = stbg__hash_input(hash);
+
+        return hash;
+    }
+
+    private static long stbg__hash_input(long key)
+    {
+        var input_bytes = MemoryMarshal.AsBytes(new Span<stbg_context_input_feedback>(ref context.input_feedback));
+
+        var hash = StbHash.stbh_halfsiphash_long(input_bytes, key);
+
+        return hash;
+    }
+
+    private static long stbg__hash_widgets(long previous_hash)
+    {
+        var widget_size_bytes = Marshal.SizeOf<stbg_widget>();
+        var widgets_bytes = MemoryMarshal.AsBytes(context.widgets.AsSpan());
+
+        var hash = stbg__hash_widget(context.root_widget_id, widgets_bytes, widget_size_bytes, previous_hash);
+
+        return hash;
+    }
+
+    private static long stbg__hash_widget(int widget_id, Span<byte> widgets_bytes, int widget_size_bytes, long previous_hash)
+    {
+        ref var widget = ref stbg__get_widget_by_id_internal(widget_id);
+        if ((widget.flags & STBG_WIDGET_FLAGS.IGNORE) != 0)
+            return previous_hash;
+
+        var widget_offset = widget_id * widget_size_bytes;
+        var widget_bytes = widgets_bytes.Slice(widget_offset, widget_size_bytes);
+
+        var hash = StbHash.stbh_halfsiphash_long(widget_bytes, previous_hash);
+        hash = stbg__hash_widget_ref_props(widget_id, hash);
+
+        if (widget.hierarchy.first_children_id != STBG_WIDGET_ID_NULL)
+        {
+            var children_id = widget.hierarchy.first_children_id;
+
+            do
+            {
+                hash = stbg__hash_widget(children_id, widgets_bytes, widget_size_bytes, hash);
+                children_id = stbg_get_widget_by_id(children_id).hierarchy.next_sibling_id;
+            } while (children_id != STBG_WIDGET_ID_NULL);
+        }
+
+        return hash;
+    }
+
+    private static long stbg__hash_widget_ref_props(int widget_id, long hash)
+    {
+        ref var widget_ref_props = ref stbg__get_widget_ref_props_by_id_internal(widget_id);
+
+        if (widget_ref_props.text.Length > 0)
+        {
+            var text_bytes = MemoryMarshal.AsBytes(widget_ref_props.text.Span);
+            hash = StbHash.stbh_halfsiphash_long(text_bytes, hash);
+        }
+
+        if (widget_ref_props.text_to_edit.length > 0)
+        {
+            var text_editable_bytes = MemoryMarshal.AsBytes(widget_ref_props.text_to_edit.text.Span.Slice(0, widget_ref_props.text_to_edit.length));
+            hash = StbHash.stbh_halfsiphash_long(text_editable_bytes, hash);
+        }
+
+        return hash;
+    }
+
+    private static void stbg__enqueue_force_render(ref stbg_widget widget, int delay_ms)
+    {
+        if (delay_ms <= 0)
+        {
+            widget.flags |= STBG_WIDGET_FLAGS.FORCE_RENDER;
+        }
+        else
+        {
+            ref var queue = ref context.force_render_queue;
+
+            for (int i = 0; i < queue.count; i++)
+            {
+                ref var entry = ref queue.entries[i];
+                if (entry.widget_id == widget.id)
+                {
+                    if (entry.widget_hash != widget.hash)
+                    {
+                        entry.at_time = context.current_time_milliseconds + delay_ms;
+                    }
+                    else
+                    {
+                        entry.at_time = Math.Min(entry.at_time, context.current_time_milliseconds + delay_ms);
+                    }
+                    return;
+                }
+            }
+
+            stbg__assert(queue.count < queue.entries.Length, "Force render queue is full");
+
+            var new_entry = new stbg_force_render_queue_entry();
+            new_entry.widget_id = widget.id;
+            new_entry.widget_hash = widget.hash;
+            new_entry.at_time = context.current_time_milliseconds + delay_ms;
+
+            queue.entries[queue.count] = new_entry;
+            queue.count++;
+        }
     }
 
     private static void stbg__render_widget(ref stbg_widget widget, stbg_rect parent_clip_bounds)
@@ -170,6 +342,11 @@ public partial class StbGui
 
         stbg__rc_set_global_rect(global_rect);
 
+        // Clear force render flag
+        if ((widget.flags & STBG_WIDGET_FLAGS.FORCE_RENDER) != 0)
+            widget.flags &= ~STBG_WIDGET_FLAGS.FORCE_RENDER;
+
+        // Call widget-specific render function
         var widget_render = STBG__WIDGET_RENDER_MAP[(int)widget.type];
 
         if (widget_render != null)

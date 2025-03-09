@@ -22,7 +22,7 @@ public abstract class WAAppBase : StbGuiAppBase
         return new WARenderAdapter();
     }
 
-    protected override void present_frame(long frame_ms)
+    protected override void present_frame(long frame_ms, bool rendered)
     {
         CanvasInterop.PresentFrame();
     }

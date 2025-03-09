@@ -2,6 +2,7 @@
 
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace StbSharp;
 
@@ -187,6 +188,19 @@ public class StbHash
             b = v0 ^ v1 ^ v2 ^ v3;
             U64TO8_LE(output.Slice(sizeof(ulong)), b);
         }
+    }
+
+    static public long stbh_halfsiphash_long(ReadOnlySpan<byte> inputBytes, long key)
+    {
+        long output = 0;
+
+        var key_bytes = MemoryMarshal.AsBytes(new Span<long>(ref key));
+        var output_bytes = MemoryMarshal.AsBytes(new Span<long>(ref output));
+
+        stbh_halfsiphash(inputBytes, key_bytes, output_bytes);
+
+        return output;
+
     }
 
     static public void stbh_halfsiphash(ReadOnlySpan<byte> inputBytes, ReadOnlySpan<byte> inputKey, Span<byte> output)

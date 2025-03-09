@@ -1,6 +1,7 @@
 #pragma warning disable IDE1006 // Naming Styles
 
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 
 namespace StbSharp;
@@ -296,6 +297,29 @@ public partial class StbGui
         }
 
         return value < min ? min : value > max ? max : value;
+    }
+
+    [ExcludeFromCodeCoverage]
+    public static stbg_textbox_text_to_edit stbg_textbox_build_text_to_edit(int max_length, string? text = null)
+    {
+        stbg_textbox_text_to_edit text_to_edit = new()
+        {
+            text = new Memory<char>(new char[max_length])
+        };
+        
+        if (text != null)
+            stbg_textbox_set_text_to_edit(ref text_to_edit, text);
+
+        return text_to_edit;
+    }
+
+    [ExcludeFromCodeCoverage]
+    public static void stbg_textbox_set_text_to_edit(ref stbg_textbox_text_to_edit text_to_edit, string text)
+    {
+        stbg__assert(text.Length <= text_to_edit.text.Length, $"Text length {text.Length} is greater than max length {text_to_edit.text.Length}");
+        var txt = text.AsSpan();
+        txt.CopyTo(text_to_edit.text.Span);
+        text_to_edit.length = txt.Length;
     }
 
     static public readonly stbg_color STBG_COLOR_RED = rgb(255, 0, 0);

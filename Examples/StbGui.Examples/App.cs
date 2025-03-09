@@ -37,13 +37,8 @@ public class App
     {
         this.appBase = appBase;
 
-        var txt = "Hello World THIS IS A VERY LONG TEXT TO EDITTTT";
-        txt.AsSpan().CopyTo(text_to_edit.Span);
-        text_to_edit_length = txt.Length;
-
-        var txt2 = "Hello World THIS IS MULTILINE!\nYESSS!!!";
-        txt2.AsSpan().CopyTo(text_to_edit2.Span);
-        text_to_edit2_length = txt2.Length;
+        StbGui.stbg_textbox_set_text_to_edit(ref text_to_edit, "Hello World THIS IS A VERY LONG TEXT TO EDITTTT");
+        StbGui.stbg_textbox_set_text_to_edit(ref text_to_edit2, "Hello World THIS IS MULTILINE!\nYESSS!!!");
 
         test_image_id = appBase.add_image(GetResourceFileBytes("test.png"), false);
         test_sub_images[0] = appBase.add_sub_image(test_image_id, 0, 0, 128, 128);
@@ -66,11 +61,8 @@ public class App
     private bool window2_open = true;
     private bool window5_open = true;
 
-    private Memory<char> text_to_edit = new Memory<char>(new char[1024]);
-    private int text_to_edit_length;
-
-    private Memory<char> text_to_edit2 = new Memory<char>(new char[1024]);
-    private int text_to_edit2_length;
+    private StbGui.stbg_textbox_text_to_edit text_to_edit = StbGui.stbg_textbox_build_text_to_edit(1024);
+    private StbGui.stbg_textbox_text_to_edit text_to_edit2 = StbGui.stbg_textbox_build_text_to_edit(1024);
 
     private bool show_subimages = true;
 
@@ -81,9 +73,9 @@ public class App
         StbGui.stbg_label(mp.Concat("FPS: ", appBase.Metrics.Fps));
         StbGui.stbg_label(mp.Concat("Render Backend: ", appBase.RenderBackend));
         StbGui.stbg_label(mp.Concat("Allocated Bytes Delta: ", appBase.Metrics.LastFrameAllocatedBytes));
-        StbGui.stbg_label(mp.Concat(mp.Concat("Process input time : ", StbGui.stbg_get_average_performance_metrics().process_input_time_us / 1000.0f, 3), " ms"));
-        StbGui.stbg_label(mp.Concat(mp.Concat("Layout widgets time: ", StbGui.stbg_get_average_performance_metrics().layout_widgets_time_us / 1000.0f, 3), " ms"));
-        StbGui.stbg_label(mp.Concat(mp.Concat("Render time        : ", StbGui.stbg_get_average_performance_metrics().render_time_us / 1000.0f, 3), " ms"));
+        StbGui.stbg_label(mp.Concat(mp.Concat("Process input time : ", StbGui.stbg_get_average_performance_metrics().process_input_time_us / 1000.0f, 2), " ms"));
+        StbGui.stbg_label(mp.Concat(mp.Concat("Layout widgets time: ", StbGui.stbg_get_average_performance_metrics().layout_widgets_time_us / 1000.0f, 2), " ms"));
+        StbGui.stbg_label(mp.Concat(mp.Concat("Render time        : ", StbGui.stbg_get_average_performance_metrics().render_time_us / 1000.0f, 2), " ms"));
         //Console.WriteLine(appBase.Metrics.LastFrameAllocatedBytes);
         StbGui.stbg_label(mp.Concat("Total GC Performed: ", appBase.Metrics.TotalGarbageCollectionsPerformed));
         StbGui.stbg_label(mp.Concat("String Memory Pool Used Characters: ", StbGui.stbg_get_frame_stats().string_memory_pool_used_characters));
@@ -158,8 +150,8 @@ public class App
             if (StbGui.stbg_get_last_widget_is_new())
                 StbGui.stbg_set_last_widget_position(300, 250);
 
-            StbGui.stbg_textbox("textbox1", text_to_edit, ref text_to_edit_length);
-            StbGui.stbg_textbox("textbox2", text_to_edit2, ref text_to_edit2_length, 3);
+            StbGui.stbg_textbox("textbox1", ref text_to_edit);
+            StbGui.stbg_textbox("textbox2", ref text_to_edit2, 3);
 
             for (int i = 0; i < 20; i++)
             {

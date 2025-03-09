@@ -20,6 +20,7 @@ public class StbGuiTextHelper
         public float dx;
         public float dy;
         public int line_number;
+        public float previous_line_width;
         public bool new_line;
         public bool final;
         public StbGui.stbg_color text_color;
@@ -129,6 +130,8 @@ public class StbGuiTextHelper
 
             if (iteration_data.new_line)
             {
+                iteration_data.previous_line_width = iteration_data.x;
+
                 iteration_data.x = 0;
 
                 current_line_height = 0;
@@ -163,7 +166,7 @@ public class StbGuiTextHelper
     {
         if (data.new_line || data.final)
         {
-            size.width = Math.Max(size.width, data.x);
+            size.width = Math.Max(Math.Max(size.width, data.previous_line_width), data.x);
             size.height += data.dy;
         }
 

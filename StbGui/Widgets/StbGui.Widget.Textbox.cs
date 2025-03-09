@@ -40,6 +40,9 @@ public partial class StbGui
 
     private static void stbg__textbox_init_context(ref stbg_context context)
     {
+        context.text_edit.state.undostate = new StbTextEdit.StbUndoState();
+        context.text_edit.textbox_style_ranges = new stbg_render_text_style_range[3];
+
         ref var str = ref context.text_edit.str;
         str.get_width = stbg__textbox_text_edit_get_width;
         str.layout_row = stbg__textbox_text_edit_layout_row;
@@ -56,16 +59,17 @@ public partial class StbGui
         parameters.single_line = widget.properties.parameters.parameter1.b;
     }
 
-    private static ref stbg_widget stbg__textbox_create(ReadOnlySpan<char> identifier, Memory<char> text, ref int text_length, int visible_lines)
+    private static ref stbg_widget stbg__textbox_create(ReadOnlySpan<char> identifier, ref stbg_textbox_text_to_edit text_to_edit, int visible_lines)
     {
         ref var textbox = ref stbg__add_widget(STBG_WIDGET_TYPE.TEXTBOX, identifier, out var is_new);
+        ref var textbox_ref_props = ref stbg__get_widget_ref_props_by_id_internal(textbox.id);
 
         var parameters = new stbg__textbox_parameters()
         {
             single_line = visible_lines == 1
         };
 
-        textbox.properties.text_editable = text;
+        textbox_ref_props.text_to_edit.text = text_to_edit.text;
 
         stbg__textbox_set_parameters(ref textbox, parameters);
 
@@ -85,11 +89,11 @@ public partial class StbGui
 
         if (is_new || (textbox.properties.input_flags & STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED) == 0)
         {
-            textbox.properties.text_editable_length = text_length;
+            textbox_ref_props.text_to_edit.length = text_to_edit.length;
         }
         else
         {
-            text_length = textbox.properties.text_editable_length;
+            text_to_edit.length = textbox_ref_props.text_to_edit.length;
             textbox.properties.input_flags &= ~STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED;
         }
 
@@ -144,6 +148,8 @@ public partial class StbGui
 
     private static bool stbg__textbox_update_input(ref stbg_widget textbox)
     {
+        ref var textbox_ref_props = ref stbg__get_widget_ref_props_by_id_internal(textbox.id);
+
         if (context.input_feedback.hovered_widget_id == textbox.id &&
             context.input.mouse_button_1_down &&
             context.input_feedback.editing_text_widget_id != textbox.id)
@@ -181,8 +187,8 @@ public partial class StbGui
                 context.text_edit.widget_hash = textbox.hash;
                 stbg__textbox_get_parameters(ref textbox, out var parameters);
 
-                str.text = textbox.properties.text_editable;
-                str.text_length = textbox.properties.text_editable_length;
+                str.text = textbox_ref_props.text_to_edit.text;
+                str.text_length = textbox_ref_props.text_to_edit.length;
 
                 StbTextEdit.stb_textedit_initialize_state(ref state, parameters.single_line);
             }
@@ -193,7 +199,7 @@ public partial class StbGui
             {
                 var user_event = context.user_input_events_queue[i];
 
-                stop_editing = stbg__textbox_handle_user_event(ref textbox, ref str, ref state, user_event);
+                stop_editing = stbg__textbox_handle_user_event(ref textbox, ref textbox_ref_props, ref str, ref state, user_event);
             }
 
             if (stop_editing)
@@ -210,7 +216,7 @@ public partial class StbGui
         return false;
     }
 
-    private static bool stbg__textbox_handle_user_event(ref stbg_widget textbox, ref StbTextEdit.STB_TEXTEDIT_STRING str, ref StbTextEdit.STB_TexteditState state, stbg_user_input_input_event user_event)
+    private static bool stbg__textbox_handle_user_event(ref stbg_widget textbox, ref stbg_widget_reference_properties textbox_ref_props, ref StbTextEdit.STB_TEXTEDIT_STRING str, ref StbTextEdit.STB_TexteditState state, stbg_user_input_input_event user_event)
     {
         var stop_editing = false;
         float draw_offset_x = textbox.properties.layout.children_offset.x;
@@ -331,22 +337,22 @@ public partial class StbGui
                                     textedit_key = StbTextEdit.STB_TEXTEDIT_K_WORDLEFT;
                                 else
                                     textedit_key = StbTextEdit.STB_TEXTEDIT_K_LEFT;
-                                context.text_edit_last_cusor_moved_time = context.current_time_milliseconds;
+                                context.text_edit.last_cursor_moved_time = context.current_time_milliseconds;
                                 break;
                             case STBG_KEYBOARD_KEY.RIGHT:
                                 if (control)
                                     textedit_key = StbTextEdit.STB_TEXTEDIT_K_WORDRIGHT;
                                 else
                                     textedit_key = StbTextEdit.STB_TEXTEDIT_K_RIGHT;
-                                context.text_edit_last_cusor_moved_time = context.current_time_milliseconds;
+                                context.text_edit.last_cursor_moved_time = context.current_time_milliseconds;
                                 break;
                             case STBG_KEYBOARD_KEY.UP:
                                 textedit_key = StbTextEdit.STB_TEXTEDIT_K_UP;
-                                context.text_edit_last_cusor_moved_time = context.current_time_milliseconds;
+                                context.text_edit.last_cursor_moved_time = context.current_time_milliseconds;
                                 break;
                             case STBG_KEYBOARD_KEY.DOWN:
                                 textedit_key = StbTextEdit.STB_TEXTEDIT_K_DOWN;
-                                context.text_edit_last_cusor_moved_time = context.current_time_milliseconds;
+                                context.text_edit.last_cursor_moved_time = context.current_time_milliseconds;
                                 break;
                             case STBG_KEYBOARD_KEY.BACKSPACE:
                                 textedit_key = StbTextEdit.STB_TEXTEDIT_K_BACKSPACE;
@@ -389,8 +395,9 @@ public partial class StbGui
 
                         if (edited)
                         {
-                            textbox.properties.text_editable_length = str.text_length;
+                            textbox_ref_props.text_to_edit.length = str.text_length;
                             textbox.properties.input_flags |= STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED;
+                            textbox.flags |= STBG_WIDGET_FLAGS.FORCE_RENDER;
                         }
                     }
                     break;
@@ -402,9 +409,11 @@ public partial class StbGui
 
     private static void stbg__textbox_render(ref stbg_widget textbox)
     {
+        ref var textbox_ref_props = ref stbg__get_widget_ref_props_by_id_internal(textbox.id);
+
         var size = textbox.properties.computed_bounds.size;
         var editing = context.input_feedback.editing_text_widget_id == textbox.id;
-        var text = textbox.properties.text_editable.Slice(0, textbox.properties.text_editable_length);
+        var text = textbox_ref_props.text_to_edit.text.Slice(0, textbox_ref_props.text_to_edit.length);
         stbg__textbox_get_parameters(ref textbox, out var parameters);
 
         var needs_clipping = editing;
@@ -414,7 +423,6 @@ public partial class StbGui
 
         float cursor_x, cursor_y;
         float line_height = context.theme.default_font_style.size;
-        float character_width = context.theme.default_font_style.size;
 
         // We re-used the children offset values since a textbox can't have children..
         float draw_offset_x = editing ? textbox.properties.layout.children_offset.x : 0;
@@ -478,7 +486,7 @@ public partial class StbGui
             var select_start = Math.Clamp(Math.Min(context.text_edit.state.select_start, context.text_edit.state.select_end), 0, text.Length);
             var select_end = Math.Clamp(Math.Max(context.text_edit.state.select_start, context.text_edit.state.select_end), 0, text.Length);
 
-            var style_ranges = context.text_edit_textbox_style_ranges.Span;
+            var style_ranges = context.text_edit.textbox_style_ranges.Span;
 
             style_ranges[0].start_index = 0;
             style_ranges[0].text_color = stbg_get_widget_style_color(STBG_WIDGET_STYLE.TEXTBOX_TEXT_COLOR);
@@ -501,7 +509,7 @@ public partial class StbGui
                     size.height - stbg__sum_styles(STBG_WIDGET_STYLE.TEXTBOX_PADDING_BOTTOM)
                 ),
                 text, context.theme.default_font_id, context.theme.default_font_style.size,
-                context.text_edit_textbox_style_ranges,
+                context.text_edit.textbox_style_ranges,
                 -1, -1,
                 text_measure_options,
                 text_render_options
@@ -528,7 +536,9 @@ public partial class StbGui
         if (editing && context.text_edit.state.select_start == context.text_edit.state.select_end)
         {
             var blinking_rate = Math.Max((int)stbg_get_widget_style(STBG_WIDGET_STYLE.TEXTBOX_CURSOR_BLINKING_RATE), 100);
-            var blinking_state_visible = (((context.current_time_milliseconds - context.text_edit_last_cusor_moved_time) % (blinking_rate * 2)) / blinking_rate) == 0;
+            var blinking_state_visible = (((context.current_time_milliseconds - context.text_edit.last_cursor_moved_time) % (blinking_rate * 2)) / blinking_rate) == 0;
+
+            stbg__enqueue_force_render(ref textbox, blinking_rate);
 
             if (blinking_state_visible)
             {

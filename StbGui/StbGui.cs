@@ -336,13 +336,15 @@ public partial class StbGui
     /// <summary>
     /// Issues all render commands for the content of the screen
     /// </summary>
-    public static void stbg_render()
+    public static bool stbg_render()
     {
         stbg__assert(!context.inside_frame);
 
         var start_render_time = stbg__get_performance_counter();
-        stbg__render();
+        var rendered = stbg__render();
         context.frame_stats.performance.render_time_us = ((stbg__get_performance_counter() - start_render_time) * MICROSECONDS) / stbg__get_performance_counter_frequency();
+
+        return rendered;
     }
 
     /// <summary>
@@ -459,7 +461,7 @@ public partial class StbGui
     public static ref stbg_widget stbg_get_widget_by_id(widget_id id)
     {
         stbg__assert(id != STBG_WIDGET_ID_NULL);
-        stbg__assert(context.widgets[id].last_used_in_frame == context.current_frame, "Can't access previous frame widget until they are created again");
+        stbg__assert(context.widgets_reference_properties[id].last_used_in_frame == context.current_frame, "Can't access previous frame widget until they are created again");
         return ref stbg__get_widget_by_id_internal(id);
     }
 
@@ -724,13 +726,19 @@ public partial class StbGui
         value = (int)f;
     }
 
+    public struct stbg_textbox_text_to_edit
+    {
+        public Memory<char> text;
+        public int length;
+    }
+
     /// <summary>
     /// Creates an editable textbox
     /// </summary>
-    public static void stbg_textbox(ReadOnlySpan<char> identifier, Memory<char> text, ref int text_length, int visible_lines = 1)
+    public static void stbg_textbox(ReadOnlySpan<char> identifier, ref stbg_textbox_text_to_edit text_to_edit, int visible_lines = 1)
     {
         stbg__assert(visible_lines >= 1);
-        stbg__textbox_create(identifier, text, ref text_length, visible_lines);
+        stbg__textbox_create(identifier, ref text_to_edit, visible_lines);
     }
 
     /// <summary>

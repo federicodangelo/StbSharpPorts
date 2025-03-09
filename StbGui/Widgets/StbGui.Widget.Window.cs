@@ -96,7 +96,9 @@ public partial class StbGui
 
     private static void stbg__window_init(ref stbg_widget window, ref bool is_open, bool is_new, ReadOnlySpan<char> title, STBG_WINDOW_OPTIONS options)
     {
-        window.properties.text = stbg__add_string(title);
+        ref var window_ref_props = ref stbg__get_widget_ref_props_by_id_internal(window.id);
+
+        window_ref_props.text = stbg__add_string(title);
         window.flags |= STBG_WIDGET_FLAGS.ALLOW_CHILDREN;
 
         var parameters = new stbg__window_parameters()
@@ -541,6 +543,8 @@ public partial class StbGui
 
     private static void stbg__window_render(ref stbg_widget window)
     {
+        ref var window_ref_props = ref stbg__get_widget_ref_props_by_id_internal(window.id);
+
         stbg__winddow_get_parameters(ref window, out var parameters);
         var has_title = (parameters.options & STBG_WINDOW_OPTIONS.NO_TITLE) == 0;
         var has_close_button = (parameters.options & STBG_WINDOW_OPTIONS.CLOSE_BUTTON) != 0;
@@ -587,7 +591,7 @@ public partial class StbGui
                     size.width - stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_RIGHT) - (has_close_button ? stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_TITLE_CLOSE_BUTTON_SIZE) : 0),
                     stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP, STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT)
                 ),
-                stbg__build_text(window.properties.text, title_text_color),
+                stbg__build_text(window_ref_props.text, title_text_color),
                 -1, 0, // center vertically
                 STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE | STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE
             );

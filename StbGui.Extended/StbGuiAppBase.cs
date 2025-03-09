@@ -202,7 +202,7 @@ public abstract class StbGuiAppBase : IDisposable
         }
         StbGui.stbg_end_frame();
 
-        StbGui.stbg_render();
+        var rendered = StbGui.stbg_render();
 
         update_active_cursor();
 
@@ -212,7 +212,7 @@ public abstract class StbGuiAppBase : IDisposable
 
         var frame_ms = frame_end_ms - frame_start_ms;
 
-        present_frame(frame_ms);
+        present_frame(frame_ms, rendered);
     }
 
     protected void update_metrics()
@@ -265,7 +265,7 @@ public abstract class StbGuiAppBase : IDisposable
     protected abstract void on_render_stbgui();
     protected abstract void update_active_cursor();
     protected abstract void process_input_events();
-    protected abstract void present_frame(long frame_ms);
+    protected abstract void present_frame(long frame_ms, bool rendered);
 
     public virtual void Dispose()
     {

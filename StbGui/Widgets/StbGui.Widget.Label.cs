@@ -27,8 +27,9 @@ public partial class StbGui
     private static ref stbg_widget stbg__label_create(ReadOnlySpan<char> text)
     {
         ref var label = ref stbg__add_widget(STBG_WIDGET_TYPE.LABEL, text, out _);
+        ref var label_ref_props = ref stbg__get_widget_ref_props_by_id_internal(label.id);
 
-        label.properties.text = stbg__add_string(text);
+        label_ref_props.text = stbg__add_string(text);
 
         ref var layout = ref label.properties.layout;
 
@@ -42,7 +43,7 @@ public partial class StbGui
             right = stbg__sum_styles(STBG_WIDGET_STYLE.LABEL_PADDING_RIGHT),
         };
 
-        var text_size = stbg__measure_text(stbg__build_text(label.properties.text), STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE | STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE);
+        var text_size = stbg__measure_text(stbg__build_text(label_ref_props.text), STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE | STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE);
         text_size = stbg_size_add_padding(text_size, padding);
 
         layout.intrinsic_size.size = text_size;
@@ -52,6 +53,8 @@ public partial class StbGui
 
     private static void stbg__label_render(ref stbg_widget label)
     {
+        ref var label_ref_props = ref stbg__get_widget_ref_props_by_id_internal(label.id);
+
         var size = label.properties.computed_bounds.size;
 
         var background_color = stbg_get_widget_style_color(STBG_WIDGET_STYLE.LABEL_BACKGROUND_COLOR);
@@ -69,7 +72,7 @@ public partial class StbGui
                 size.width - stbg__sum_styles(STBG_WIDGET_STYLE.LABEL_PADDING_RIGHT),
                 size.height - stbg__sum_styles(STBG_WIDGET_STYLE.LABEL_PADDING_BOTTOM)
             ),
-            stbg__build_text(label.properties.text, text_color),
+            stbg__build_text(label_ref_props.text, text_color),
             -1, -1,
             STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE | STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE
         );

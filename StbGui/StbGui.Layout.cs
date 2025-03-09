@@ -128,8 +128,9 @@ public partial class StbGui
             do
             {
                 ref var children = ref stbg_get_widget_by_id(children_id);
+                ref var children_ref_props = ref stbg__get_widget_ref_props_by_id_internal(children_id);
 
-                if (children.properties.layout.last_layout_in_frame == context.current_frame)
+                if (children_ref_props.last_layout_in_frame == context.current_frame)
                 {
                     // Skip children that have already been layout, this can happen if the hierarchy of widgets
                     // changes while we are iterating it
@@ -155,7 +156,7 @@ public partial class StbGui
                     children.properties.computed_bounds.position.x = children.properties.layout.intrinsic_position.position.x;
                     children.properties.computed_bounds.position.y = children.properties.layout.intrinsic_position.position.y;
 
-                    children.properties.layout.last_layout_in_frame = context.current_frame;
+                    children_ref_props.last_layout_in_frame = context.current_frame;
                     children_id = children.hierarchy.next_sibling_id;
 
                     // Move children last in hierarchy, so it's always on top of all other children, and handles input first
@@ -230,7 +231,7 @@ public partial class StbGui
                         break;
                 }
 
-                children.properties.layout.last_layout_in_frame = context.current_frame;
+                children_ref_props.last_layout_in_frame = context.current_frame;
                 children_id = children.hierarchy.next_sibling_id;
                 first_children = false;
 

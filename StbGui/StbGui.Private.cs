@@ -8,6 +8,7 @@ using widget_hash = int;
 using font_id = int;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 public partial class StbGui
 {
@@ -48,10 +49,12 @@ public partial class StbGui
             options.max_user_input_events_queue_size = DEFAULT_MAX_USER_INPUT_EVENTS_QUEUE_SIZE;
 
         var widgets = new stbg_widget[options.max_widgets + 1]; // first slot is never used (null widget)
+        var widgets_reference_properties = new stbg_widget_reference_properties[options.max_widgets + 1]; // first slot is never used (null widget)
         var hash_table = new stbg_hash_entry[options.hash_table_size];
         var fonts = new stbg_font[options.max_fonts + 1]; // first slot is never used (null font)
         var render_commands_queue = new stbg_render_command[options.render_commands_queue_size];
         var images = new stbg_image_info[options.max_images + 1]; // first slot is never used (null image)
+        var force_render_queue_entries = new stbg_force_render_queue_entry[Math.Max(options.max_widgets / 10, 100)]; // 10% of the widgets are forced to render at most];
 
         // init ids and flags
         for (int i = 0; i < widgets.Length; i++)
@@ -71,6 +74,7 @@ public partial class StbGui
         }
 
         context.widgets = widgets;
+        context.widgets_reference_properties = widgets_reference_properties;
         context.first_free_widget_id = context.widgets[1].id;
         context.hash_table = hash_table;
         context.fonts = fonts;
@@ -82,12 +86,8 @@ public partial class StbGui
         context.theme.styles = new double[(int)STBG_WIDGET_STYLE.COUNT];
         context.render_context.render_commands_queue = render_commands_queue;
         context.user_input_events_queue = new stbg_user_input_input_event[options.max_user_input_events_queue_size];
+        context.force_render_queue.entries = force_render_queue_entries;
         stbg__string_memory_pool_init(ref context.string_memory_pool, options.string_memory_pool_size);
-
-        // This is the only field in text_edit that requires manual instantiation
-        context.text_edit.state.undostate = new StbTextEdit.StbUndoState();
-        
-        context.text_edit_textbox_style_ranges = new stbg_render_text_style_range[3];
 
         for (var i = 0; i < STBG__WIDGET_INIT_CONTEXT_LIST.Length; i++)
             STBG__WIDGET_INIT_CONTEXT_LIST[i](ref context);
@@ -106,10 +106,11 @@ public partial class StbGui
     private static void stbg__destroy_unused_widgets(int amount_to_destroy)
     {
         var widgets = context.widgets;
+        var widgets_reference_properties = context.widgets_reference_properties;
 
         for (int i = 0; i < widgets.Length && amount_to_destroy > 0; i++)
         {
-            if ((widgets[i].flags & STBG_WIDGET_FLAGS.USED) != 0 && widgets[i].last_used_in_frame != context.current_frame)
+            if ((widgets[i].flags & STBG_WIDGET_FLAGS.USED) != 0 && widgets_reference_properties[i].last_used_in_frame != context.current_frame)
             {
                 stbg__destroy_widget(ref widgets[i]);
                 amount_to_destroy--;
@@ -162,6 +163,8 @@ public partial class StbGui
                 ref stbg__get_widget_by_id_internal(existingWidgetId) :
                 ref stbg__get_widget_by_id_internal(context.first_free_widget_id));
 
+        ref var widget_ref_props = ref stbg__get_widget_ref_props_by_id_internal(widget.id);
+
         is_already_created_in_same_frame = false;
 
         if ((widget.flags & STBG_WIDGET_FLAGS.USED) == 0)
@@ -191,8 +194,9 @@ public partial class StbGui
             }
             bucket.first_widget_in_bucket = widget.id;
 
-            // Reset dynamic properties
-            widget.properties = new stbg_widget_properties();
+            // Reset dynamic properties (no need, they are reset in the destroy method)
+            // widget.properties = new stbg_widget_properties();
+            // widget_ref_props = new stbg_widget_reference_properties();
 
             // Reset hierarchy
             widget.hierarchy = new stbg_widget_hierarchy();
@@ -204,7 +208,7 @@ public partial class StbGui
         {
             // Reused widget!
             is_new = false;
-            is_already_created_in_same_frame = widget.last_used_in_frame == context.current_frame;
+            is_already_created_in_same_frame = widget_ref_props.last_used_in_frame == context.current_frame;
             if (!is_already_created_in_same_frame)
             {
                 context.frame_stats.reused_widgets++;
@@ -216,9 +220,9 @@ public partial class StbGui
         if (is_already_created_in_same_frame && (options & STBG__WIDGET_ADD_OPTIONS.IGNORE_DUPLICATED) == 0)
         {
             context.frame_stats.duplicated_widgets_ids++;
-            stbg__assert(widget.last_used_in_frame != context.current_frame, "Duplicated widget identifier!!");
+            stbg__assert(widget_ref_props.last_used_in_frame != context.current_frame, "Duplicated widget identifier!!");
         }
-        widget.last_used_in_frame = context.current_frame;
+        widget_ref_props.last_used_in_frame = context.current_frame;
 
         // If the parent is root and we are not creating a window, use the debug window
         if (type != STBG_WIDGET_TYPE.WINDOW &&
@@ -355,9 +359,11 @@ public partial class StbGui
 
     private static void stbg__destroy_widget(ref stbg_widget widget)
     {
+        ref var widget_ref_props = ref stbg__get_widget_ref_props_by_id_internal(widget.id);
+
         stbg__assert_internal(!context.inside_frame);
         stbg__assert_internal((widget.flags & STBG_WIDGET_FLAGS.USED) != 0);
-        stbg__assert_internal(widget.last_used_in_frame != context.current_frame);
+        stbg__assert_internal(widget_ref_props.last_used_in_frame != context.current_frame);
 
         // Reset hierarchy
         widget.hierarchy = new stbg_widget_hierarchy();
@@ -397,6 +403,10 @@ public partial class StbGui
 
         context.frame_stats.destroyed_widgets++;
 
+        // Clear widget properties
+        widget.properties = new stbg_widget_properties();
+        widget_ref_props = new stbg_widget_reference_properties();
+
         // Remove widget from input feedback
         if (context.input_feedback.dragged_widget_id == widget.id)
             context.input_feedback.dragged_widget_id = STBG_WIDGET_ID_NULL;
@@ -431,10 +441,18 @@ public partial class StbGui
         return false;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static ref stbg_widget stbg__get_widget_by_id_internal(widget_id id)
     {
-        stbg__assert(id != STBG_WIDGET_ID_NULL);
+        stbg__assert_internal(id != STBG_WIDGET_ID_NULL);
         return ref context.widgets[id];
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static ref stbg_widget_reference_properties stbg__get_widget_ref_props_by_id_internal(widget_id id)
+    {
+        stbg__assert_internal(id != STBG_WIDGET_ID_NULL);
+        return ref context.widgets_reference_properties[id];
     }
 
     private static bool stbg__find_widget_by_hash(widget_hash hash, out widget_id found_id)
@@ -518,7 +536,7 @@ public partial class StbGui
         if (context.time_beween_frames_milliseconds == 0)
             return;
 
-        int instant_fps = 1000 / (int) context.time_beween_frames_milliseconds;
+        int instant_fps = 1000 / (int)context.time_beween_frames_milliseconds;
         int smoothing_factor = Math.Max(instant_fps / 2, 1);
 
         context.performance_metrics.process_input_time_us += (context.performance_metrics.process_input_time_us - context.frame_stats.performance.process_input_time_us) / smoothing_factor;
