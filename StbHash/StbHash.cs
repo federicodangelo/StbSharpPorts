@@ -200,7 +200,11 @@ public class StbHash
         stbh_halfsiphash(inputBytes, key_bytes, output_bytes);
 
         return output;
+    }
 
+    static public long stbh_halfsiphash_long<T>(T input, long key) where T : struct
+    {
+        return stbh_halfsiphash_long(MemoryMarshal.AsBytes(new Span<T>(ref input)), key);
     }
 
     static public void stbh_halfsiphash(ReadOnlySpan<byte> inputBytes, ReadOnlySpan<byte> inputKey, Span<byte> output)

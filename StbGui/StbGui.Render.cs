@@ -144,11 +144,11 @@ public partial class StbGui
     {
         stbg__assert_internal(context.render_context.render_commands_queue_index == 0, "Pending render commands left in render queue from a previous frame");
 
-        stbg__process_force_render_queue();
+        bool force_render = stbg__process_force_render_queue();
 
         long render_hash = stbg__get_render_hash();
 
-        if (context.last_render_hash == render_hash)
+        if (context.last_render_hash == render_hash && !force_render)
         {
             // No changes in input or widgets, skip rendering
             return false;
@@ -169,15 +169,15 @@ public partial class StbGui
         return true;
     }
 
-    private static void stbg__process_force_render_queue()
+    private static bool stbg__process_force_render_queue()
     {
         ref var queue = ref context.force_render_queue;
 
         if (queue.count == 0)
-            return;
+            return false;
 
         var current_time = context.current_time_milliseconds;
-        var needs_compacting = false;
+        var force_render = false;
 
         for (int i = 0; i < queue.count; i++)
         {
@@ -193,11 +193,11 @@ public partial class StbGui
                 }
 
                 entry = new stbg_force_render_queue_entry();
-                needs_compacting = true;
+                force_render = true;
             }
         }
 
-        if (needs_compacting)
+        if (force_render)
         {
             for (int i = 0; i < queue.count; i++)
             {
@@ -211,6 +211,8 @@ public partial class StbGui
                 }
             }
         }
+
+        return force_render;
     }
 
     private static long stbg__get_render_hash()
@@ -218,6 +220,20 @@ public partial class StbGui
         long hash = 0x1234567890123456L;
         hash = stbg__hash_widgets(hash);
         hash = stbg__hash_input(hash);
+        hash = stbg__hash_text_edit(hash);
+
+        return hash;
+    }
+
+    private static long stbg__hash_text_edit(long hash)
+    {
+        if (context.text_edit.widget_id == STBG_WIDGET_ID_NULL)
+            return hash;
+
+        hash = StbHash.stbh_halfsiphash_long(context.text_edit.state.cursor, hash);
+        hash = StbHash.stbh_halfsiphash_long(context.text_edit.state.select_start, hash);
+        hash = StbHash.stbh_halfsiphash_long(context.text_edit.state.select_end, hash);
+        hash = StbHash.stbh_halfsiphash_long(MemoryMarshal.AsBytes(context.text_edit.str.text.Span.Slice(0, context.text_edit.str.text_length)), hash);
 
         return hash;
     }
@@ -286,43 +302,36 @@ public partial class StbGui
         return hash;
     }
 
-    private static void stbg__enqueue_force_render(ref stbg_widget widget, int delay_ms)
+    private static void stbg__enqueue_force_render(ref stbg_widget widget, int delay_ms = 0)
     {
-        if (delay_ms <= 0)
-        {
-            widget.flags |= STBG_WIDGET_FLAGS.FORCE_RENDER;
-        }
-        else
-        {
-            ref var queue = ref context.force_render_queue;
+        ref var queue = ref context.force_render_queue;
 
-            for (int i = 0; i < queue.count; i++)
+        for (int i = 0; i < queue.count; i++)
+        {
+            ref var entry = ref queue.entries[i];
+            if (entry.widget_id == widget.id)
             {
-                ref var entry = ref queue.entries[i];
-                if (entry.widget_id == widget.id)
+                if (entry.widget_hash != widget.hash)
                 {
-                    if (entry.widget_hash != widget.hash)
-                    {
-                        entry.at_time = context.current_time_milliseconds + delay_ms;
-                    }
-                    else
-                    {
-                        entry.at_time = Math.Min(entry.at_time, context.current_time_milliseconds + delay_ms);
-                    }
-                    return;
+                    entry.at_time = context.current_time_milliseconds + delay_ms;
                 }
+                else
+                {
+                    entry.at_time = Math.Min(entry.at_time, context.current_time_milliseconds + delay_ms);
+                }
+                return;
             }
-
-            stbg__assert(queue.count < queue.entries.Length, "Force render queue is full");
-
-            var new_entry = new stbg_force_render_queue_entry();
-            new_entry.widget_id = widget.id;
-            new_entry.widget_hash = widget.hash;
-            new_entry.at_time = context.current_time_milliseconds + delay_ms;
-
-            queue.entries[queue.count] = new_entry;
-            queue.count++;
         }
+
+        stbg__assert(queue.count < queue.entries.Length, "Force render queue is full");
+
+        var new_entry = new stbg_force_render_queue_entry();
+        new_entry.widget_id = widget.id;
+        new_entry.widget_hash = widget.hash;
+        new_entry.at_time = context.current_time_milliseconds + delay_ms;
+
+        queue.entries[queue.count] = new_entry;
+        queue.count++;
     }
 
     private static void stbg__render_widget(ref stbg_widget widget, stbg_rect parent_clip_bounds)

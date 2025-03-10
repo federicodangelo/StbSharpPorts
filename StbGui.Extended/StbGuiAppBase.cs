@@ -11,9 +11,11 @@ public abstract class StbGuiAppBase : IDisposable
     public struct MetricsInfo
     {
         public int Fps;
+        public int SkippedFrames;
         public long TotalAllocatedBytes;
-        public long LastFrameAllocatedBytes;
+        public long LastSecondAllocatedBytes;
         public long TotalGarbageCollectionsPerformed;
+        public StbGui.stbg_performance_metrics average_performance_metrics;
     }
 
     public MetricsInfo Metrics { get; private set; } = new();
@@ -35,7 +37,8 @@ public abstract class StbGuiAppBase : IDisposable
     private StbGuiRenderAdapter render_adapter;
     private StbGuiFont[] fonts;
     private long frames_count_ms;
-    private long frames_count;
+    private int frames_count;
+    private int skipped_frame_count;
 
     public string RenderBackend { get; private set; }
 
@@ -206,7 +209,7 @@ public abstract class StbGuiAppBase : IDisposable
 
         update_active_cursor();
 
-        update_metrics();
+        update_metrics(rendered);
 
         var frame_end_ms = get_time_milliseconds();
 
@@ -215,37 +218,41 @@ public abstract class StbGuiAppBase : IDisposable
         present_frame(frame_ms, rendered);
     }
 
-    protected void update_metrics()
+    protected void update_metrics(bool rendered)
     {
-        var updatedMetrics = Metrics;
-
         // Update FPS
         var now_ms = get_time_milliseconds();
         frames_count++;
+        if (!rendered)
+            skipped_frame_count++;
         if (now_ms - frames_count_ms > 1000)
         {
-            updatedMetrics.Fps = (int)Math.Round(frames_count / ((now_ms - frames_count_ms) / 1000.0f));
+            var updatedMetrics = Metrics;
 
-            //Console.WriteLine($"FPS: {updatedMetrics.Fps}");
+            // Update FPS
+            updatedMetrics.Fps = (int)Math.Round(frames_count / ((now_ms - frames_count_ms) / 1000.0f));
+            updatedMetrics.SkippedFrames = skipped_frame_count;
 
             frames_count = 0;
             frames_count_ms = now_ms;
+            skipped_frame_count = 0;
+
+            // Update memory usage
+            var totalAllocatedBytes = GC.GetTotalAllocatedBytes(true);
+            updatedMetrics.LastSecondAllocatedBytes = totalAllocatedBytes - updatedMetrics.TotalAllocatedBytes;
+            updatedMetrics.TotalAllocatedBytes = totalAllocatedBytes;
+
+            // Update garbage collection count
+            var collectionCount = 0;
+            for (var i = 0; i < GC.MaxGeneration; i++)
+                collectionCount += GC.CollectionCount(i);
+            updatedMetrics.TotalGarbageCollectionsPerformed = collectionCount;
+
+            // Update average metrics
+            updatedMetrics.average_performance_metrics = StbGui.stbg_get_average_performance_metrics();
+
+            Metrics = updatedMetrics;
         }
-
-        // Update memory usage
-        var totalAllocatedBytes = GC.GetTotalAllocatedBytes(true);
-
-        updatedMetrics.LastFrameAllocatedBytes = totalAllocatedBytes - updatedMetrics.TotalAllocatedBytes;
-        updatedMetrics.TotalAllocatedBytes = totalAllocatedBytes;
-
-        var collectionCount = 0;
-
-        for (var i = 0; i < GC.MaxGeneration; i++)
-            collectionCount += GC.CollectionCount(i);
-
-        updatedMetrics.TotalGarbageCollectionsPerformed = collectionCount;
-
-        Metrics = updatedMetrics;
     }
 
 

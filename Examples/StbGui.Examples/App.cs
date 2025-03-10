@@ -70,14 +70,16 @@ public class App
     {
         mp.ResetPool();
 
-        StbGui.stbg_label(mp.Concat("FPS: ", appBase.Metrics.Fps));
+        var metrics = appBase.Metrics;
+
+        StbGui.stbg_label(mp.Concat(mp.Concat(mp.Concat("FPS: ", appBase.Metrics.Fps), " Skipped Frames: "), appBase.Metrics.SkippedFrames));
         StbGui.stbg_label(mp.Concat("Render Backend: ", appBase.RenderBackend));
-        StbGui.stbg_label(mp.Concat("Allocated Bytes Delta: ", appBase.Metrics.LastFrameAllocatedBytes));
-        StbGui.stbg_label(mp.Concat(mp.Concat("Process input time : ", StbGui.stbg_get_average_performance_metrics().process_input_time_us / 1000.0f, 2), " ms"));
-        StbGui.stbg_label(mp.Concat(mp.Concat("Layout widgets time: ", StbGui.stbg_get_average_performance_metrics().layout_widgets_time_us / 1000.0f, 2), " ms"));
-        StbGui.stbg_label(mp.Concat(mp.Concat("Render time        : ", StbGui.stbg_get_average_performance_metrics().render_time_us / 1000.0f, 2), " ms"));
+        StbGui.stbg_label(mp.Concat("Allocated Bytes Delta: ", metrics.LastSecondAllocatedBytes));
+        StbGui.stbg_label(mp.Concat(mp.Concat("Process input time : ", metrics.average_performance_metrics.process_input_time_us / 1000.0f, 3), " ms"));
+        StbGui.stbg_label(mp.Concat(mp.Concat("Layout widgets time: ", metrics.average_performance_metrics.layout_widgets_time_us / 1000.0f, 3), " ms"));
+        StbGui.stbg_label(mp.Concat(mp.Concat("Render time        : ", metrics.average_performance_metrics.render_time_us / 1000.0f, 3), " ms"));
         //Console.WriteLine(appBase.Metrics.LastFrameAllocatedBytes);
-        StbGui.stbg_label(mp.Concat("Total GC Performed: ", appBase.Metrics.TotalGarbageCollectionsPerformed));
+        StbGui.stbg_label(mp.Concat("Total GC Performed: ", metrics.TotalGarbageCollectionsPerformed));
         StbGui.stbg_label(mp.Concat("String Memory Pool Used Characters: ", StbGui.stbg_get_frame_stats().string_memory_pool_used_characters));
         StbGui.stbg_label(mp.Concat("String Memory Pool Overflown Characters: ", StbGui.stbg_get_frame_stats().string_memory_pool_overflowed_characters));
 

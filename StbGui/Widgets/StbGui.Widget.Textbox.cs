@@ -154,26 +154,7 @@ public partial class StbGui
             context.input.mouse_button_1_down &&
             context.input_feedback.editing_text_widget_id != textbox.id)
         {
-            // Start edit
-            context.input_feedback.editing_text_widget_id = textbox.id;
-
-            context.input_feedback.ime_info = new stbg_input_method_editor_info()
-            {
-                widget_id = textbox.id,
-                enable = true,
-                editing_global_rect = textbox.properties.computed_bounds.global_rect,
-                editing_cursor_global_x = textbox.properties.computed_bounds.global_rect.x0,
-            };
-
-            context.external_dependencies.set_input_method_editor(new stbg_input_method_editor_info()
-            {
-                enable = true,
-                editing_global_rect = textbox.properties.computed_bounds.global_rect,
-                editing_cursor_global_x = textbox.properties.computed_bounds.global_rect.x0
-            });
-
-            textbox.properties.layout.children_offset.x = 0;
-            textbox.properties.layout.children_offset.y = 0;
+            stbg__textbox_start_edit(ref textbox);
         }
 
         if (context.input_feedback.editing_text_widget_id == textbox.id)
@@ -204,16 +185,45 @@ public partial class StbGui
 
             if (stop_editing)
             {
-                context.input_feedback.editing_text_widget_id = STBG_WIDGET_ID_NULL;
-                context.text_edit.widget_id = STBG_WIDGET_ID_NULL;
-                context.text_edit.widget_hash = 0;
-
-                if (context.input_feedback.ime_info.widget_id == textbox.id)
-                    context.input_feedback.ime_info = new stbg_input_method_editor_info();
+                stbg__textbox_stop_edit(ref textbox);
             }
         }
 
         return false;
+    }
+
+    private static void stbg__textbox_start_edit(ref stbg_widget textbox)
+    {
+        // Start edit
+        context.input_feedback.editing_text_widget_id = textbox.id;
+
+        context.input_feedback.ime_info = new stbg_input_method_editor_info()
+        {
+            widget_id = textbox.id,
+            enable = true,
+            editing_global_rect = textbox.properties.computed_bounds.global_rect,
+            editing_cursor_global_x = textbox.properties.computed_bounds.global_rect.x0,
+        };
+
+        context.external_dependencies.set_input_method_editor(new stbg_input_method_editor_info()
+        {
+            enable = true,
+            editing_global_rect = textbox.properties.computed_bounds.global_rect,
+            editing_cursor_global_x = textbox.properties.computed_bounds.global_rect.x0
+        });
+
+        textbox.properties.layout.children_offset.x = 0;
+        textbox.properties.layout.children_offset.y = 0;
+    }
+
+    private static void stbg__textbox_stop_edit(ref stbg_widget textbox)
+    {
+        context.input_feedback.editing_text_widget_id = STBG_WIDGET_ID_NULL;
+        context.text_edit.widget_id = STBG_WIDGET_ID_NULL;
+        context.text_edit.widget_hash = 0;
+
+        if (context.input_feedback.ime_info.widget_id == textbox.id)
+            context.input_feedback.ime_info = new stbg_input_method_editor_info();
     }
 
     private static bool stbg__textbox_handle_user_event(ref stbg_widget textbox, ref stbg_widget_reference_properties textbox_ref_props, ref StbTextEdit.STB_TEXTEDIT_STRING str, ref StbTextEdit.STB_TexteditState state, stbg_user_input_input_event user_event)
@@ -397,7 +407,6 @@ public partial class StbGui
                         {
                             textbox_ref_props.text_to_edit.length = str.text_length;
                             textbox.properties.input_flags |= STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED;
-                            textbox.flags |= STBG_WIDGET_FLAGS.FORCE_RENDER;
                         }
                     }
                     break;

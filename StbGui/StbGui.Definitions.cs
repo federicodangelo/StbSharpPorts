@@ -581,6 +581,7 @@ public partial class StbGui
         public int string_memory_pool_used_characters;
         public int string_memory_pool_overflowed_characters;
         public stbg_performance_metrics performance;
+        public bool render_skipped_due_to_same_hash;
     }
 
     public struct stbg_context_input_feedback
@@ -652,7 +653,7 @@ public partial class StbGui
 
         public long current_time_milliseconds;
 
-        public long time_beween_frames_milliseconds;
+        public long time_between_frames_milliseconds;
 
         public widget_id current_widget_id;
 

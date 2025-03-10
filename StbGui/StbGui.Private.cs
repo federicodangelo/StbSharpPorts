@@ -533,10 +533,10 @@ public partial class StbGui
 
     private static void stbg__update_average_performance_metrics()
     {
-        if (context.time_beween_frames_milliseconds == 0)
+        if (context.time_between_frames_milliseconds == 0)
             return;
 
-        int instant_fps = 1000 / (int)context.time_beween_frames_milliseconds;
+        int instant_fps = 1000 / (int)context.time_between_frames_milliseconds;
         int smoothing_factor = Math.Max(instant_fps / 2, 1);
 
         context.performance_metrics.process_input_time_us += (context.performance_metrics.process_input_time_us - context.frame_stats.performance.process_input_time_us) / smoothing_factor;

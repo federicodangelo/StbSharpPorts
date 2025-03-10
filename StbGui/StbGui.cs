@@ -285,7 +285,7 @@ public partial class StbGui
         context.last_widget_id = STBG_WIDGET_ID_NULL;
         context.last_widget_is_new = false;
         context.current_frame++;
-        context.time_beween_frames_milliseconds = context.current_time_milliseconds != 0 ? Math.Max(now - context.current_time_milliseconds, 1) : 33; // default non-zero value to prevent divisions by zero..
+        context.time_between_frames_milliseconds = context.current_time_milliseconds != 0 ? Math.Max(now - context.current_time_milliseconds, 1) : 33; // default non-zero value to prevent divisions by zero..
         context.current_time_milliseconds = now;
         context.prev_frame_stats = context.frame_stats;
         context.frame_stats = new stbg_context_frame_stats();
@@ -343,6 +343,7 @@ public partial class StbGui
         var start_render_time = stbg__get_performance_counter();
         var rendered = stbg__render();
         context.frame_stats.performance.render_time_us = ((stbg__get_performance_counter() - start_render_time) * MICROSECONDS) / stbg__get_performance_counter_frequency();
+        context.frame_stats.render_skipped_due_to_same_hash = !rendered;
 
         return rendered;
     }
