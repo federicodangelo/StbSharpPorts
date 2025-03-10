@@ -9,9 +9,8 @@ public class StbGuiTextboxTests : StbGuiTestsBase
 
         StbGui.stbg_begin_frame();
         {
-            Memory<char> text = new Memory<char>(new char[32]);
-            int text_length = 0;
-            StbGui.stbg_textbox("textbox", text, ref text_length, 1);
+            var text_to_edit = StbGui.stbg_textbox_build_text_to_edit(32);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 1);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -34,11 +33,8 @@ public class StbGuiTextboxTests : StbGuiTestsBase
 
         StbGui.stbg_begin_frame();
         {
-            var str = "Hello";
-            Memory<char> text = new Memory<char>(new char[32]);
-            str.AsSpan().CopyTo(text.Span);
-            int text_length = str.Length;
-            StbGui.stbg_textbox("textbox", text, ref text_length, 1);
+            var text_to_edit = StbGui.stbg_textbox_build_text_to_edit(32, "Hello");
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 1);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -61,11 +57,8 @@ public class StbGuiTextboxTests : StbGuiTestsBase
 
         StbGui.stbg_begin_frame();
         {
-            var str = "Hello World";
-            Memory<char> text = new Memory<char>(new char[32]);
-            str.AsSpan().CopyTo(text.Span);
-            int text_length = str.Length;
-            StbGui.stbg_textbox("textbox", text, ref text_length, 1);
+            var text_to_edit = StbGui.stbg_textbox_build_text_to_edit(32, "Hello World");
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 1);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -88,11 +81,8 @@ public class StbGuiTextboxTests : StbGuiTestsBase
 
         StbGui.stbg_begin_frame();
         {
-            var str = "Hello\nWorld";
-            Memory<char> text = new Memory<char>(new char[32]);
-            str.AsSpan().CopyTo(text.Span);
-            int text_length = str.Length;
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            var text_to_edit = StbGui.stbg_textbox_build_text_to_edit(32, "Hello\nWorld");
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -117,11 +107,8 @@ public class StbGuiTextboxTests : StbGuiTestsBase
 
         StbGui.stbg_begin_frame();
         {
-            var str = "Hello World\nWith a very long line\nand another\nand other one";
-            Memory<char> text = new Memory<char>(new char[64]);
-            str.AsSpan().CopyTo(text.Span);
-            int text_length = str.Length;
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            var text_to_edit = StbGui.stbg_textbox_build_text_to_edit(64, "Hello World\nWith a very long line\nand another\nand other one");
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -144,14 +131,11 @@ public class StbGuiTextboxTests : StbGuiTestsBase
     {
         InitGUI();
 
-        var str = "Hello\nWorld";
-        Memory<char> text = new Memory<char>(new char[32]);
-        str.AsSpan().CopyTo(text.Span);
-        int text_length = str.Length;
+        var text_to_edit = StbGui.stbg_textbox_build_text_to_edit(32, "Hello\nWorld");
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -163,7 +147,7 @@ public class StbGuiTextboxTests : StbGuiTestsBase
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -186,14 +170,11 @@ public class StbGuiTextboxTests : StbGuiTestsBase
     {
         InitGUI();
 
-        var str = "Hello World Long Line\n\nAnother Line";
-        Memory<char> text = new Memory<char>(new char[64]);
-        str.AsSpan().CopyTo(text.Span);
-        int text_length = str.Length;
+        var text_to_edit = StbGui.stbg_textbox_build_text_to_edit(64, "Hello World Long Line\n\nAnother Line");
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -206,7 +187,7 @@ public class StbGuiTextboxTests : StbGuiTestsBase
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -229,14 +210,11 @@ public class StbGuiTextboxTests : StbGuiTestsBase
     {
         InitGUI();
 
-        var str = "Hello World Long Line\nAnother Line";
-        Memory<char> text = new Memory<char>(new char[64]);
-        str.AsSpan().CopyTo(text.Span);
-        int text_length = str.Length;
+        var text_to_edit = StbGui.stbg_textbox_build_text_to_edit(64, "Hello World Long Line\nAnother Line");
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -249,7 +227,7 @@ public class StbGuiTextboxTests : StbGuiTestsBase
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -272,14 +250,11 @@ public class StbGuiTextboxTests : StbGuiTestsBase
     {
         InitGUI();
 
-        var str = "Hello World Long Line\nAnother Line";
-        Memory<char> text = new Memory<char>(new char[64]);
-        str.AsSpan().CopyTo(text.Span);
-        int text_length = str.Length;
+        var text_to_edit = StbGui.stbg_textbox_build_text_to_edit(64, "Hello World Long Line\nAnother Line");
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -294,7 +269,7 @@ public class StbGuiTextboxTests : StbGuiTestsBase
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -317,14 +292,11 @@ public class StbGuiTextboxTests : StbGuiTestsBase
     {
         InitGUI();
 
-        var str = "Hello World Long Line\nAnother Line";
-        Memory<char> text = new Memory<char>(new char[64]);
-        str.AsSpan().CopyTo(text.Span);
-        int text_length = str.Length;
+        var text_to_edit = StbGui.stbg_textbox_build_text_to_edit(64, "Hello World Long Line\nAnother Line");
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -339,7 +311,7 @@ public class StbGuiTextboxTests : StbGuiTestsBase
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -362,14 +334,11 @@ public class StbGuiTextboxTests : StbGuiTestsBase
     {
         InitGUI();
 
-        var str = "Hello World Long Line\nAnother Line";
-        Memory<char> text = new Memory<char>(new char[64]);
-        str.AsSpan().CopyTo(text.Span);
-        int text_length = str.Length;
+        var text_to_edit = StbGui.stbg_textbox_build_text_to_edit(64, "Hello World Long Line\nAnother Line");
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -392,7 +361,7 @@ public class StbGuiTextboxTests : StbGuiTestsBase
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -415,14 +384,11 @@ public class StbGuiTextboxTests : StbGuiTestsBase
     {
         InitGUI();
 
-        var str = "Hello World Long Line\nAnother Line";
-        Memory<char> text = new Memory<char>(new char[64]);
-        str.AsSpan().CopyTo(text.Span);
-        int text_length = str.Length;
+        var text_to_edit = StbGui.stbg_textbox_build_text_to_edit(64, "Hello World Long Line\nAnother Line");
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -445,7 +411,7 @@ public class StbGuiTextboxTests : StbGuiTestsBase
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -465,7 +431,7 @@ public class StbGuiTextboxTests : StbGuiTestsBase
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -488,14 +454,11 @@ public class StbGuiTextboxTests : StbGuiTestsBase
     {
         InitGUI();
 
-        var str = "Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6\nLine 7\nLine 8\nLine 9";
-        Memory<char> text = new Memory<char>(new char[64]);
-        str.AsSpan().CopyTo(text.Span);
-        int text_length = str.Length;
+        var text_to_edit = StbGui.stbg_textbox_build_text_to_edit(64, "Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6\nLine 7\nLine 8\nLine 9");
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -512,7 +475,7 @@ public class StbGuiTextboxTests : StbGuiTestsBase
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -536,14 +499,11 @@ public class StbGuiTextboxTests : StbGuiTestsBase
     {
         InitGUI();
 
-        var str = "Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6\nLine 7\nLine 8\nLine 9";
-        Memory<char> text = new Memory<char>(new char[64]);
-        str.AsSpan().CopyTo(text.Span);
-        int text_length = str.Length;
+        var text_to_edit = StbGui.stbg_textbox_build_text_to_edit(64, "Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6\nLine 7\nLine 8\nLine 9");
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -560,7 +520,7 @@ public class StbGuiTextboxTests : StbGuiTestsBase
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -574,7 +534,7 @@ public class StbGuiTextboxTests : StbGuiTestsBase
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -597,14 +557,11 @@ public class StbGuiTextboxTests : StbGuiTestsBase
     {
         InitGUI();
 
-        var str = "";
-        Memory<char> text = new Memory<char>(new char[64]);
-        str.AsSpan().CopyTo(text.Span);
-        int text_length = str.Length;
+        var text_to_edit = StbGui.stbg_textbox_build_text_to_edit(64);
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -621,12 +578,12 @@ public class StbGuiTextboxTests : StbGuiTestsBase
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
 
-        Assert.Equal("HELLO", text.Slice(0, text_length).Span.ToString());
+        Assert.Equal("HELLO", text_to_edit.text.Slice(0, text_to_edit.length).Span.ToString());
 
         StbGui.stbg_render();
 
@@ -646,14 +603,11 @@ public class StbGuiTextboxTests : StbGuiTestsBase
     {
         InitGUI();
 
-        var str = "";
-        Memory<char> text = new Memory<char>(new char[64]);
-        str.AsSpan().CopyTo(text.Span);
-        int text_length = str.Length;
+        var text_to_edit = StbGui.stbg_textbox_build_text_to_edit(64);
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -672,12 +626,12 @@ public class StbGuiTextboxTests : StbGuiTestsBase
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
 
-        Assert.Equal("HEL", text.Slice(0, text_length).Span.ToString());
+        Assert.Equal("HEL", text_to_edit.text.Slice(0, text_to_edit.length).Span.ToString());
 
         StbGui.stbg_render();
 
@@ -697,14 +651,11 @@ public class StbGuiTextboxTests : StbGuiTestsBase
     {
         InitGUI();
 
-        var str = "Hello World";
-        Memory<char> text = new Memory<char>(new char[64]);
-        str.AsSpan().CopyTo(text.Span);
-        int text_length = str.Length;
+        var text_to_edit = StbGui.stbg_textbox_build_text_to_edit(64, "Hello World");
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
@@ -719,7 +670,7 @@ public class StbGuiTextboxTests : StbGuiTestsBase
 
         StbGui.stbg_begin_frame();
         {
-            StbGui.stbg_textbox("textbox", text, ref text_length, 3);
+            StbGui.stbg_textbox("textbox", ref text_to_edit, 3);
             StbGui.stbg_set_last_widget_size(10, 0);
         }
         StbGui.stbg_end_frame();
