@@ -140,6 +140,9 @@ public partial class StbGui
             stbg__window_init(ref debug_window, ref is_open, is_new, DEBUG_WINDOW_TITLE, STBG_WINDOW_OPTIONS.DEFAULT);
         }
 
+        if (is_new)
+            stbg_set_widget_position(debug_window.id, stbg_get_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_POSITION_X), stbg_get_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_POSITION_Y));
+
         return ref debug_window;
     }
 

@@ -573,6 +573,15 @@ public partial class StbGui
     }
 
     /// <summary>
+    /// Change existing widget intrinsic position if it is new
+    /// </summary>
+    public static void stbg_set_last_widget_position_if_new(float x, float y)
+    {
+        if (stbg_get_last_widget_is_new())
+            stbg_set_last_widget_position(x, y);
+    }
+
+    /// <summary>
     /// Changes existing widget intrinsic size
     /// </summary>
     public static void stbg_set_widget_size(widget_id widget_id, float width, float height)
@@ -592,6 +601,14 @@ public partial class StbGui
         stbg_set_widget_size(stbg_get_last_widget_id(), width, height);
     }
 
+    /// <summary>
+    /// Changes existing widget intrinsic size if it is new
+    /// </summary>
+    public static void stbg_set_last_widget_size_if_new(float width, float height)
+    {
+        if (stbg_get_last_widget_is_new())
+            stbg_set_last_widget_size(width, height);
+    }
 
     /// <summary>
     /// Begins a new container with the specified layout direction

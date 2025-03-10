@@ -26,7 +26,7 @@ public partial class StbGui
         var windowDefaultWidth = MathF.Ceiling(font_style.size * 30);
         var windowDefaultHeight = MathF.Ceiling(font_style.size * 15);
         var windowChildrenSpacing = MathF.Ceiling(font_style.size / 4);
-        var windowSpacingBetweenNewWindows = MathF.Ceiling(font_style.size / 2);
+        var windowSpacingBetweenNewWindows = MathF.Ceiling(font_style.size / 2); ;
         var windowBorderResizeTolerance = MathF.Ceiling(font_style.size / 4);
         var windowCloseButtonSize = MathF.Ceiling(font_style.size);
 
@@ -50,6 +50,7 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH, windowDefaultWidth);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT, windowDefaultHeight);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_SPACING_BETWEEN_NEW_WINDOWS, windowSpacingBetweenNewWindows);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_CENTER_NEW_WINDOWS, true);
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_RESIZE_TOLERANCE, windowBorderResizeTolerance);
 
         stbg_set_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_COLOR, rgb(41, 128, 185));
@@ -72,6 +73,9 @@ public partial class StbGui
 
         stbg_set_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_ACTIVE_TEXT_COLOR, rgb(236, 240, 241));
         stbg_set_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_TITLE_ACTIVE_BACKGROUND_COLOR, rgb(231, 76, 60));
+
+        stbg_set_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_POSITION_X, 5);
+        stbg_set_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_POSITION_Y, 5);
     }
 
     private static void stbg__winddow_set_parameters(ref stbg_widget widget, stbg__window_parameters parameters)
@@ -138,10 +142,22 @@ public partial class StbGui
 
         if (is_new)
         {
-            window.properties.layout.intrinsic_position.position = context.next_new_window_position;
             window.properties.layout.intrinsic_size.size = stbg_build_size(stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_DEFAULT_WIDTH), stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_DEFAULT_HEIGHT));
+            window.properties.layout.intrinsic_sorting_index = int.MaxValue;
 
-            context.next_new_window_position = stbg_offset_position(context.next_new_window_position, stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_SPACING_BETWEEN_NEW_WINDOWS), stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_SPACING_BETWEEN_NEW_WINDOWS));
+            if (stbg_get_widget_style_boolean(STBG_WIDGET_STYLE.WINDOW_CENTER_NEW_WINDOWS))
+            {
+                window.properties.layout.intrinsic_position.position = stbg_build_position(
+                        (int)((context.screen_size.width - window.properties.layout.intrinsic_size.size.width) / 2),
+                        (int)((context.screen_size.height - window.properties.layout.intrinsic_size.size.height) / 2)
+                    );
+            }
+            else
+            {
+                var window_spacing = stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_SPACING_BETWEEN_NEW_WINDOWS);
+                window.properties.layout.intrinsic_position.position = context.next_new_window_position;
+                context.next_new_window_position = stbg_offset_position(context.next_new_window_position, window_spacing, window_spacing);
+            }
         }
 
         if (is_new || (window.properties.input_flags & STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED) == 0)
@@ -350,12 +366,12 @@ public partial class StbGui
                 }
                 context.input_feedback.pressed_widget_id = STBG_WIDGET_ID_NULL;
 
-                 if (has_close_button && context.input_feedback.pressed_sub_widget_part == 1 && mouse_over_close_button)
-                 {
+                if (has_close_button && context.input_feedback.pressed_sub_widget_part == 1 && mouse_over_close_button)
+                {
                     // Close button pressed
                     window.properties.value.b = false;
                     window.properties.input_flags |= STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED;
-                 }
+                }
             }
         }
         else if (context.input.mouse_button_1_down)
@@ -365,7 +381,7 @@ public partial class StbGui
             context.input_feedback.drag_resize_y = resize_y;
             context.input_feedback.drag_from_widget_x = mouse_position.x - bounds.x0;
             context.input_feedback.drag_from_widget_y = mouse_position.y - bounds.y0;
-            context.input_feedback.pressed_sub_widget_part = mouse_over_close_button ? 1 : 0;            
+            context.input_feedback.pressed_sub_widget_part = mouse_over_close_button ? 1 : 0;
             // Bringing the window to the top is handled by StbGui.Input
         }
 
@@ -389,7 +405,7 @@ public partial class StbGui
                     intrinsic_position.position.x = MathF.Max(mouse_position.x - parent_bounds.x0, 0);
                     intrinsic_size.size.width = (bounds.x1 - bounds.x0) - parent_bounds.x0 + (x - intrinsic_position.position.x);
 
-                    var min_width = window.properties.layout.constrains.min.width + 
+                    var min_width = window.properties.layout.constrains.min.width +
                             ((window.properties.layout.flags & STBG_WIDGET_LAYOUT_FLAGS.ALLOW_CHILDREN_OVERFLOW) == 0 ? window.properties.computed_bounds.children_size.width : 0);
 
                     if (intrinsic_size.size.width < min_width)
@@ -410,7 +426,7 @@ public partial class StbGui
                     intrinsic_position.position.y = MathF.Max(mouse_position.y - parent_bounds.y0, 0);
                     intrinsic_size.size.height = (bounds.y1 - bounds.y0) - parent_bounds.y0 + (y - intrinsic_position.position.y);
 
-                    var min_height = window.properties.layout.constrains.min.height + 
+                    var min_height = window.properties.layout.constrains.min.height +
                             ((window.properties.layout.flags & STBG_WIDGET_LAYOUT_FLAGS.ALLOW_CHILDREN_OVERFLOW) == 0 ? window.properties.computed_bounds.children_size.height : 0);
 
                     if (intrinsic_size.size.height < min_height)
