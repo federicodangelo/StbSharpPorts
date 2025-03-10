@@ -1,6 +1,5 @@
 ﻿namespace StbSharp.Examples;
 
-using System.Reflection;
 using StbSharp;
 
 public class App
@@ -72,16 +71,14 @@ public class App
 
         var metrics = appBase.Metrics;
 
-        StbGui.stbg_label(mp.Concat(mp.Concat(mp.Concat("FPS: ", appBase.Metrics.Fps), " Skipped Frames: "), appBase.Metrics.SkippedFrames));
-        StbGui.stbg_label(mp.Concat("Render Backend: ", appBase.RenderBackend));
-        StbGui.stbg_label(mp.Concat("Allocated Bytes Delta: ", metrics.LastSecondAllocatedBytes));
-        StbGui.stbg_label(mp.Concat(mp.Concat("Process input time : ", metrics.average_performance_metrics.process_input_time_us / 1000.0f, 3), " ms"));
-        StbGui.stbg_label(mp.Concat(mp.Concat("Layout widgets time: ", metrics.average_performance_metrics.layout_widgets_time_us / 1000.0f, 3), " ms"));
-        StbGui.stbg_label(mp.Concat(mp.Concat("Render time        : ", metrics.average_performance_metrics.render_time_us / 1000.0f, 3), " ms"));
-        //Console.WriteLine(appBase.Metrics.LastFrameAllocatedBytes);
-        StbGui.stbg_label(mp.Concat("Total GC Performed: ", metrics.TotalGarbageCollectionsPerformed));
-        StbGui.stbg_label(mp.Concat("String Memory Pool Used Characters: ", StbGui.stbg_get_frame_stats().string_memory_pool_used_characters));
-        StbGui.stbg_label(mp.Concat("String Memory Pool Overflown Characters: ", StbGui.stbg_get_frame_stats().string_memory_pool_overflowed_characters));
+        StbGui.stbg_label(mp.Build("FPS: ") + appBase.Metrics.Fps + " Skipped Frames: " + metrics.SkippedFrames + " [" + appBase.RenderBackend + "]");
+        StbGui.stbg_label(mp.Build("Allocated Bytes: ") + metrics.LastSecondAllocatedBytes + " Per Frame: " + (metrics.LastSecondAllocatedBytes / (metrics.Fps > 0 ? metrics.Fps : 1)) + " GC: " + metrics.TotalGarbageCollectionsPerformed);
+        StbGui.stbg_label(mp.Build("MP Used Characters: ") + StbGui.stbg_get_frame_stats().string_memory_pool_used_characters + " Overflown: " + StbGui.stbg_get_frame_stats().string_memory_pool_overflowed_characters);
+        StbGui.stbg_label(mp.Build("Process input time : ").Append(metrics.average_performance_metrics.process_input_time_us / 1000.0f, 3) + " ms");
+        StbGui.stbg_label(mp.Build("Layout widgets time: ").Append(metrics.average_performance_metrics.layout_widgets_time_us / 1000.0f, 3) + " ms");
+        StbGui.stbg_label(mp.Build("Hash time time     : ").Append(metrics.average_performance_metrics.hash_time_us / 1000.0f, 3) + " ms");
+        StbGui.stbg_label(mp.Build("Render time        : ").Append(metrics.average_performance_metrics.render_time_us / 1000.0f, 3) + " ms");
+        //Console.WriteLine(appBase.Metrics.LastSecondAllocatedBytes / (metrics.Fps > 0 ? metrics.Fps : 1));
 
         if (StbGui.stbg_begin_window("Window 1",
                 (show_title ? 0 : StbGui.STBG_WINDOW_OPTIONS.NO_TITLE) |
@@ -93,16 +90,16 @@ public class App
             if (StbGui.stbg_get_last_widget_is_new())
                 StbGui.stbg_set_last_widget_position(100, 100);
 
-            if (StbGui.stbg_button(mp.Concat("Toggle Title: ", show_title)))
+            if (StbGui.stbg_button(mp.Build("Toggle Title: ") + show_title))
                 show_title = !show_title;
 
-            if (StbGui.stbg_button(mp.Concat("Toggle Resizable: ", resizable)))
+            if (StbGui.stbg_button(mp.Build("Toggle Resizable: ") + resizable))
                 resizable = !resizable;
 
-            if (StbGui.stbg_button(mp.Concat("Toggle Scrollbars: ", show_scrollbars)))
+            if (StbGui.stbg_button(mp.Build("Toggle Scrollbars: ") + show_scrollbars))
                 show_scrollbars = !show_scrollbars;
 
-            if (StbGui.stbg_button(mp.Concat("Toggle Movable: ", movable)))
+            if (StbGui.stbg_button(mp.Build("Toggle Movable: ") + movable))
                 movable = !movable;
 
             StbGui.stbg_button("Button 1");
@@ -136,9 +133,9 @@ public class App
 
                 StbGui.stbg_begin_container("con3332", StbGui.STBG_CHILDREN_LAYOUT.VERTICAL);
                 {
-                    StbGui.stbg_label(mp.Concat("Scrollbar Value: ", scrollbar_value));
+                    StbGui.stbg_label(mp.Build("Scrollbar Value: ") + scrollbar_value);
 
-                    StbGui.stbg_label(mp.Concat("Scrollbar Value Int: ", scrollbar_value_int));
+                    StbGui.stbg_label(mp.Build("Scrollbar Value Int: ") + scrollbar_value_int);
                 }
                 StbGui.stbg_end_container();
             }
@@ -157,7 +154,7 @@ public class App
 
             for (int i = 0; i < 20; i++)
             {
-                StbGui.stbg_button(mp.Concat("Test Button ", i));
+                StbGui.stbg_button(mp.Build("Test Button ") + i);
             }
 
             StbGui.stbg_button("Test Button XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
@@ -181,15 +178,15 @@ public class App
                 {
                     StbGui.stbg_begin_container("subV1", StbGui.STBG_CHILDREN_LAYOUT.VERTICAL);
                     {
-                        StbGui.stbg_image(mp.Concat("subimage", 0), test_sub_images[0], 0.5f);
-                        StbGui.stbg_image(mp.Concat("subimage", 2), test_sub_images[2], 0.5f);
+                        StbGui.stbg_image(mp.Build("subimage") + 0, test_sub_images[0], 0.5f);
+                        StbGui.stbg_image(mp.Build("subimage") + 2, test_sub_images[2], 0.5f);
                     }
                     StbGui.stbg_end_container();
 
                     StbGui.stbg_begin_container("subV2", StbGui.STBG_CHILDREN_LAYOUT.VERTICAL);
                     {
-                        StbGui.stbg_image(mp.Concat("subimage", 1), test_sub_images[1], 0.5f);
-                        StbGui.stbg_image(mp.Concat("subimage", 3), test_sub_images[3], 0.5f);
+                        StbGui.stbg_image(mp.Build("subimage") + 1, test_sub_images[1], 0.5f);
+                        StbGui.stbg_image(mp.Build("subimage") + 3, test_sub_images[3], 0.5f);
                     }
                     StbGui.stbg_end_container();
                 }

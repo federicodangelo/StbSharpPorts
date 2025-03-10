@@ -541,6 +541,8 @@ public partial class StbGui
 
         context.performance_metrics.process_input_time_us += (context.performance_metrics.process_input_time_us - context.frame_stats.performance.process_input_time_us) / smoothing_factor;
         context.performance_metrics.layout_widgets_time_us += (context.frame_stats.performance.layout_widgets_time_us - context.performance_metrics.layout_widgets_time_us) / smoothing_factor;
-        context.performance_metrics.render_time_us += (context.frame_stats.performance.render_time_us - context.performance_metrics.render_time_us) / smoothing_factor;
+        context.performance_metrics.hash_time_us += (context.frame_stats.performance.hash_time_us - context.performance_metrics.hash_time_us) / smoothing_factor;
+        if (!context.frame_stats.render_skipped_due_to_same_hash)
+            context.performance_metrics.render_time_us += (context.frame_stats.performance.render_time_us - context.performance_metrics.render_time_us) / smoothing_factor;
     }
 }

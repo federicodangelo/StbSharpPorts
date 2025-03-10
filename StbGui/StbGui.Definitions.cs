@@ -570,6 +570,7 @@ public partial class StbGui
         public long process_input_time_us; // microseconds (1.000.000 us = 1 second)
         public long layout_widgets_time_us; // microseconds (1.000.000 us = 1 second)
         public long render_time_us; // microseconds (1.000.000 us = 1 second)
+        public long hash_time_us; // microseconds (1.000.000 us = 1 second)
     }
 
     public struct stbg_context_frame_stats

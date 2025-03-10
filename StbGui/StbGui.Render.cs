@@ -151,10 +151,14 @@ public partial class StbGui
         if (context.last_render_hash == render_hash && !force_render)
         {
             // No changes in input or widgets, skip rendering
+            context.frame_stats.render_skipped_due_to_same_hash = true;
+            context.frame_stats.performance.render_time_us = 0;
             return false;
         }
 
         context.last_render_hash = render_hash;
+
+        var start_render_time = stbg__get_performance_counter();
 
         stbg__rc_enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME, bounds = { x1 = context.screen_size.width, y1 = context.screen_size.height }, background_color = stbg_get_widget_style_color(STBG_WIDGET_STYLE.ROOT_BACKGROUND_COLOR) });
 
@@ -165,6 +169,9 @@ public partial class StbGui
         stbg__rc_enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.END_FRAME });
 
         stbg__rc_flush_queue();
+
+        context.frame_stats.render_skipped_due_to_same_hash = false;
+        context.frame_stats.performance.render_time_us = ((stbg__get_performance_counter() - start_render_time) * MICROSECONDS) / stbg__get_performance_counter_frequency();
 
         return true;
     }
@@ -217,10 +224,14 @@ public partial class StbGui
 
     private static long stbg__get_render_hash()
     {
+        var start_hash_time = stbg__get_performance_counter();
+
         long hash = 0x1234567890123456L;
         hash = stbg__hash_widgets(hash);
         hash = stbg__hash_input(hash);
         hash = stbg__hash_text_edit(hash);
+
+        context.frame_stats.performance.hash_time_us = ((stbg__get_performance_counter() - start_hash_time) * MICROSECONDS) / stbg__get_performance_counter_frequency();
 
         return hash;
     }
