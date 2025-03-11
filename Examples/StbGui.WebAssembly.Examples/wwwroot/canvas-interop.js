@@ -128,5 +128,7 @@ export function runBenchmarkJavascript() {
 
     const end = performance.now();
 
-    console.log(`JAVASCRIPT - Sum: ${sum} Time: ${end - start}ms`);
+    const result = `JAVASCRIPT - Sum: ${sum} Time: ${end - start}ms`;
+
+    return result;
 }

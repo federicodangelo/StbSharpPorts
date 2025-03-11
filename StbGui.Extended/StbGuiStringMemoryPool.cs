@@ -33,6 +33,11 @@ public readonly ref struct StbGuiString
         return str1.pool.Concat(str1.chars, val);
     }
 
+    static public StbGuiString operator +(StbGuiString str1, double val)
+    {
+        return str1.pool.Concat(str1.chars, val);
+    }
+
     static public StbGuiString operator +(StbGuiString str1, bool val)
     {
         return str1.pool.Concat(str1.chars, val);
@@ -57,6 +62,10 @@ public readonly ref struct StbGuiString
         return pool.Concat(chars, val);
     }
     public StbGuiString Append(float val)
+    {
+        return pool.Concat(chars, val);
+    }
+    public StbGuiString Append(double val)
     {
         return pool.Concat(chars, val);
     }
@@ -162,6 +171,20 @@ public class StbGuiStringMemoryPool
     }
 
     public StbGuiString Concat(ReadOnlySpan<char> str1, float val)
+    {
+        Span<char> val_str = stackalloc char[32];
+        val.TryFormat(val_str, out var val_str_len);
+        int length = str1.Length + val_str_len;
+        if (memoryPoolOffset + length >= memoryPool.Length)
+            throw new InvalidOperationException("Memory pool exhausted");
+        var result = memoryPool.Slice(memoryPoolOffset, length);
+        str1.CopyTo(result.Span);
+        val_str.Slice(0, val_str_len).CopyTo(result.Span.Slice(str1.Length));
+        memoryPoolOffset += length;
+        return new StbGuiString(this, result.Span);
+    }
+
+    public StbGuiString Concat(ReadOnlySpan<char> str1, double val)
     {
         Span<char> val_str = stackalloc char[32];
         val.TryFormat(val_str, out var val_str_len);

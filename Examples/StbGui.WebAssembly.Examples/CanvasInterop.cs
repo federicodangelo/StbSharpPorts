@@ -86,5 +86,5 @@ public partial class CanvasInterop
     public static partial string GetFromClipboard();
 
     [JSImport("runBenchmarkJavascript", "canvas-interop")]
-    public static partial void RunBenchmarkJavascript();
+    public static partial string RunBenchmarkJavascript();
 }

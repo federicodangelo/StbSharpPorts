@@ -22,7 +22,7 @@ public class WAApp : WAAppBase
          
             if (StbGui.stbg_button("Benchmark Javascript"))
             {
-                CanvasInterop.RunBenchmarkJavascript();
+                TestBenchmarksWindow.LogResult(CanvasInterop.RunBenchmarkJavascript());
             }
 
             StbGui.stbg_end_window();

@@ -4,6 +4,8 @@ using StbSharp;
 
 public class TestBenchmarksWindow : TestWindow
 {
+    static public StbGui.stbg_textbox_text_to_edit last_benchmark_result = StbGui.stbg_textbox_build_text_to_edit(1024);
+
     public const string TITLE = "Test Benchmarks";
 
     public TestBenchmarksWindow(StbGuiAppBase appBase, StbGuiStringMemoryPool mp) : base(TITLE, appBase, mp)
@@ -17,6 +19,11 @@ public class TestBenchmarksWindow : TestWindow
             if (RuntimeFeature.IsDynamicCodeSupported)
             {
                 StbGui.stbg_label("Non AOT version, benchmark results might not be accurate");
+            }
+
+            if (last_benchmark_result.length != 0)
+            {
+                StbGui.stbg_label(last_benchmark_result.text.Span.Slice(0, last_benchmark_result.length));
             }
 
             if (StbGui.stbg_button("Benchmark DotNet [DOUBLE]"))
@@ -50,7 +57,7 @@ public class TestBenchmarksWindow : TestWindow
 
         sw.Stop();
 
-        Console.WriteLine($"DOTNET [DOUBLE] - Sum: {sum} Time: {sw.Elapsed.TotalMilliseconds}ms");
+        LogResult($"DOTNET [DOUBLE] - Sum: {sum} Time: {sw.Elapsed.TotalMilliseconds}ms");
     }
 
     private void RunBenchmarkDotNetFloat()
@@ -65,7 +72,7 @@ public class TestBenchmarksWindow : TestWindow
 
         sw.Stop();
 
-        Console.WriteLine($"DOTNET [FLOAT] - Sum: {sum} Time: {sw.Elapsed.TotalMilliseconds}ms");
+        LogResult($"DOTNET [FLOAT] - Sum: {sum} Time: {sw.Elapsed.TotalMilliseconds}ms");
     }
 
     private void RunBenchmarkDotNetInt()
@@ -80,6 +87,12 @@ public class TestBenchmarksWindow : TestWindow
 
         sw.Stop();
 
-        Console.WriteLine($"DOTNET [int] - Sum: {sum} Time: {sw.Elapsed.TotalMilliseconds}ms");
+        LogResult($"DOTNET [int] - Sum: {sum} Time: {sw.Elapsed.TotalMilliseconds}ms");
+    }
+
+    static public void LogResult(string result)
+    {
+        Console.WriteLine(result);
+        StbGui.stbg_textbox_set_text_to_edit(ref last_benchmark_result, result);
     }
 }
