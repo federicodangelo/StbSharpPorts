@@ -116,3 +116,17 @@ export function getFromClipboard() {
     // TODO: Browser clipboard API is async...
     return clipboard_text ?? "";
 }
+
+export function runBenchmarkJavascript() {
+    const start = performance.now();
+
+    var sum = 0;
+
+    for (let i = 0; i < 100_000_000; i++) {
+        sum += Math.sqrt(i);
+    }
+
+    const end = performance.now();
+
+    console.log(`JAVASCRIPT - Sum: ${sum} Time: ${end - start}ms`);
+}

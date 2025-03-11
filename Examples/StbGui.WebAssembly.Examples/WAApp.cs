@@ -1,3 +1,6 @@
+
+using System.Diagnostics;
+
 namespace StbSharp.Examples;
 
 public class WAApp : WAAppBase
@@ -12,5 +15,17 @@ public class WAApp : WAAppBase
     protected override void on_render_stbgui()
     {
         app.Render();
+
+        if (StbGui.stbg_begin_window(TestBenchmarksWindow.TITLE))
+        {
+            StbGui.stbg_label("Don't run benchmarks with the console open, they run slower!!");
+         
+            if (StbGui.stbg_button("Benchmark Javascript"))
+            {
+                CanvasInterop.RunBenchmarkJavascript();
+            }
+
+            StbGui.stbg_end_window();
+        }
     }
 }

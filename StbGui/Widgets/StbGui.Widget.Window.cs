@@ -91,9 +91,12 @@ public partial class StbGui
 
     private static ref stbg_widget stbg__window_create(ReadOnlySpan<char> title, ref bool is_open, STBG_WINDOW_OPTIONS options)
     {
-        ref var window = ref stbg__add_widget(STBG_WIDGET_TYPE.WINDOW, title, out var is_new);
+        ref var window = ref stbg__add_widget(STBG_WIDGET_TYPE.WINDOW, title, out var is_new, out var is_already_created_in_same_frame);
 
-        stbg__window_init(ref window, ref is_open, is_new, title, options);
+        if (!is_already_created_in_same_frame)
+            stbg__window_init(ref window, ref is_open, is_new, title, options);
+        else
+            is_open = window.properties.value.b;
 
         return ref window;
     }

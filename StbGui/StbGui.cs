@@ -524,7 +524,7 @@ public partial class StbGui
     /// }
     /// </code>
     /// </summary>
-    /// <param name="title">Window title. Must be unique inside the parent container</param>
+    /// <param name="title">Window title. If another window in the same parent with the same title is found, the new content is appended to that window</param>
     /// <returns>Returns if the window is visible or not</returns>
     public static bool stbg_begin_window(ReadOnlySpan<char> title, ref bool is_open, STBG_WINDOW_OPTIONS options = STBG_WINDOW_OPTIONS.DEFAULT)
     {

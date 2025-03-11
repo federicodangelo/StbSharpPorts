@@ -27,6 +27,9 @@
     <StackTraceSupport>false</StackTraceSupport>
     <BlazorWebAssemblyJiterpreter>false</BlazorWebAssemblyJiterpreter>
 
+    <!-- Disable compression of generated files (saves around 10s of build time when publishing) -->
+    <CompressionEnabled>false</CompressionEnabled>
+
   </PropertyGroup>
 
   <ItemGroup>

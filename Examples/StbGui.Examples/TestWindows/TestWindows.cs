@@ -34,6 +34,7 @@ static public class TestWindows
                 new TestScrollbarsWindow(appBase, mp),
                 new TestImagesWindow(appBase, mp),
                 new TestTextboxesWindow(appBase, mp),
+                new TestBenchmarksWindow(appBase, mp),
             ];
         }
 

@@ -155,6 +155,15 @@ public partial class StbGui
         return ref widget;
     }
 
+    private static ref stbg_widget stbg__add_widget(STBG_WIDGET_TYPE type, ReadOnlySpan<char> identifier, out bool is_new, out bool is_already_created_in_same_frame)
+    {
+        ref var widget = ref stbg__add_widget(stbg__calculate_hash(type, identifier), type, context.current_widget_id, out is_new, out is_already_created_in_same_frame, STBG__WIDGET_ADD_OPTIONS.IGNORE_DUPLICATED);
+        context.last_widget_id = widget.id;
+        context.last_widget_is_new = is_new;
+
+        return ref widget;
+    }
+    
     private static ref stbg_widget stbg__add_widget(widget_hash hash, STBG_WIDGET_TYPE type, widget_id parent_id, out bool is_new, out bool is_already_created_in_same_frame, STBG__WIDGET_ADD_OPTIONS options = STBG__WIDGET_ADD_OPTIONS.NONE)
     {
         stbg__assert(context.inside_frame);
