@@ -2,6 +2,7 @@
 
 
 using System.Diagnostics;
+
 using StbSharp;
 using StbSharp.StbCommon;
 
@@ -24,4 +25,3 @@ static void LoadTexture(string filename)
 
     Console.WriteLine($"Loaded texture {filename} width: {width} height: {height} channels: {channels_in_file}");
 }
-

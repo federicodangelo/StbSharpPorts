@@ -34,8 +34,8 @@ public abstract class StbGuiAppBase : IDisposable
         public bool FontRenderingBilinear = false;
     }
 
-    private StbGuiRenderAdapter render_adapter;
-    private StbGuiFont[] fonts;
+    private readonly StbGuiRenderAdapter render_adapter;
+    private readonly StbGuiFont[] fonts;
     private long frames_count_ms;
     private int frames_count;
     private int skipped_frame_count;

@@ -17,7 +17,7 @@ public class TestRenderScreen
 
     protected TestRenderScreenPixel[][] test_render_screen;
 
-    private Stack<StbGui.stbg_rect> clipping_rects = new();
+    private readonly Stack<StbGui.stbg_rect> clipping_rects = new();
 
     public TestRenderScreen(int width, int height)
     {

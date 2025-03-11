@@ -1,4 +1,5 @@
 using BenchmarkDotNet.Attributes;
+
 using StbSharp;
 public class LayoutBenchmark : GuiBenchmark
 {

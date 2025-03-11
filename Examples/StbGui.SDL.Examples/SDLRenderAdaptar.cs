@@ -1,4 +1,5 @@
 using System.Diagnostics;
+
 using SDL3;
 
 namespace StbSharp.Examples;
@@ -8,9 +9,9 @@ public class SDLRenderAdapter : StbGuiRenderAdapterBase
     private const int RECTANGLE_VERTEX_COUNT = 4;
     private const int RECTANGLE_INDICES_COUNT = 6;
 
-    static private SDL.Vertex[] tmp_vertex = new SDL.Vertex[StbGuiTextHelper.MAX_RECTS_COUNT * RECTANGLE_VERTEX_COUNT];
-    static private int[] tmp_indices = new int[StbGuiTextHelper.MAX_RECTS_COUNT * RECTANGLE_INDICES_COUNT];
-    private nint renderer;
+    private static readonly SDL.Vertex[] tmp_vertex = new SDL.Vertex[StbGuiTextHelper.MAX_RECTS_COUNT * RECTANGLE_VERTEX_COUNT];
+    private static readonly int[] tmp_indices = new int[StbGuiTextHelper.MAX_RECTS_COUNT * RECTANGLE_INDICES_COUNT];
+    private readonly nint renderer;
 
     private static readonly Stack<StbGui.stbg_rect> clip_rects = new();
 

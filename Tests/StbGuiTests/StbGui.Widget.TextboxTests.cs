@@ -646,7 +646,7 @@ public class StbGuiTextboxTests : StbGuiTestsBase
         ]);
     }
 
-[Fact]
+    [Fact]
     public void TestRenderSelectedText()
     {
         InitGUI();
@@ -686,5 +686,5 @@ public class StbGuiTextboxTests : StbGuiTestsBase
             ["""|        |""", "CB1CT8CB1"],
             ["""\--------/""", "CB10"],
         ]);
-    }    
+    }
 }

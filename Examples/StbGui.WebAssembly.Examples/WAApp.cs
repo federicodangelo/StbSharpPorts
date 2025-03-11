@@ -19,7 +19,7 @@ public class WAApp : WAAppBase
         if (StbGui.stbg_begin_window(TestBenchmarksWindow.TITLE))
         {
             StbGui.stbg_label("Don't run benchmarks with the console open, they run slower!!");
-         
+
             if (StbGui.stbg_button("Benchmark Javascript"))
             {
                 TestBenchmarksWindow.LogResult(CanvasInterop.RunBenchmarkJavascript());

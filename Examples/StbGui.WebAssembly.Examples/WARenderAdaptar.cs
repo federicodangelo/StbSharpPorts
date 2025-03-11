@@ -1,6 +1,7 @@
 #define USE_DRAW_BUFFER
 
 using System.Diagnostics;
+
 using StbSharp;
 
 class WARenderAdapter : StbGuiRenderAdapterBase
@@ -15,7 +16,7 @@ class WARenderAdapter : StbGuiRenderAdapterBase
     private const int DRAW_BATCH_PUSH_CLIP_RECT = 5;
     private const int DRAW_BATCH_POP_CLIP_RECT = 6;
 
-    private double[] draw_batch_buffer = new double[8192];
+    private readonly double[] draw_batch_buffer = new double[8192];
     private int draw_batch_buffer_index = 0;
 #endif
 
@@ -24,7 +25,7 @@ class WARenderAdapter : StbGuiRenderAdapterBase
         return CanvasInterop.GetRenderBackend();
     }
 
-    public override nint create_texture(int width, int height,  byte[] pixels, int bytes_per_pixel, StbGuiRenderAdapter.CreateTextureOptions options = default)
+    public override nint create_texture(int width, int height, byte[] pixels, int bytes_per_pixel, StbGuiRenderAdapter.CreateTextureOptions options = default)
     {
         return CanvasInterop.CreateTexture(width, height, pixels, bytes_per_pixel);
     }

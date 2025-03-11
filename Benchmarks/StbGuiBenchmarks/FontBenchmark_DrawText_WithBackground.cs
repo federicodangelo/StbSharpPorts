@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
+
 using StbSharp;
 
 public class FontBenchmark_DrawText_WithBackground : FontBenchmark
@@ -22,4 +23,3 @@ public class FontBenchmark_DrawText_WithBackground : FontBenchmark
         StbGuiTextHelper.draw_text(parameters, bounds, font, render_adapter);
     }
 }
-

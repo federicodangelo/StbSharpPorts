@@ -34,7 +34,7 @@ public class StbTrueTypePackOversamplingTests : StbTrueTypeTests
 
         StbTrueType.stbtt_PackSetOversampling(ref spc, 2, 2);
         StbTrueType.stbtt_PackSetSkipMissingCodepoints(ref spc, true);
-        
+
         StbTrueType.stbtt_PackFontRanges(ref spc, ttf_buffer, 0, packRanges, 1);
 
         StbTrueType.stbtt_PackEnd(ref spc);
@@ -47,7 +47,7 @@ public class StbTrueTypePackOversamplingTests : StbTrueTypeTests
         var generatedImage = GenerateImageFromFontBitmap(bitmap, width, height);
 
         AssertImagesEqual(expectedFileName, generatedImage, generatedFileName);
-    }        
+    }
 
     static private string BuildExpectedFileName(string fontFileName, float fontSize, int rangeFrom, int rangeTo)
     {

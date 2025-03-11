@@ -3,9 +3,10 @@
 namespace StbSharp;
 
 using System;
-using widget_id = int;
-using widget_hash = int;
+
 using font_id = int;
+using widget_hash = int;
+using widget_id = int;
 
 public partial class StbGui
 {
@@ -28,7 +29,7 @@ public partial class StbGui
 
         stbg_set_widget_style(STBG_WIDGET_STYLE.CHECKBOX_TEXT_PADDING, checkboxTextPadding);
         stbg_set_widget_style(STBG_WIDGET_STYLE.CHECKBOX_TEXT_COLOR, rgb(44, 62, 80));
-        
+
         stbg_set_widget_style(STBG_WIDGET_STYLE.CHECKBOX_BORDER_COLOR, rgb(41, 128, 185));
         stbg_set_widget_style(STBG_WIDGET_STYLE.CHECKBOX_BACKGROUND_COLOR, STBG_COLOR_TRANSPARENT);
 
@@ -57,7 +58,7 @@ public partial class StbGui
             right = 0,
         };
 
-        var text_size = stbg__measure_text( stbg__build_text(checkbox_ref_props.text), STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE | STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE);
+        var text_size = stbg__measure_text(stbg__build_text(checkbox_ref_props.text), STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE | STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE);
         text_size = stbg_size_add_padding(text_size, padding);
 
         layout.intrinsic_size.size = text_size;
@@ -96,7 +97,7 @@ public partial class StbGui
             context.input.mouse_button_1;
     }
 
-    static private ReadOnlyMemory<char> STBG__CHECKBOX_CHECKED = "X".AsMemory();
+    private static readonly ReadOnlyMemory<char> STBG__CHECKBOX_CHECKED = "X".AsMemory();
 
     private static void stbg__checkbox_render(ref stbg_widget checkbox)
     {
@@ -138,7 +139,7 @@ public partial class StbGui
                 size.height - stbg__sum_styles(STBG_WIDGET_STYLE.CHECKBOX_PADDING_BOTTOM)
             ),
             stbg__build_text(checkbox_ref_props.text, text_color),
-            0, 0, 
+            0, 0,
             STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE | STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE
         );
     }

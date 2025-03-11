@@ -3,9 +3,10 @@
 namespace StbSharp;
 
 using System;
-using widget_id = int;
-using widget_hash = int;
+
 using font_id = int;
+using widget_hash = int;
+using widget_id = int;
 
 public partial class StbGui
 {
@@ -642,5 +643,5 @@ public partial class StbGui
         }
     }
 
-    static private ReadOnlyMemory<char> STBG__WINDOW_CLOSE_BUTTON = "X".AsMemory();
+    private static readonly ReadOnlyMemory<char> STBG__WINDOW_CLOSE_BUTTON = "X".AsMemory();
 }

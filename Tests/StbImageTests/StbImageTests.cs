@@ -1,4 +1,5 @@
 ﻿using ImageMagick;
+
 using StbSharp.StbCommon;
 
 namespace StbSharp.Tests;
@@ -25,7 +26,7 @@ public class StbImageTests
 
         var pixels = pixelsPtr.Span;
 
-        var image = new MagickImage(MagickColors.Transparent, (uint) width, (uint) height);
+        var image = new MagickImage(MagickColors.Transparent, (uint)width, (uint)height);
         var imagePixels = image.GetPixels();
 
         int idx = 0;
@@ -67,7 +68,7 @@ public class StbImageTests
 
         var pixels = pixelsPtr.Span;
 
-        var image = new MagickImage(MagickColors.Transparent, (uint) width, (uint) height);
+        var image = new MagickImage(MagickColors.Transparent, (uint)width, (uint)height);
         var imagePixels = image.GetPixels();
 
         int idx = 0;
@@ -77,10 +78,10 @@ public class StbImageTests
             for (int x = 0; x < width; x++)
             {
                 MagickColor color =
-                  channels == StbImage.STBI_CHANNELS.grey ?       MagickColor.FromRgba((byte) (pixels[idx] >> 8), (byte) (pixels[idx] >> 8),     (byte) (pixels[idx] >> 8),        255) :
-                  channels == StbImage.STBI_CHANNELS.grey_alpha ? MagickColor.FromRgba((byte) (pixels[idx] >> 8), (byte) (pixels[idx] >> 8),     (byte) (pixels[idx] >> 8),        (byte) (pixels[idx + 1] >> 8)) :
-                  channels == StbImage.STBI_CHANNELS.rgb ?        MagickColor.FromRgba((byte) (pixels[idx] >> 8), (byte) (pixels[idx + 1] >> 8), (byte) (pixels[idx + 2] >> 8),    255) :
-                  channels == StbImage.STBI_CHANNELS.rgb_alpha ?  MagickColor.FromRgba((byte) (pixels[idx] >> 8), (byte) (pixels[idx + 1] >> 8), (byte) (pixels[idx + 2] >> 8),    (byte) (pixels[idx + 3] >> 8)) :
+                  channels == StbImage.STBI_CHANNELS.grey ? MagickColor.FromRgba((byte)(pixels[idx] >> 8), (byte)(pixels[idx] >> 8), (byte)(pixels[idx] >> 8), 255) :
+                  channels == StbImage.STBI_CHANNELS.grey_alpha ? MagickColor.FromRgba((byte)(pixels[idx] >> 8), (byte)(pixels[idx] >> 8), (byte)(pixels[idx] >> 8), (byte)(pixels[idx + 1] >> 8)) :
+                  channels == StbImage.STBI_CHANNELS.rgb ? MagickColor.FromRgba((byte)(pixels[idx] >> 8), (byte)(pixels[idx + 1] >> 8), (byte)(pixels[idx + 2] >> 8), 255) :
+                  channels == StbImage.STBI_CHANNELS.rgb_alpha ? MagickColor.FromRgba((byte)(pixels[idx] >> 8), (byte)(pixels[idx + 1] >> 8), (byte)(pixels[idx + 2] >> 8), (byte)(pixels[idx + 3] >> 8)) :
                   MagickColors.Violet;
 
                 imagePixels.SetPixel(x, y, color.ToByteArray());
@@ -182,7 +183,7 @@ public class StbImageTests
                 }
             }
         }
-        
+
         string differenceFileName = Path.Combine(Path.GetDirectoryName(actualFileName) ?? "", Path.GetFileNameWithoutExtension(actualFileName) + ".diff" + Path.GetExtension(actualFileName));
 
         SaveGeneratedImage(differenceFileName, differenceImage);

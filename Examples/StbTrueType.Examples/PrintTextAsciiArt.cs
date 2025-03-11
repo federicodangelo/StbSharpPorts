@@ -19,13 +19,13 @@ static public class PrintTextAsciiArt
         StbTrueType.stbtt_fontinfo font;
         int baseline, ch = 0;
         float scale, xpos = 2; // leave a little padding in case the character extends left
-        
+
         byte[] buffer = File.ReadAllBytes(fileName);
         StbTrueType.stbtt_InitFont(out font, buffer, 0);
 
         scale = StbTrueType.stbtt_ScaleForPixelHeight(ref font, fontSize);
         StbTrueType.stbtt_GetFontVMetrics(ref font, out int ascent, out _, out int _);
-        
+
         baseline = (int)(ascent * scale);
 
         while (ch < text.Length)
@@ -36,7 +36,7 @@ static public class PrintTextAsciiArt
             StbTrueType.stbtt_GetCodepointHMetrics(ref font, text[ch], out advance, out lsb);
             StbTrueType.stbtt_GetCodepointBitmapBoxSubpixel(ref font, text[ch], scale, scale, x_shift, 0, out x0, out y0, out x1, out y1);
             StbTrueType.stbtt_MakeCodepointBitmapSubpixel(ref font, screen[(baseline + y0) * ScreenWidth + (int)xpos + x0], x1 - x0, y1 - y0, ScreenWidth, scale, scale, x_shift, 0, text[ch]);
-            
+
             // note that this stomps the old data, so where character boxes overlap (e.g. 'lj') it's wrong
             // because this API is really for baking character bitmaps into textures. if you want to render
             // a sequence of characters, you really need to render each bitmap to a temp buffer, then

@@ -28,7 +28,7 @@ public class StbTrueTypeTests
 
     static protected MagickImage GenerateImageFromFontBitmap(Span<byte> bitmap, int width, int height)
     {
-        var image = new MagickImage(MagickColors.Transparent, (uint) width, (uint) height);
+        var image = new MagickImage(MagickColors.Transparent, (uint)width, (uint)height);
 
         var pixels = image.GetPixels();
 
@@ -40,7 +40,7 @@ public class StbTrueTypeTests
 
                 pixels.SetPixel(x, y, MagickColor.FromRgba(pixel, pixel, pixel, 255).ToByteArray());
             }
-        }       
+        }
 
         return image;
     }

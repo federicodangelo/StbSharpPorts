@@ -3,12 +3,13 @@
 namespace StbSharp;
 
 using System;
-using widget_id = int;
-using widget_hash = int;
-using font_id = int;
-using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+using font_id = int;
+using widget_hash = int;
+using widget_id = int;
 
 public partial class StbGui
 {
@@ -121,7 +122,7 @@ public partial class StbGui
     }
 
     private const string DEBUG_WINDOW_TITLE = "_DEBUG_";
-    private static widget_hash debug_window_hash = stbg__calculate_hash(STBG_WIDGET_TYPE.WINDOW, DEBUG_WINDOW_TITLE, true);
+    private static readonly widget_hash debug_window_hash = stbg__calculate_hash(STBG_WIDGET_TYPE.WINDOW, DEBUG_WINDOW_TITLE, true);
 
     [Flags]
     private enum STBG__WIDGET_ADD_OPTIONS
@@ -163,7 +164,7 @@ public partial class StbGui
 
         return ref widget;
     }
-    
+
     private static ref stbg_widget stbg__add_widget(widget_hash hash, STBG_WIDGET_TYPE type, widget_id parent_id, out bool is_new, out bool is_already_created_in_same_frame, STBG__WIDGET_ADD_OPTIONS options = STBG__WIDGET_ADD_OPTIONS.NONE)
     {
         stbg__assert(context.inside_frame);

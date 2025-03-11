@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 
 namespace StbSharp.Tests;

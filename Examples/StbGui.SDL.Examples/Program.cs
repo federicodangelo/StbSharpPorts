@@ -6,7 +6,7 @@ public class Program
     {
         SDLApp app = new SDLApp();
 
-        while(!app.Quit)
+        while (!app.Quit)
         {
             app.loop_once();
         }
@@ -14,4 +14,3 @@ public class Program
         app.Dispose();
     }
 }
-

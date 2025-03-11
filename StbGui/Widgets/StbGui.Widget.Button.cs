@@ -3,9 +3,10 @@
 namespace StbSharp;
 
 using System;
-using widget_id = int;
-using widget_hash = int;
+
 using font_id = int;
+using widget_hash = int;
+using widget_id = int;
 
 public partial class StbGui
 {
@@ -55,7 +56,7 @@ public partial class StbGui
             right = stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_BORDER_SIZE, STBG_WIDGET_STYLE.BUTTON_PADDING_RIGHT),
         };
 
-        var text_size = stbg__measure_text( stbg__build_text(button_ref_props.text), STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE | STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE);
+        var text_size = stbg__measure_text(stbg__build_text(button_ref_props.text), STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE | STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE);
         text_size = stbg_size_add_padding(text_size, padding);
 
         layout.intrinsic_size.size = text_size;
@@ -109,7 +110,7 @@ public partial class StbGui
                 size.height - stbg__sum_styles(STBG_WIDGET_STYLE.BUTTON_PADDING_BOTTOM)
             ),
             stbg__build_text(button_ref_props.text, text_color),
-            0, 0, 
+            0, 0,
             STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE | STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE
         );
     }

@@ -163,7 +163,7 @@ public class StbGuiStringMemoryPool
         return new StbGuiString(this, result.Span);
     }
 
-    static private string[] FLOAT_FORMATS = ["F0", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9"];
+    private static readonly string[] FLOAT_FORMATS = ["F0", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9"];
     public StbGuiString Concat(ReadOnlySpan<char> str1, float val, int decimals)
     {
         Debug.Assert(decimals >= 0 && decimals <= 9);

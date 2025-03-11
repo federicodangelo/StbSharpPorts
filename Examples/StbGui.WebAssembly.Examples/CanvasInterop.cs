@@ -1,14 +1,15 @@
 using System.Runtime.InteropServices.JavaScript;
+
 using StbSharp;
 
 public partial class CanvasInterop
 {
     static public ulong BuildRGBA(StbGui.stbg_color color)
     {
-        return ((ulong) color.a) << 24 |
-               ((ulong) color.b) << 16 |
-               ((ulong) color.g) << 8 |
-               ((ulong) color.r);
+        return ((ulong)color.a) << 24 |
+               ((ulong)color.b) << 16 |
+               ((ulong)color.g) << 8 |
+               ((ulong)color.r);
     }
 
     [JSImport("init", "canvas-interop")]
@@ -58,7 +59,7 @@ public partial class CanvasInterop
     [JSImport("presentFrame", "canvas-interop")]
     public static partial void PresentFrame();
 
-   [JSImport("getInputEventsCount", "canvas-interop")]
+    [JSImport("getInputEventsCount", "canvas-interop")]
     public static partial int GetInputEventsCount();
 
     [JSImport("getInputEvent", "canvas-interop")]
@@ -81,7 +82,7 @@ public partial class CanvasInterop
 
     [JSImport("copyToClipboard", "canvas-interop")]
     public static partial void CopyToClipboard(string text);
-    
+
     [JSImport("getFromClipboard", "canvas-interop")]
     public static partial string GetFromClipboard();
 

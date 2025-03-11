@@ -3,8 +3,8 @@ using StbSharp;
 public class TestImagesWindow : TestWindow
 {
     private bool show_subimages = true;
-    private int test_image_id;
-    private int[] test_sub_images = new int[4];
+    private readonly int test_image_id;
+    private readonly int[] test_sub_images = new int[4];
 
     public TestImagesWindow(StbGuiAppBase appBase, StbGuiStringMemoryPool mp) : base("Test Images", appBase, mp)
     {

@@ -2,7 +2,9 @@ namespace StbSharp.Examples;
 
 using System;
 using System.Runtime.InteropServices;
+
 using SDL3;
+
 using StbSharp;
 
 public abstract class SDLAppBase : StbGuiAppBase
@@ -102,7 +104,7 @@ public abstract class SDLAppBase : StbGuiAppBase
 
     protected override void present_frame(long frame_ms, bool rendered)
     {
-        if (rendered)        
+        if (rendered)
         {
             SDL.RenderPresent(renderer);
         }
@@ -145,7 +147,7 @@ public abstract class SDLAppBase : StbGuiAppBase
         }
     }
 
-    static private Dictionary<SDL.Scancode, StbGui.STBG_KEYBOARD_KEY> SDL_KEY_MAPPINGS = new() {
+    private static readonly Dictionary<SDL.Scancode, StbGui.STBG_KEYBOARD_KEY> SDL_KEY_MAPPINGS = new() {
         // Basic arrows
         { SDL.Scancode.Left, StbGui.STBG_KEYBOARD_KEY.LEFT },
         { SDL.Scancode.Right, StbGui.STBG_KEYBOARD_KEY.RIGHT },

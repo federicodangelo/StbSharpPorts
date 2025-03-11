@@ -3,9 +3,10 @@
 namespace StbSharp;
 
 using System;
-using widget_id = int;
-using widget_hash = int;
+
 using font_id = int;
+using widget_hash = int;
+using widget_id = int;
 
 public partial class StbGui
 {
@@ -14,7 +15,7 @@ public partial class StbGui
     private delegate void stbg__widget_init_default_theme_delegate();
     private delegate void stbg__widget_init_context_delegate(ref stbg_context context);
 
-    static private Dictionary<STBG_WIDGET_TYPE, stbg__widget_render_delegate> STBG__WIDGET_RENDER_DICTIONARY = new() {
+    private static readonly Dictionary<STBG_WIDGET_TYPE, stbg__widget_render_delegate> STBG__WIDGET_RENDER_DICTIONARY = new() {
         { STBG_WIDGET_TYPE.WINDOW, stbg__window_render },
         { STBG_WIDGET_TYPE.BUTTON, stbg__button_render },
         { STBG_WIDGET_TYPE.BUTTON_IMAGE, stbg__button_image_render },
@@ -25,7 +26,7 @@ public partial class StbGui
         { STBG_WIDGET_TYPE.IMAGE, stbg__image_render },
     };
 
-    static private Dictionary<STBG_WIDGET_TYPE, stbg__widget_update_input_delegate?> STBG__WIDGET_UPDATE_INPUT_DICTIONARY = new() {
+    private static readonly Dictionary<STBG_WIDGET_TYPE, stbg__widget_update_input_delegate?> STBG__WIDGET_UPDATE_INPUT_DICTIONARY = new() {
         { STBG_WIDGET_TYPE.WINDOW, stbg__window_update_input },
         { STBG_WIDGET_TYPE.BUTTON, stbg__button_update_input },
         { STBG_WIDGET_TYPE.BUTTON_IMAGE, stbg__button_image_update_input },
@@ -37,7 +38,7 @@ public partial class StbGui
         
     };
 
-    static private stbg__widget_init_default_theme_delegate[] STBG__WIDGET_INIT_DEFAULT_THEME_LIST = [
+    private static readonly stbg__widget_init_default_theme_delegate[] STBG__WIDGET_INIT_DEFAULT_THEME_LIST = [
         stbg__button_init_default_theme,
         stbg__button_image_init_default_theme,
         stbg__checkbox_init_default_theme,
@@ -48,12 +49,12 @@ public partial class StbGui
         stbg__image_init_default_theme,
     ];
 
-    static private stbg__widget_init_context_delegate[] STBG__WIDGET_INIT_CONTEXT_LIST = [
+    private static readonly stbg__widget_init_context_delegate[] STBG__WIDGET_INIT_CONTEXT_LIST = [
         stbg__textbox_init_context,
     ];
 
-    static private stbg__widget_render_delegate?[] STBG__WIDGET_RENDER_MAP = new stbg__widget_render_delegate[(int)STBG_WIDGET_TYPE.COUNT];
-    static private stbg__widget_update_input_delegate?[] STBG__WIDGET_UPDATE_INPUT_MAP = new stbg__widget_update_input_delegate[(int)STBG_WIDGET_TYPE.COUNT];
+    private static readonly stbg__widget_render_delegate?[] STBG__WIDGET_RENDER_MAP = new stbg__widget_render_delegate[(int)STBG_WIDGET_TYPE.COUNT];
+    private static readonly stbg__widget_update_input_delegate?[] STBG__WIDGET_UPDATE_INPUT_MAP = new stbg__widget_update_input_delegate[(int)STBG_WIDGET_TYPE.COUNT];
 
     static StbGui()
     {

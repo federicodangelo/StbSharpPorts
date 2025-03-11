@@ -16,7 +16,7 @@ public record class StbGuiFont : IDisposable
     public readonly nint texture_id;
 
     private StbTrueType.stbtt_fontinfo font_info;
-    private StbGuiRenderAdapter render_adapter;
+    private readonly StbGuiRenderAdapter render_adapter;
 
     public StbGuiFont(string name, string filename, float font_size, int oversampling, bool use_bilinear_filtering, StbGuiRenderAdapter render_adapter)
         : this(name, File.ReadAllBytes(filename), font_size, oversampling, use_bilinear_filtering, render_adapter)

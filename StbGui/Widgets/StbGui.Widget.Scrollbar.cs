@@ -3,10 +3,11 @@
 namespace StbSharp;
 
 using System;
-using widget_id = int;
-using widget_hash = int;
-using font_id = int;
 using System.Diagnostics;
+
+using font_id = int;
+using widget_hash = int;
+using widget_id = int;
 
 public partial class StbGui
 {
@@ -212,11 +213,11 @@ public partial class StbGui
             context.input_feedback.pressed_widget_id = STBG_WIDGET_ID_NULL;
         }
 
-        return 
-            context.input.mouse_button_1_down || 
-            context.input.mouse_button_1_up || 
-            context.input.mouse_button_1 || 
-            context.input.mouse_wheel_scroll_amount.x != 0 || 
+        return
+            context.input.mouse_button_1_down ||
+            context.input.mouse_button_1_up ||
+            context.input.mouse_button_1 ||
+            context.input.mouse_wheel_scroll_amount.x != 0 ||
             context.input.mouse_wheel_scroll_amount.y != 0;
     }
 
@@ -286,10 +287,10 @@ public partial class StbGui
         }
     }
 
-    static private ReadOnlyMemory<char> STBG__SCROLLBAR_ARROW_LEFT = "<".AsMemory();
-    static private ReadOnlyMemory<char> STBG__SCROLLBAR_ARROW_RIGHT = ">".AsMemory();
-    static private ReadOnlyMemory<char> STBG__SCROLLBAR_ARROW_UP = "^".AsMemory();
-    static private ReadOnlyMemory<char> STBG__SCROLLBAR_ARROW_DOWN = "v".AsMemory();
+    private static readonly ReadOnlyMemory<char> STBG__SCROLLBAR_ARROW_LEFT = "<".AsMemory();
+    private static readonly ReadOnlyMemory<char> STBG__SCROLLBAR_ARROW_RIGHT = ">".AsMemory();
+    private static readonly ReadOnlyMemory<char> STBG__SCROLLBAR_ARROW_UP = "^".AsMemory();
+    private static readonly ReadOnlyMemory<char> STBG__SCROLLBAR_ARROW_DOWN = "v".AsMemory();
 
     private static void stbg__scrollbar_get_parts(stbg_widget scrollbar, stbg__scrollbar_parameters parameters, stbg_rect bounds, out stbg_rect min_button_rect, out stbg_rect max_button_rect, out stbg_rect thumb_rect)
     {

@@ -1,4 +1,5 @@
 using BenchmarkDotNet.Attributes;
+
 using StbSharp;
 
 public class GuiBenchmark
@@ -76,7 +77,7 @@ public class GuiBenchmark
         var font_id = StbGui.stbg_add_font(font.name);
         StbGui.stbg_init_default_theme(font_id, new() { color = StbGui.STBG_COLOR_BLACK, size = font.size, style = StbGui.STBG_FONT_STYLE_FLAGS.NONE });
         StbGui.stbg_set_screen_size(1920, 1080);
-        
+
         SetupContent();
     }
 

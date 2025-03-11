@@ -14,7 +14,7 @@ public abstract class TestWindow
         this.appBase = appBase;
         this.mp = mp;
     }
-    
+
     public abstract void Render();
 }
 

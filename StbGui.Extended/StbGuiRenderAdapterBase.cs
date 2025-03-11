@@ -4,11 +4,11 @@ namespace StbSharp;
 
 public abstract class StbGuiRenderAdapterBase : StbGuiRenderAdapter
 {
-    private Dictionary<int, StbGuiFont> fonts = new();
+    private readonly Dictionary<int, StbGuiFont> fonts = new();
 
-    private Dictionary<int, nint> images = new();
+    private readonly Dictionary<int, nint> images = new();
 
-    private StbGuiRenderAdapter.Rect[] tmp_rect = new StbGuiRenderAdapter.Rect[1];
+    private readonly StbGuiRenderAdapter.Rect[] tmp_rect = new StbGuiRenderAdapter.Rect[1];
 
     public void register_font(int font_id, StbGuiFont font)
     {
@@ -70,22 +70,23 @@ public abstract class StbGuiRenderAdapterBase : StbGuiRenderAdapter
                 }
 
             case StbGui.STBG_RENDER_COMMAND_TYPE.IMAGE:
-            {
-                var image_id = cmd.image_id;
-                var color = cmd.color;
-                var bounds = cmd.bounds;
-                var source_rect = cmd.source_rect;
-                var texture_id = images[image_id];
+                {
+                    var image_id = cmd.image_id;
+                    var color = cmd.color;
+                    var bounds = cmd.bounds;
+                    var source_rect = cmd.source_rect;
+                    var texture_id = images[image_id];
 
-                tmp_rect[0] = new StbGuiRenderAdapter.Rect() { 
-                    rect = bounds,
-                    tex_coord_rect = source_rect,
-                    color = color
-                };
+                    tmp_rect[0] = new StbGuiRenderAdapter.Rect()
+                    {
+                        rect = bounds,
+                        tex_coord_rect = source_rect,
+                        color = color
+                    };
 
-                draw_texture_rects(tmp_rect, 1, texture_id);
-                break;
-            }
+                    draw_texture_rects(tmp_rect, 1, texture_id);
+                    break;
+                }
 
             case StbGui.STBG_RENDER_COMMAND_TYPE.PUSH_CLIPPING_RECT:
                 push_clip_rect(cmd.bounds);

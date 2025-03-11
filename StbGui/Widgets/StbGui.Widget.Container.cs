@@ -3,9 +3,10 @@
 namespace StbSharp;
 
 using System;
-using widget_id = int;
-using widget_hash = int;
+
 using font_id = int;
+using widget_hash = int;
+using widget_id = int;
 
 public partial class StbGui
 {
@@ -22,6 +23,6 @@ public partial class StbGui
         layout.children_layout_direction = layout_direction;
         layout.children_spacing = spacing;
 
-        return ref container;               
+        return ref container;
     }
 }

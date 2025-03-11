@@ -3,10 +3,11 @@
 namespace StbSharp;
 
 using System;
-using widget_id = int;
-using widget_hash = int;
+
 using font_id = int;
 using image_id = int;
+using widget_hash = int;
+using widget_id = int;
 
 // Reference:
 // - https://www.rfleury.com/p/posts-table-of-contents

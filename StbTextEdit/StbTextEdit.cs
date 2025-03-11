@@ -2,10 +2,11 @@
 
 namespace StbSharp;
 
-using STB_TEXTEDIT_CHARTYPE = char;
-using STB_TEXTEDIT_POSITIONTYPE = int;
-using STB_TEXTEDIT_KEYTYPE = int;
 using StbSharp.StbCommon;
+
+using STB_TEXTEDIT_CHARTYPE = char;
+using STB_TEXTEDIT_KEYTYPE = int;
+using STB_TEXTEDIT_POSITIONTYPE = int;
 
 public class StbTextEdit
 {

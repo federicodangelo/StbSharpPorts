@@ -3,11 +3,13 @@
 namespace StbSharp;
 
 using System;
-using widget_id = int;
-using widget_hash = int;
-using font_id = int;
 using System.Runtime.InteropServices;
+
 using Microsoft.Win32;
+
+using font_id = int;
+using widget_hash = int;
+using widget_id = int;
 
 public partial class StbGui
 {
@@ -92,7 +94,7 @@ public partial class StbGui
         {
             widget_intrinsic_size.size.width = Math.Max(widget_intrinsic_size.size.width, constrains.min.width);
             widget_intrinsic_size.size.height = Math.Max(widget_intrinsic_size.size.height, constrains.min.height);
-        
+
             constrains = stbg_merge_constrains(constrains, stbg_build_constrains(0, 0, widget_intrinsic_size.size.width, widget_intrinsic_size.size.height));
         }
 
@@ -193,7 +195,7 @@ public partial class StbGui
 
                 stbg__assert_internal(children_size.width <= children_constrains.max.width);
                 stbg__assert_internal(children_size.height <= children_constrains.max.height);
-                
+
                 // we only care about the max constrains
                 //stbg__assert_internal(children_size.width >= children_constrains.min.width);
                 //stbg__assert_internal(children_size.height >= children_constrains.min.height);

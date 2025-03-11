@@ -1,8 +1,8 @@
-using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Diagnostics.Windows;
 using BenchmarkDotNet.Exporters;
 using BenchmarkDotNet.Exporters.Csv;
-using BenchmarkDotNet.Diagnostics.Windows;
+using BenchmarkDotNet.Running;
 
 var config = ManualConfig.
     CreateMinimumViable()

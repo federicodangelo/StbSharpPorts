@@ -293,5 +293,5 @@ public class StbHash
             b = v1 ^ v3;
             U32TO8_LE(output.Slice(sizeof(uint)), b);
         }
-    }    
+    }
 }

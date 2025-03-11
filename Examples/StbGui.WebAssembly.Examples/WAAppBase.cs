@@ -2,6 +2,7 @@ namespace StbSharp.Examples;
 
 using System;
 using System.Diagnostics;
+
 using StbSharp;
 
 public abstract class WAAppBase : StbGuiAppBase
@@ -159,7 +160,7 @@ public abstract class WAAppBase : StbGuiAppBase
         return code;
     }
 
-    static private Dictionary<string, StbGui.STBG_KEYBOARD_KEY> SDL_KEY_MAPPINGS = new() {
+    private static readonly Dictionary<string, StbGui.STBG_KEYBOARD_KEY> SDL_KEY_MAPPINGS = new() {
         // Basic arrows
         { "ArrowLeft", StbGui.STBG_KEYBOARD_KEY.LEFT },
         { "ArrowRight", StbGui.STBG_KEYBOARD_KEY.RIGHT },

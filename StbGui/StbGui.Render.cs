@@ -95,7 +95,7 @@ public partial class StbGui
             }
         });
     }
-    
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static private void stbg__rc_push_clipping_rect(stbg_rect rect)
     {

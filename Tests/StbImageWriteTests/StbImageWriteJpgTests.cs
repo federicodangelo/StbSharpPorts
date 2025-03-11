@@ -1,6 +1,7 @@
 #pragma warning disable CA1416 // Validate platform compatibility
 
 using System.Drawing;
+
 using StbSharp.StbCommon;
 
 namespace StbSharp.Tests;

@@ -1,6 +1,7 @@
 #pragma warning disable CA1416 // Validate platform compatibility
 
 using System.Drawing;
+
 using StbSharp.StbCommon;
 
 namespace StbSharp.Tests;
@@ -91,11 +92,11 @@ public class StbImageWritePngTests : StbImageWriteTests
             )
         ] string imageFileName,
         [CombinatorialValues(
-            StbImageWrite.STBIW_PNG_FILTER.RUNTIME_DETECTED, 
-            StbImageWrite.STBIW_PNG_FILTER.NONE, 
-            StbImageWrite.STBIW_PNG_FILTER.SUB, 
-            StbImageWrite.STBIW_PNG_FILTER.UP, 
-            StbImageWrite.STBIW_PNG_FILTER.AVERAGE, 
+            StbImageWrite.STBIW_PNG_FILTER.RUNTIME_DETECTED,
+            StbImageWrite.STBIW_PNG_FILTER.NONE,
+            StbImageWrite.STBIW_PNG_FILTER.SUB,
+            StbImageWrite.STBIW_PNG_FILTER.UP,
+            StbImageWrite.STBIW_PNG_FILTER.AVERAGE,
             StbImageWrite.STBIW_PNG_FILTER.PAETH)]
         StbImageWrite.STBIW_PNG_FILTER pngFilter
         )

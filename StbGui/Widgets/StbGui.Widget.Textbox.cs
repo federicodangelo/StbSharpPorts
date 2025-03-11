@@ -3,10 +3,11 @@
 namespace StbSharp;
 
 using System;
-using widget_id = int;
-using widget_hash = int;
-using font_id = int;
 using System.Diagnostics;
+
+using font_id = int;
+using widget_hash = int;
+using widget_id = int;
 
 public partial class StbGui
 {

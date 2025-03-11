@@ -20,7 +20,7 @@ public class StbTrueTypeMetricsTests : StbTrueTypeTests
         var ttf_buffer = GetFontFile(fontFileName);
 
         var init_result = StbTrueType.stbtt_InitFont(out StbTrueType.stbtt_fontinfo font, ttf_buffer, StbTrueType.stbtt_GetFontOffsetForIndex(ttf_buffer, 0));
-        
+
         StbTrueType.stbtt_GetFontVMetrics(ref font, out int ascent, out _, out int _);
 
         Assert.True(0 != init_result, $"Failed to initialize font: {fontFileName}");
@@ -30,8 +30,8 @@ public class StbTrueTypeMetricsTests : StbTrueTypeTests
 
         float xpos = 2;
 
-        int textureWidth = (int) (fontSize * text.Length);
-        int textureHeight = (int) fontSize;
+        int textureWidth = (int)(fontSize * text.Length);
+        int textureHeight = (int)fontSize;
 
         BytePtr bitmap = new BytePtr(new byte[textureHeight * textureWidth]);
 

@@ -79,7 +79,7 @@ static public class BuildFontBitmapExample
 
         StbTrueType.stbtt_PackSetOversampling(ref spc, 1, 1);
         StbTrueType.stbtt_PackSetSkipMissingCodepoints(ref spc, true);
-        
+
         StbTrueType.stbtt_PackFontRanges(ref spc, fontBytes, 0, packRanges, 1);
 
         StbTrueType.stbtt_PackEnd(ref spc);
@@ -90,7 +90,8 @@ static public class BuildFontBitmapExample
             bitmap = bitmap,
             bitmapWidth = bitmapOptions.outputBitmapWidth,
             bitmapHeight = bitmapOptions.outputBitmapHeight,
-            cdata = packRanges[0].chardata_for_range.Select(c => new StbTrueType.stbtt_bakedchar{
+            cdata = packRanges[0].chardata_for_range.Select(c => new StbTrueType.stbtt_bakedchar
+            {
                 x0 = c.x0,
                 x1 = c.x1,
                 y0 = c.y0,
@@ -101,7 +102,7 @@ static public class BuildFontBitmapExample
                 xadvance = c.xadvance,
             }).ToArray(),
             addedCharacters = rangeSize,
-        };                
+        };
     }
 
     private static BuildFontBitmapOutput? PackFast(FontOptions fontOptions, BitmapOptions bitmapOptions, byte[] fontBytes)

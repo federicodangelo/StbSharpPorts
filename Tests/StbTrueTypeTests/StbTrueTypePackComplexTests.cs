@@ -37,7 +37,7 @@ public class StbTrueTypePackComplexTests : StbTrueTypeTests
 
         StbTrueType.stbtt_PackSetOversampling(ref spc, 1, 1);
         StbTrueType.stbtt_PackSetSkipMissingCodepoints(ref spc, true);
-        
+
         StbTrueType.stbtt_PackFontRanges(ref spc, ttf_buffer, 0, packRanges, 1);
 
         StbTrueType.stbtt_PackEnd(ref spc);
@@ -50,7 +50,7 @@ public class StbTrueTypePackComplexTests : StbTrueTypeTests
         var generatedImage = GenerateImageFromFontBitmap(bitmap, width, height);
 
         AssertImagesEqual(expectedFileName, generatedImage, generatedFileName);
-    }        
+    }
 
     static private string BuildExpectedPackedComplexImageFileName(string fontFileName, float fontSize, int rangeFrom, int rangeTo)
     {

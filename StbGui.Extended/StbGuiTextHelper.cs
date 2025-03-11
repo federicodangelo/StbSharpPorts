@@ -239,8 +239,8 @@ public class StbGuiTextHelper
         public StbGuiRenderAdapter render_adapter;
     }
 
-    static private StbGuiRenderAdapter.Rect[] draw_text_rects_buffer = new StbGuiRenderAdapter.Rect[MAX_RECTS_COUNT];
-    static private StbGuiRenderAdapter.Rect[] draw_text_rects_buffer2 = new StbGuiRenderAdapter.Rect[MAX_RECTS_COUNT];
+    private static readonly StbGuiRenderAdapter.Rect[] draw_text_rects_buffer = new StbGuiRenderAdapter.Rect[MAX_RECTS_COUNT];
+    private static readonly StbGuiRenderAdapter.Rect[] draw_text_rects_buffer2 = new StbGuiRenderAdapter.Rect[MAX_RECTS_COUNT];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static private void add_draw_texture_to_rect_buffer(ref RectsBuffer rect_buffer, StbGui.stbg_rect tex_coords_rect, StbGui.stbg_rect rect, StbGui.stbg_color color)

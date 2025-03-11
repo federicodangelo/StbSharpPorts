@@ -1,11 +1,13 @@
 #pragma warning disable CA1416 // Validate platform compatibility
 
-using StbSharp;
-using StbSharp.StbCommon;
 using System.Diagnostics;
-using ImageMagick;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+
+using ImageMagick;
+
+using StbSharp;
+using StbSharp.StbCommon;
 
 namespace StbSharp.Examples;
 

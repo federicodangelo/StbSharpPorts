@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace StbSharp.StbCommon;
 
-public readonly struct PtrConvert<T, T2>(Memory<T> elements) where T : struct where T2: struct
+public readonly struct PtrConvert<T, T2>(Memory<T> elements) where T : struct where T2 : struct
 {
     private readonly Memory<T> elements = elements;
 
@@ -49,48 +49,47 @@ public readonly struct PtrConvert<T, T2>(Memory<T> elements) where T : struct wh
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public implicit operator PtrConvert<T,T2>(Ptr<T> left)
+    static public implicit operator PtrConvert<T, T2>(Ptr<T> left)
     {
-        return new PtrConvert<T,T2>(left.Raw);
+        return new PtrConvert<T, T2>(left.Raw);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public PtrConvert<T,T2> operator +(PtrConvert<T,T2> left, int offset)
+    static public PtrConvert<T, T2> operator +(PtrConvert<T, T2> left, int offset)
     {
-        return new PtrConvert<T,T2>(left.elements.Slice(offset));
+        return new PtrConvert<T, T2>(left.elements.Slice(offset));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public PtrConvert<T,T2> operator +(PtrConvert<T,T2> left, uint offset)
+    static public PtrConvert<T, T2> operator +(PtrConvert<T, T2> left, uint offset)
     {
-        return new PtrConvert<T,T2>(left.elements.Slice((int)offset* Marshal.SizeOf<T2>()));
+        return new PtrConvert<T, T2>(left.elements.Slice((int)offset * Marshal.SizeOf<T2>()));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public PtrConvert<T,T2> operator ++(PtrConvert<T,T2> left)
+    static public PtrConvert<T, T2> operator ++(PtrConvert<T, T2> left)
     {
-        return new PtrConvert<T,T2>(left.elements.Slice(1* Marshal.SizeOf<T2>()));
+        return new PtrConvert<T, T2>(left.elements.Slice(1 * Marshal.SizeOf<T2>()));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public implicit operator PtrConvert<T,T2>(Memory<T> left)
+    static public implicit operator PtrConvert<T, T2>(Memory<T> left)
     {
-        return new PtrConvert<T,T2>(left);
+        return new PtrConvert<T, T2>(left);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public implicit operator PtrConvert<T,T2>(T[] left)
+    static public implicit operator PtrConvert<T, T2>(T[] left)
     {
-        return new PtrConvert<T,T2>(left);
+        return new PtrConvert<T, T2>(left);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public implicit operator Span<T2>(PtrConvert<T,T2> left)
+    static public implicit operator Span<T2>(PtrConvert<T, T2> left)
     {
         return left.Span;
     }
 
-    static public readonly PtrConvert<T,T2> Null = new(Memory<T>.Empty);
+    static public readonly PtrConvert<T, T2> Null = new(Memory<T>.Empty);
 
 }
-

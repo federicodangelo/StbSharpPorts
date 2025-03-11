@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace StbSharp.StbCommon;
 
-public readonly struct BytePtrConvert<T2>(Memory<byte> elements) where T2: struct
+public readonly struct BytePtrConvert<T2>(Memory<byte> elements) where T2 : struct
 {
     private readonly Memory<byte> elements = elements;
 
@@ -63,13 +63,13 @@ public readonly struct BytePtrConvert<T2>(Memory<byte> elements) where T2: struc
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static public BytePtrConvert<T2> operator +(BytePtrConvert<T2> left, uint offset)
     {
-        return new BytePtrConvert<T2>(left.elements.Slice((int)offset* Marshal.SizeOf<T2>()));
+        return new BytePtrConvert<T2>(left.elements.Slice((int)offset * Marshal.SizeOf<T2>()));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static public BytePtrConvert<T2> operator ++(BytePtrConvert<T2> left)
     {
-        return new BytePtrConvert<T2>(left.elements.Slice(1* Marshal.SizeOf<T2>()));
+        return new BytePtrConvert<T2>(left.elements.Slice(1 * Marshal.SizeOf<T2>()));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -93,4 +93,3 @@ public readonly struct BytePtrConvert<T2>(Memory<byte> elements) where T2: struc
     static public readonly BytePtrConvert<T2> Null = new(Memory<byte>.Empty);
 
 }
-

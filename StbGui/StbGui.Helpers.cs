@@ -306,7 +306,7 @@ public partial class StbGui
         {
             text = new Memory<char>(new char[max_length])
         };
-        
+
         if (text != null)
             stbg_textbox_set_text_to_edit(ref text_to_edit, text);
 

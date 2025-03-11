@@ -141,4 +141,3 @@ public readonly struct Ptr<T>(Memory<T> elements)
         return segmentLeft.Offset >= segmentRight.Offset;
     }
 }
-

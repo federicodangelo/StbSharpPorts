@@ -1,7 +1,9 @@
 ﻿#pragma warning disable CA1416 // Validate platform compatibility
 
-using ImageMagick;
 using System.Globalization;
+
+using ImageMagick;
+
 using StbSharp.StbCommon;
 
 namespace StbSharp.Tests;
