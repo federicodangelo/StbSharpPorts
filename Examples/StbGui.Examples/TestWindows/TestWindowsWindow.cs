@@ -4,7 +4,7 @@ public class TestWindowsWindow : TestWindow
 {
     public TestWindowsWindow(StbGuiAppBase appBase, StbGuiStringMemoryPool mp) : base("Test Window", appBase, mp)
     {
-
+        open = true;
     }
 
     private bool show_title = true;
@@ -21,17 +21,13 @@ public class TestWindowsWindow : TestWindow
                 (movable ? 0 : StbGui.STBG_WINDOW_OPTIONS.NO_MOVE))
             )
         {
-            if (StbGui.stbg_button(mp.Build("Toggle Title: ") + show_title))
-                show_title = !show_title;
+            StbGui.stbg_checkbox("Title", ref show_title);
 
-            if (StbGui.stbg_button(mp.Build("Toggle Resizable: ") + resizable))
-                resizable = !resizable;
+            StbGui.stbg_checkbox("Resizable", ref resizable);
 
-            if (StbGui.stbg_button(mp.Build("Toggle Scrollbars: ") + show_scrollbars))
-                show_scrollbars = !show_scrollbars;
+            StbGui.stbg_checkbox("Scrollbars", ref show_scrollbars);
 
-            if (StbGui.stbg_button(mp.Build("Toggle Movable: ") + movable))
-                movable = !movable;
+            StbGui.stbg_checkbox("Movable", ref movable);
 
             for (int i = 0; i < 20; i++)
             {

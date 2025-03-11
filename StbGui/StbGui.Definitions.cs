@@ -214,6 +214,21 @@ public partial class StbGui
         BUTTON_PRESSED_BACKGROUND_COLOR,
         BUTTON_PRESSED_TEXT_COLOR,
 
+        // Checkbox styles
+        CHECKBOX_SIZE,
+        CHECKBOX_BORDER_SIZE,
+        CHECKBOX_PADDING_TOP,
+        CHECKBOX_PADDING_BOTTOM,
+        CHECKBOX_TEXT_PADDING,
+        CHECKBOX_TEXT_COLOR,
+        CHECKBOX_BORDER_COLOR,
+        CHECKBOX_BACKGROUND_COLOR,
+        CHECKBOX_HOVERED_BORDER_COLOR,
+        CHECKBOX_HOVERED_BACKGROUND_COLOR,
+        CHECKBOX_CHECKED_BORDER_COLOR,
+        CHECKBOX_CHECKED_BACKGROUND_COLOR,
+
+
         // Label styles
         LABEL_PADDING_TOP,
         LABEL_PADDING_BOTTOM,
@@ -413,6 +428,7 @@ public partial class StbGui
         CONTAINER,
         BUTTON,
         BUTTON_IMAGE,
+        CHECKBOX,
         LABEL,
         IMAGE,
         SCROLLBAR,

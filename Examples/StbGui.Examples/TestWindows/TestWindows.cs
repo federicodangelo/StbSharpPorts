@@ -22,7 +22,7 @@ static public class TestWindows
 {
     static public bool open = true;
     static public bool initialized = false;
-    static private TestWindow[] windows;
+    static private TestWindow[] windows = Array.Empty<TestWindow>();
 
     static public void Render(StbGuiAppBase appBase, StbGuiStringMemoryPool mp)
     {

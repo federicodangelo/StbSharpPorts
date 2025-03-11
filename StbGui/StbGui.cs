@@ -711,6 +711,15 @@ public partial class StbGui
     }
 
     /// <summary>
+    /// Adds a checkbox.
+    /// </summary>
+    /// <param name="label">Checkbox label, must be unique in the parent</param>
+    public static void stbg_checkbox(ReadOnlySpan<char> label, ref bool value)
+    {
+        stbg__checkbox_create(label, ref value);
+    }
+
+    /// <summary>
     /// Shows a label.
     /// </summary>
     /// <param name="text">Label text, must be unique in the parent</param>

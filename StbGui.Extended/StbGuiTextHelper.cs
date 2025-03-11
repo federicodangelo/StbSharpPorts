@@ -118,7 +118,7 @@ public class StbGuiTextHelper
                 if (ignore_metrics)
                 {
                     current_line_height = Math.Max(current_line_height, (iteration_data.c_data.y1 - iteration_data.c_data.y0) * iteration_data.scale * font.oversampling_scale);
-                    iteration_data.dx = ((iteration_data.c_data.x1 - iteration_data.c_data.x0) + 1) * iteration_data.scale * font.oversampling_scale;
+                    iteration_data.dx = (iteration_data.c_data.x1 - iteration_data.c_data.x0) * iteration_data.scale * font.oversampling_scale;
                 }
                 else
                 {
