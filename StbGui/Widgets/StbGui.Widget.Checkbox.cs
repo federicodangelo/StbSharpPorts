@@ -120,19 +120,11 @@ public partial class StbGui
             STBG_COLOR_TRANSPARENT
         );
 
-        if (is_checked)
+        if (is_checked || hovered)
         {
-            stbg__rc_draw_line(
-                stbg_build_position(checkbox_rect.x0 + 2, checkbox_rect.y0 + 2),
-                stbg_build_position(checkbox_rect.x1 - 3, checkbox_rect.y1 - 3),
-                background_color,
-                1
-            );
-            stbg__rc_draw_line(
-                stbg_build_position(checkbox_rect.x0 + 2, checkbox_rect.y1 - 3),
-                stbg_build_position(checkbox_rect.x1 - 3, checkbox_rect.y0 + 2),
-                background_color,
-                1
+            stbg__rc_draw_rectangle(
+                stbg_build_rect(checkbox_rect.x0 + 2, checkbox_rect.y0 + 2, checkbox_rect.x1 - 2, checkbox_rect.y1 - 2),
+                background_color
             );
         }
 
