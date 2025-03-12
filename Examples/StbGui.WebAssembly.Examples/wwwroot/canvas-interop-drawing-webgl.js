@@ -156,6 +156,42 @@ export function drawRectangle(color, x, y, w, h) {
     }
 }
 
+export function drawLine(x1, y1, x2, y2, color, width) {
+    if (!RENDER) return;
+
+    if (getAlpha(color) != 0) {
+        if (lastProgram != colorProgramInfo) {
+            submitVertices();
+
+            lastProgram = colorProgramInfo;
+
+            // Setup shader
+            gl.useProgram(colorProgramInfo.program);
+            gl.uniformMatrix4fv(
+                colorProgramInfo.uniformLocations.projectionMatrix,
+                false,
+                projectionMatrix,
+            );
+
+            // Setup attributes
+            setPositionAttribute(colorProgramInfo);
+            setColorAttribute(colorProgramInfo);
+
+            lastProgramUsesPositions = true;
+            lastProgramUsesColors = true;
+            lastProgramUsesTextureCoords = false;
+        }
+
+        beginDrawLines();
+        submitVerticesIfNoRoom(LINE_VERTICES, LINE_INDICES);
+
+        addVertexColor(x1 + width / 2, y1 + width / 2, color);
+        addVertexColor(x2 + width / 2, y2 + width / 2, color);
+
+        addLineIndices();
+    }
+}
+
 function buildClipRect(x, y, w, h) {
     return { x, y, w, h };
 }
@@ -283,6 +319,9 @@ var lastProgramUsesTextureCoords = false;
 const RECTANGLE_VERTICES = 4;
 const RECTANGLE_INDICES = 6;
 
+const LINE_VERTICES = 2;
+const LINE_INDICES = 2;
+
 const TEMP_RECTANGLES_COUNT = 8192;
 const TEMP_VERTICES_COUNT = TEMP_RECTANGLES_COUNT * RECTANGLE_VERTICES;             // 4 vertices per rectangle
 
@@ -294,11 +333,27 @@ var tempVertIndices = new Uint16Array(TEMP_RECTANGLES_COUNT * RECTANGLE_INDICES)
 var tempVertIndex = 0;
 var tempVertIndicesIndex = 0;
 
+var tempDrawMode = 3;
+
 function submitVerticesIfNoRoom(vertices, indexes) {
     if (tempVertIndex + vertices >= TEMP_VERTICES_COUNT ||
         tempVertIndicesIndex + indexes >= TEMP_VERTICES_COUNT) {
 
         submitVertices();
+    }
+}
+
+function beginDrawTriangles() {
+    if (tempDrawMode != 3) {
+        submitVertices();
+        tempDrawMode = 3;
+    }
+}
+
+function beginDrawLines() {
+    if (tempDrawMode != 2) {
+        submitVertices();
+        tempDrawMode = 2;
     }
 }
 
@@ -329,6 +384,13 @@ function addRectangleIndices() {
     tempVertIndices[tempVertIndicesIndex++] = index;
 }
 
+function addLineIndices() {
+    const index = tempVertIndex - 2;
+
+    tempVertIndices[tempVertIndicesIndex++] = index;
+    tempVertIndices[tempVertIndicesIndex++] = index + 1;
+}
+
 function submitVertices() {
     if (tempVertIndex == 0) return;
 
@@ -343,7 +405,11 @@ function submitVertices() {
 
     setElementIndices(tempVertIndices.subarray(0, tempVertIndicesIndex));
 
-    gl.drawElements(gl.TRIANGLES, tempVertIndicesIndex, gl.UNSIGNED_SHORT, 0);
+    if (tempDrawMode == 3) {
+        gl.drawElements(gl.TRIANGLES, tempVertIndicesIndex, gl.UNSIGNED_SHORT, 0);
+    } else if (tempDrawMode == 2) {
+        gl.drawElements(gl.LINES, tempVertIndicesIndex, gl.UNSIGNED_SHORT, 0);
+    }
     tempVertIndex = 0;
     tempVertIndicesIndex = 0;
 }
@@ -372,6 +438,7 @@ function drawRectangleColor(x, y, w, h, color) {
         lastProgramUsesTextureCoords = false;
     }
 
+    beginDrawTriangles();
     submitVerticesIfNoRoom(RECTANGLE_VERTICES, RECTANGLE_INDICES);
 
     addVertexColor(x, y, color);
@@ -423,10 +490,11 @@ function drawRectangleColorTexture(x, y, w, h, color, texture_id, tx, ty, tw, th
     }
 
     const texture_x1 = tx / lastTextureInfo.width;
-    const texture_y1 =  ty / lastTextureInfo.height;
+    const texture_y1 = ty / lastTextureInfo.height;
     const texture_x2 = (tx + tw) / lastTextureInfo.width;
-    const texture_y2 =  (ty + th) / lastTextureInfo.height;
+    const texture_y2 = (ty + th) / lastTextureInfo.height;
 
+    beginDrawTriangles();
     submitVerticesIfNoRoom(RECTANGLE_VERTICES, RECTANGLE_INDICES);
 
     addVertexColorTexture(x, y, color, texture_x1, texture_y1);

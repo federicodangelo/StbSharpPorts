@@ -236,4 +236,11 @@ public class SDLRenderAdapter : StbGuiRenderAdapterBase
         for (int i = 0; i < border_size; i++)
             SDL.RenderRect(renderer, new SDL.FRect() { X = bounds.x0 + i, Y = bounds.y0 + i, W = bounds.x1 - bounds.x0 - i * 2, H = bounds.y1 - bounds.y0 - i * 2 });
     }
+
+    protected override void draw_line(StbGui.stbg_position from, StbGui.stbg_position to, StbGui.stbg_color color, float thickness)
+    {
+        //TODO: Use thickness
+        SDL.SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+        SDL.RenderLine(renderer, from.x, from.y, to.x, to.y);
+    }
 }

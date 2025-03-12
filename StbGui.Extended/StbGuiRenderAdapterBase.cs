@@ -58,6 +58,17 @@ public abstract class StbGuiRenderAdapterBase : StbGuiRenderAdapter
                     break;
                 }
 
+            case StbGui.STBG_RENDER_COMMAND_TYPE.LINE:
+                {
+                    var from = StbGui.stbg_build_position(cmd.bounds.x0, cmd.bounds.y0);
+                    var to = StbGui.stbg_build_position(cmd.bounds.x1, cmd.bounds.y1);
+                    var color = cmd.color;
+                    var thickness = cmd.size;
+
+                    draw_line(from, to, color, thickness);
+                    break;
+                }
+
             case StbGui.STBG_RENDER_COMMAND_TYPE.TEXT:
                 {
                     var bounds = cmd.bounds;
@@ -107,6 +118,8 @@ public abstract class StbGuiRenderAdapterBase : StbGuiRenderAdapter
     protected abstract void draw_border(StbGui.stbg_rect bounds, int border_size, StbGui.stbg_color background_color, StbGui.stbg_color color);
 
     public abstract void draw_texture_rects(StbGuiRenderAdapter.Rect[] rects, int count, nint texture_id);
+
+    protected abstract void draw_line(StbGui.stbg_position from, StbGui.stbg_position to, StbGui.stbg_color color, float thickness);
 
     public abstract void push_clip_rect(StbGui.stbg_rect rect);
 

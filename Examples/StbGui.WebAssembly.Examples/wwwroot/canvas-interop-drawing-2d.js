@@ -80,6 +80,19 @@ export function drawRectangle(color, x, y, w, h) {
     }
 }
 
+export function drawLine(x1, y1, x2, y2, color, width) {
+    if (!RENDER) return;
+
+    if (getAlpha(color) != 0) {
+        ctx.strokeStyle = buildFillStyle(color);
+        ctx.lineWidth = width;
+        ctx.beginPath();
+        ctx.moveTo(x1 + width / 2, y1 + width / 2);
+        ctx.lineTo(x2 + width / 2, y2 + width / 2);
+        ctx.stroke();
+    }
+}
+
 export function pushClip(x, y, w, h) {
     if (!RENDER) return;
 

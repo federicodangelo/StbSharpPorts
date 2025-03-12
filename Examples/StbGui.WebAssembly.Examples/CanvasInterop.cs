@@ -53,6 +53,9 @@ public partial class CanvasInterop
     [JSImport("drawTextureRectangleBatch", "canvas-interop")]
     public static partial void DrawTextureRectangleBatch(int id, [JSMarshalAs<JSType.MemoryView>] Span<double> buffer);
 
+    [JSImport("drawLine", "canvas-interop")]
+    public static partial void DrawLine(double x1, double y1, double x2, double y2, double color, double thickness);
+
     [JSImport("drawBatch", "canvas-interop")]
     public static partial void DrawBatch([JSMarshalAs<JSType.MemoryView>] Span<double> buffer);
 

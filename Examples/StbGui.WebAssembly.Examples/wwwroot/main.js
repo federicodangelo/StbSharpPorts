@@ -23,8 +23,10 @@ await main.Init();
 
 function render() {
     const canvas = document.getElementById("myCanvas");
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
     main.Render();
     requestAnimationFrame(render);
 }

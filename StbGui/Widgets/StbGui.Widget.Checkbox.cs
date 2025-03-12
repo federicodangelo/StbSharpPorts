@@ -15,10 +15,9 @@ public partial class StbGui
         var font_style = context.theme.default_font_style;
 
         // CHECKBOX
-        var x_size = stbg__measure_text(stbg__build_text(STBG__CHECKBOX_CHECKED), STBG_MEASURE_TEXT_OPTIONS.IGNORE_METRICS);
         var checkboxBorder = 1.0f;
-        var checkboxSize = MathF.Ceiling(Math.Max(x_size.width, x_size.height) + checkboxBorder * 4.0f);
-        var checkboxTextPadding = MathF.Ceiling(font_style.size * 0.5f);
+        var checkboxSize = MathF.Ceiling(font_style.size);
+        var checkboxTextPadding = MathF.Ceiling(font_style.size * 0.25f);
         var checkboxPaddingTopBottom = 2.0f;
 
         stbg_set_widget_style(STBG_WIDGET_STYLE.CHECKBOX_SIZE, checkboxSize);
@@ -97,8 +96,6 @@ public partial class StbGui
             context.input.mouse_button_1;
     }
 
-    private static readonly ReadOnlyMemory<char> STBG__CHECKBOX_CHECKED = "X".AsMemory();
-
     private static void stbg__checkbox_render(ref stbg_widget checkbox)
     {
         var size = checkbox.properties.computed_bounds.size;
@@ -114,8 +111,10 @@ public partial class StbGui
         var checkbox_size = stbg_get_widget_style(STBG_WIDGET_STYLE.CHECKBOX_SIZE);
         var vertical_alignment = MathF.Floor((size.height - checkbox_size) / 2);
 
+        var checkbox_rect = stbg_build_rect(0, vertical_alignment, checkbox_size, vertical_alignment + checkbox_size);
+
         stbg__rc_draw_border(
-            stbg_build_rect(0, vertical_alignment, checkbox_size, vertical_alignment + checkbox_size),
+            checkbox_rect,
             stbg_get_widget_style(STBG_WIDGET_STYLE.CHECKBOX_BORDER_SIZE),
             border_color,
             STBG_COLOR_TRANSPARENT
@@ -123,11 +122,17 @@ public partial class StbGui
 
         if (is_checked)
         {
-            stbg__rc_draw_text(
-                stbg_build_rect(0, 0, checkbox_size, size.height),
-                stbg__build_text(STBG__CHECKBOX_CHECKED, background_color),
-                0, 0,
-                STBG_MEASURE_TEXT_OPTIONS.IGNORE_METRICS
+            stbg__rc_draw_line(
+                stbg_build_position(checkbox_rect.x0 + 2, checkbox_rect.y0 + 2),
+                stbg_build_position(checkbox_rect.x1 - 3, checkbox_rect.y1 - 3),
+                background_color,
+                1
+            );
+            stbg__rc_draw_line(
+                stbg_build_position(checkbox_rect.x0 + 2, checkbox_rect.y1 - 3),
+                stbg_build_position(checkbox_rect.x1 - 3, checkbox_rect.y0 + 2),
+                background_color,
+                1
             );
         }
 

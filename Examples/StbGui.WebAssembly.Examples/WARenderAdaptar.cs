@@ -15,6 +15,7 @@ class WARenderAdapter : StbGuiRenderAdapterBase
     private const int DRAW_BATCH_TEXTURE_RECTANGLE_BATCH = 4;
     private const int DRAW_BATCH_PUSH_CLIP_RECT = 5;
     private const int DRAW_BATCH_POP_CLIP_RECT = 6;
+    private const int DRAW_BATCH_LINE = 7;
 
     private readonly double[] draw_batch_buffer = new double[8192];
     private int draw_batch_buffer_index = 0;
@@ -251,5 +252,21 @@ class WARenderAdapter : StbGuiRenderAdapterBase
         flush_draw_buffer();
 #endif
         Debug.Assert(clip_rects_count == 0);
+    }
+
+    protected override void draw_line(StbGui.stbg_position from, StbGui.stbg_position to, StbGui.stbg_color color, float thickness)
+    {
+#if USE_DRAW_BUFFER
+        flush_draw_buffer_if_doesnt_fit(1 + 6);
+        draw_batch_buffer[draw_batch_buffer_index++] = DRAW_BATCH_LINE;
+        draw_batch_buffer[draw_batch_buffer_index++] = from.x;
+        draw_batch_buffer[draw_batch_buffer_index++] = from.y;
+        draw_batch_buffer[draw_batch_buffer_index++] = to.x;
+        draw_batch_buffer[draw_batch_buffer_index++] = to.y;
+        draw_batch_buffer[draw_batch_buffer_index++] = CanvasInterop.BuildRGBA(color);
+        draw_batch_buffer[draw_batch_buffer_index++] = thickness;
+#else
+        CanvasInterop.DrawLine(from.x, from.y, to.x, to.y, CanvasInterop.BuildRGBA(color), thickness);
+#endif
     }
 }

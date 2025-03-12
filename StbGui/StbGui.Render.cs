@@ -50,6 +50,12 @@ public partial class StbGui
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void stbg__rc_draw_line(stbg_position from, stbg_position to, stbg_color color, float line_width)
+    {
+        stbg__rc_enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.LINE, bounds = stbg_build_rect(from.x, from.y, to.x, to.y), color = color, size = line_width });
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void stbg__rc_draw_text(stbg_rect rect, stbg_text text, float horizontal_alignment = -1, float vertical_alignment = -1, STBG_MEASURE_TEXT_OPTIONS measure_options = STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE, STBG_RENDER_TEXT_OPTIONS render_options = STBG_RENDER_TEXT_OPTIONS.NONE)
     {
         stbg__rc_enqueue_command(new()

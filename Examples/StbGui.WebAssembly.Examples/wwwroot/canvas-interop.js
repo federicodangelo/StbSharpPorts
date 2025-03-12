@@ -32,6 +32,7 @@ export const clear = drawing.clear;
 
 export const drawBorder = drawing.drawBorder;
 export const drawRectangle = drawing.drawRectangle;
+export const drawLine = drawing.drawLine;
 
 export const createTexture = drawing.createTexture;
 export const destroyTexture = drawing.destroyTexture;
@@ -67,6 +68,7 @@ const DRAW_BATCH_TEXTURE_RECTANGLE = 3;
 const DRAW_BATCH_TEXTURE_RECTANGLE_BATCH = 4;
 const DRAW_BATCH_PUSH_CLIP_RECT = 5;
 const DRAW_BATCH_POP_CLIP_RECT = 6;
+const DRAW_BATCH_LINE = 7;
 
 export function drawBatch(batch_memory_view) {
     const batch = batch_memory_view.slice();
@@ -94,6 +96,9 @@ export function drawBatch(batch_memory_view) {
                 }
                 break;
             }
+            case DRAW_BATCH_LINE:
+                drawLine(batch[i++], batch[i++], batch[i++], batch[i++], batch[i++], batch[i++]);
+                break;
             case DRAW_BATCH_PUSH_CLIP_RECT:
                 pushClip(batch[i++], batch[i++], batch[i++], batch[i++]);
                 break;
