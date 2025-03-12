@@ -2,7 +2,7 @@ namespace StbSharp;
 
 using image_id = int;
 
-public record class StbGuiFont : IDisposable
+public record class StbGuiFont
 {
     public readonly string name;
     public readonly float size;
@@ -17,7 +17,6 @@ public record class StbGuiFont : IDisposable
     public readonly float oversampling_scale;
     public readonly image_id image_id;
     private StbTrueType.stbtt_fontinfo font_info;
-    private readonly StbGui.stbg_render_adapter render_adapter;
 
     public StbGuiFont(string name, string filename, float font_size, int oversampling, bool use_bilinear_filtering, StbGui.stbg_render_adapter render_adapter)
         : this(name, File.ReadAllBytes(filename), font_size, oversampling, use_bilinear_filtering, render_adapter)
@@ -34,8 +33,6 @@ public record class StbGuiFont : IDisposable
 
         this.oversampling = oversampling;
         this.oversampling_scale = 1.0f / (float)oversampling;
-
-        this.render_adapter = render_adapter;
 
         StbTrueType.stbtt_InitFont(out font_info, font_bytes, 0);
 
@@ -121,15 +118,5 @@ public record class StbGuiFont : IDisposable
     public int GetCodepointKernAdvance(int ch1, int ch2)
     {
         return StbTrueType.stbtt_GetCodepointKernAdvance(ref font_info, ch1, ch2);
-    }
-
-
-    public void Dispose()
-    {
-        if (image_id != 0)
-        {
-            // TODO?
-            //render_adapter.destroy_texture(texture_id);
-        }
     }
 }

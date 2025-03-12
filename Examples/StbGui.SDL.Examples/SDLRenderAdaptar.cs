@@ -303,11 +303,6 @@ public class SDLRenderAdapter : StbGui.stbg_render_adapter
 
     public void destroy()
     {
-        foreach (var font in fonts.Values)
-        {
-            font.Dispose();
-        }
-
         foreach (var image in images.Values)
         {
             SDL.DestroyTexture(image);

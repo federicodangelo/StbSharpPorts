@@ -1,3 +1,5 @@
+#pragma warning disable IDE1006 // Naming Styles
+
 #define USE_DRAW_BUFFER
 
 using System.Diagnostics;
@@ -71,7 +73,7 @@ class WARenderAdapter : StbGui.stbg_render_adapter
 #endif
 
 #if !USE_DRAW_BUFFER
-    private double[] draw_rects_buffer = new double[1024 * CanvasInterop.DRAW_TEXTURE_RECTANGLE_BATCH_ELEMENT_SIZE];
+    private readonly double[] draw_rects_buffer = new double[1024 * CanvasInterop.DRAW_TEXTURE_RECTANGLE_BATCH_ELEMENT_SIZE];
 #endif
 
     public void draw_text(StbGui.stbg_rect bounds, StbGui.stbg_render_text_parameters text_parameters)
@@ -158,8 +160,8 @@ class WARenderAdapter : StbGui.stbg_render_adapter
             {
                 var rect = rects[i];
 
-                var r = rect.tex_coord_rect;
-                var target = rect.rect;
+                var r = rect.image_rect;
+                var target = rect.bounds;
                 var c = rect.color;
 
                 CanvasInterop.DrawTextureRectangle((int)texture_id, r.x0, r.y0, r.x1 - r.x0, r.y1 - r.y0, target.x0, target.y0, target.x1 - target.x0, target.y1 - target.y0, CanvasInterop.BuildRGBA(c));
@@ -174,8 +176,8 @@ class WARenderAdapter : StbGui.stbg_render_adapter
             {
                 var rect = rects[i];
 
-                var r = rect.tex_coord_rect;
-                var target = rect.rect;
+                var r = rect.image_rect;
+                var target = rect.bounds;
                 var c = rect.color;
 
                 draw_rects_buffer[index++] = r.x0;
@@ -333,16 +335,10 @@ class WARenderAdapter : StbGui.stbg_render_adapter
 
     public void destroy()
     {
-        foreach (var font in fonts.Values)
+        foreach (var image in images.Values)
         {
-            font.Dispose();
+            CanvasInterop.DestroyTexture((int)image);
         }
-
-        // TODO: Destroy images
-        //foreach (var image in images.Values)
-        //{
-        //    SDL.DestroyTexture(image);
-        //}
 
         fonts.Clear();
         images.Clear();
