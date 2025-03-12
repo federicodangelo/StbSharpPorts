@@ -33,7 +33,7 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.CHECKBOX_BACKGROUND_COLOR, STBG_COLOR_TRANSPARENT);
 
         stbg_set_widget_style(STBG_WIDGET_STYLE.CHECKBOX_HOVERED_BORDER_COLOR, rgb(41, 128, 185));
-        stbg_set_widget_style(STBG_WIDGET_STYLE.CHECKBOX_HOVERED_BACKGROUND_COLOR, rgb(52, 152, 219));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.CHECKBOX_HOVERED_BACKGROUND_COLOR, rgba(52, 152, 219, 0.25));
 
         stbg_set_widget_style(STBG_WIDGET_STYLE.CHECKBOX_CHECKED_BORDER_COLOR, rgb(41, 128, 185));
         stbg_set_widget_style(STBG_WIDGET_STYLE.CHECKBOX_CHECKED_BACKGROUND_COLOR, rgb(44, 62, 80));

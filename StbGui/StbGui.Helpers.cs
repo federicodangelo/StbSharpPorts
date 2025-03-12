@@ -132,7 +132,11 @@ public partial class StbGui
 
     [ExcludeFromCodeCoverage]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static stbg_color rgb(byte r, byte g, byte b, byte a = 255) => stbg_build_color(r, g, b, a);
+    public static stbg_color rgb(byte r, byte g, byte b) => stbg_build_color(r, g, b, 255);
+
+    [ExcludeFromCodeCoverage]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static stbg_color rgba(byte r, byte g, byte b, double a = 1) => stbg_build_color(r, g, b, (byte) (a * 255));
 
     [ExcludeFromCodeCoverage]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -340,5 +344,5 @@ public partial class StbGui
     public static readonly stbg_color STBG_COLOR_MAGENTA = rgb(255, 0, 255);
     public static readonly stbg_color STBG_COLOR_WHITE = rgb(255, 255, 255);
     public static readonly stbg_color STBG_COLOR_BLACK = rgb(0, 0, 0);
-    public static readonly stbg_color STBG_COLOR_TRANSPARENT = rgb(0, 0, 0, 0);
+    public static readonly stbg_color STBG_COLOR_TRANSPARENT = rgba(0, 0, 0, 0);
 }
