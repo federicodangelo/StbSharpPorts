@@ -96,6 +96,11 @@ public partial class StbGui
         /// Disables the nesting of non window root elements into the debug window
         /// </summary>
         public bool dont_nest_non_window_root_elements_into_debug_window;
+
+        /// <summary>
+        /// Disables the rendering optimization that skips rendering if the hash of the widgets didn't change
+        /// </summary>
+        public bool force_always_render;
     }
 
     public record struct stbg_padding

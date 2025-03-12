@@ -32,6 +32,7 @@ public abstract class StbGuiAppBase : IDisposable
         public float DefaultFontSize = 13;
         public int FontRenderingOversampling = 1;
         public bool FontRenderingBilinear = false;
+        public bool ForceAlwaysRender = false;
     }
 
     private readonly StbGuiRenderAdapter render_adapter;
@@ -178,7 +179,7 @@ public abstract class StbGuiAppBase : IDisposable
     {
         var screen_size = get_screen_size();
 
-        StbGui.stbg_init(build_external_dependencies(), new());
+        StbGui.stbg_init(build_external_dependencies(), new() { force_always_render = options.ForceAlwaysRender });
         StbGui.stbg_set_screen_size((int)screen_size.width, (int)screen_size.height);
 
         int default_font_id = add_font(options.DefaultFontName, GetResourceFileBytes(options.DefaultFontPath), options.DefaultFontSize, options.FontRenderingOversampling, options.FontRenderingBilinear);

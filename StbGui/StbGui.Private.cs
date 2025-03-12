@@ -55,7 +55,9 @@ public partial class StbGui
         var fonts = new stbg_font[options.max_fonts + 1]; // first slot is never used (null font)
         var render_commands_queue = new stbg_render_command[options.render_commands_queue_size];
         var images = new stbg_image_info[options.max_images + 1]; // first slot is never used (null image)
-        var force_render_queue_entries = new stbg_force_render_queue_entry[Math.Max(options.max_widgets / 10, 100)]; // 10% of the widgets are forced to render at most];
+        var force_render_queue_entries = !options.force_always_render ?
+             new stbg_force_render_queue_entry[Math.Max(options.max_widgets / 10, 100)] : // 10% of the widgets are forced to render at most];
+             [];
 
         // init ids and flags
         for (int i = 0; i < widgets.Length; i++)

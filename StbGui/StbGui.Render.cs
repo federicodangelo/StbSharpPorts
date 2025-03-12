@@ -150,9 +150,9 @@ public partial class StbGui
     {
         stbg__assert_internal(context.render_context.render_commands_queue_index == 0, "Pending render commands left in render queue from a previous frame");
 
-        bool force_render = stbg__process_force_render_queue();
+        bool force_render = context.init_options.force_always_render | stbg__process_force_render_queue();
 
-        long render_hash = stbg__get_render_hash();
+        long render_hash = context.init_options.force_always_render ? 0 : stbg__get_render_hash();
 
         if (context.last_render_hash == render_hash && !force_render)
         {
@@ -321,6 +321,12 @@ public partial class StbGui
 
     private static void stbg__enqueue_force_render(ref stbg_widget widget, int delay_ms = 0)
     {
+        if (context.init_options.force_always_render)
+        {
+            // No need to enqueue if always render is enabled
+            return;
+        }   
+
         ref var queue = ref context.force_render_queue;
 
         for (int i = 0; i < queue.count; i++)
