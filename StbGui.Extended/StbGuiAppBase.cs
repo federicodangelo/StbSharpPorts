@@ -35,8 +35,7 @@ public abstract class StbGuiAppBase : IDisposable
         public bool ForceAlwaysRender = false;
     }
 
-    private readonly StbGuiRenderAdapter render_adapter;
-    private readonly StbGuiFont[] fonts;
+    private readonly StbGui.stbg_render_adapter render_adapter;
     private long frames_count_ms;
     private int frames_count;
     private int skipped_frame_count;
@@ -67,8 +66,6 @@ public abstract class StbGuiAppBase : IDisposable
 
         RenderBackend = render_adapter.get_render_backend();
 
-        fonts = new StbGuiFont[StbGui.DEFAULT_MAX_FONTS];
-
         init_stb_gui(options);
 
         frames_count_ms = get_time_milliseconds();
@@ -78,13 +75,7 @@ public abstract class StbGuiAppBase : IDisposable
     {
         return new StbGui.stbg_external_dependencies()
         {
-            measure_text = measure_text,
-            get_character_position_in_text = get_character_position_in_text,
-            render = (commands) =>
-            {
-                foreach (var cmd in commands)
-                    render_adapter.process_render_command(cmd);
-            },
+            render_adapter = render_adapter,
             set_input_method_editor = set_input_method_editor,
             copy_text_to_clipboard = copy_text_to_clipboard,
             get_clipboard_text = get_clipboard_text,
@@ -94,48 +85,12 @@ public abstract class StbGuiAppBase : IDisposable
         };
     }
 
-    private StbGui.stbg_size measure_text(ReadOnlySpan<char> text, StbGui.stbg_font font, StbGui.stbg_font_style style, StbGui.STBG_MEASURE_TEXT_OPTIONS options)
-    {
-        Span<StbGui.stbg_render_text_style_range> tmp_styles = stackalloc StbGui.stbg_render_text_style_range[1];
-
-        var real_font = fonts[font.id];
-
-        tmp_styles[0] = new StbGui.stbg_render_text_style_range()
-        {
-            start_index = 0,
-            text_color = style.color,
-            font_style = style.style
-        };
-
-        return StbGuiTextHelper.measure_text(text, real_font, style.size, tmp_styles, options);
-    }
-
-    private StbGui.stbg_position get_character_position_in_text(ReadOnlySpan<char> text, StbGui.stbg_font font, StbGui.stbg_font_style style, StbGui.STBG_MEASURE_TEXT_OPTIONS options, int character_index)
-    {
-        Span<StbGui.stbg_render_text_style_range> tmp_styles = stackalloc StbGui.stbg_render_text_style_range[1];
-
-        var real_font = fonts[font.id];
-
-        tmp_styles[0] = new StbGui.stbg_render_text_style_range()
-        {
-            start_index = 0,
-            text_color = style.color,
-            font_style = style.style
-        };
-
-        return StbGuiTextHelper.get_character_position_in_text(text, real_font, style.size, tmp_styles, options, character_index);
-    }
-
     public int add_font(string name, byte[] bytes, float size, int oversampling = 1, bool bilinear = false)
     {
         Debug.Assert(bytes != null);
 
-        var font = new StbGuiFont(name, bytes, size, oversampling, bilinear, render_adapter);
-
         var font_id = StbGui.stbg_add_font(name);
-        render_adapter.register_font(font_id, font);
-
-        fonts[font_id] = font;
+        render_adapter.register_font(font_id, new() { name = name, size = size, oversampling = oversampling, bilinear_filtering = bilinear }, bytes);
 
         return font_id;
     }
@@ -170,7 +125,7 @@ public abstract class StbGuiAppBase : IDisposable
         Debug.Assert(pixels.Length == width * height * bytes_per_pixel);
 
         var image_id = StbGui.stbg_add_image(width, height);
-        render_adapter.register_image(image_id, pixels, width, height, bytes_per_pixel);
+        render_adapter.register_image(image_id, new() {}, pixels, width, height, bytes_per_pixel);
 
         return image_id;
     }
@@ -186,7 +141,7 @@ public abstract class StbGuiAppBase : IDisposable
 
         StbGui.stbg_init_default_theme(
             default_font_id,
-            new() { size = fonts[default_font_id].size, style = StbGui.STBG_FONT_STYLE_FLAGS.NONE, color = StbGui.STBG_COLOR_WHITE }
+            new() { size = options.DefaultFontSize, style = StbGui.STBG_FONT_STYLE_FLAGS.NONE, color = StbGui.STBG_COLOR_WHITE }
         );
     }
 
@@ -258,7 +213,7 @@ public abstract class StbGuiAppBase : IDisposable
 
 
     // Initialization
-    protected abstract StbGuiRenderAdapter build_render_adapter(StbGuiAppOptions options);
+    protected abstract StbGui.stbg_render_adapter build_render_adapter(StbGuiAppOptions options);
     protected abstract StbGui.stbg_size get_screen_size();
 
     // External dependencies
@@ -277,13 +232,6 @@ public abstract class StbGuiAppBase : IDisposable
 
     public virtual void Dispose()
     {
-        foreach (var font in fonts)
-        {
-            if (font != null)
-                font.Dispose();
-        }
-
-        fonts.AsSpan().Clear();
-
+        render_adapter.destroy();
     }
 }

@@ -23,7 +23,7 @@ public abstract class SDLAppBase : StbGuiAppBase
     {
     }
 
-    protected override StbGuiRenderAdapter build_render_adapter(StbGuiAppOptions options)
+    protected override StbGui.stbg_render_adapter build_render_adapter(StbGuiAppOptions options)
     {
         if (!SDL.Init(SDL.InitFlags.Video))
         {

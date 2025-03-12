@@ -746,54 +746,6 @@ public partial class StbGui
         NONE,
     }
 
-    public enum STBG_RENDER_COMMAND_TYPE
-    {
-        /// <summary>
-        /// Start rendering new frame, using bounds as screen size and background_color (as GUI background color)
-        /// </summary>
-        BEGIN_FRAME,
-
-        /// <summary>
-        /// Finish rendering current frame
-        /// </summary>
-        END_FRAME,
-
-        /// <summary>
-        /// Render rectangle using bounds and background_color (as fill color)
-        /// </summary>
-        RECTANGLE,
-
-        /// <summary>
-        /// Render image using bounds, color (as tint color), image_id and source_rect (to draw only a part of the image)
-        /// </summary>
-        IMAGE,
-
-        /// <summary>
-        /// Render border using bounds, size (border size), color (border color) and background_color (used to fill the content)
-        /// </summary>
-        BORDER,
-
-        /// <summary>
-        /// Render text using bounds, color (as tint color), text, font and font_style
-        /// </summary>
-        TEXT,
-
-        /// <summary>
-        /// Render a line using bounds (from x0,y0 to x1,y1), color (as tint color) and size (line width)
-        /// </summary>
-        LINE,
-
-        /// <summary>
-        /// Push clipping rect using bounds
-        /// </summary>
-        PUSH_CLIPPING_RECT,
-
-        /// <summary>
-        /// Pops clipping rect
-        /// </summary>
-        POP_CLIPPING_RECT,
-    }
-
     public struct stbg_render_text_style_range
     {
         public int start_index;
@@ -815,16 +767,65 @@ public partial class StbGui
         public STBG_RENDER_TEXT_OPTIONS render_options;
     }
 
-    public record struct stbg_render_command
+    public struct stbg_register_font_parameters
     {
-        public STBG_RENDER_COMMAND_TYPE type;
+        public string name;
         public float size;
-        public image_id image_id;
+        public int oversampling;
+        public bool bilinear_filtering;
+    }
+
+    public struct stbg_register_image_parameters
+    {
+        public bool bilinear_filtering;
+    }
+
+    public struct stbg_draw_image_rect
+    {
         public stbg_rect bounds;
+        public stbg_rect image_rect;
         public stbg_color color;
-        public stbg_color background_color;
-        public stbg_render_text_parameters text;
-        public stbg_rect source_rect;
+    }
+
+    public interface stbg_render_adapter
+    {
+        // Rendering backend information
+
+        public string get_render_backend();
+
+        // Registration methods
+
+        public void register_font(int font_id, stbg_register_font_parameters parameters, byte[] bytes);
+        public void register_image(int image_id, stbg_register_image_parameters parameters, byte[] pixels, int width, int height, int bytes_per_pixel);
+
+        // Begin / end frame
+
+        public void render_begin_frame(stbg_color background_color);
+        public void render_end_frame();
+
+        // Clip rect handling
+
+        public void pop_clip_rect();
+        public void push_clip_rect(stbg_rect rect);
+
+
+        // Drawing methods
+
+        public void draw_rectangle(stbg_rect bounds, stbg_color background_color);
+        public void draw_border(stbg_rect bounds, int border_size, stbg_color border_color, stbg_color background_color);
+        public void draw_line(stbg_position from, stbg_position to, stbg_color color, float thickness);
+        public void draw_image(stbg_rect bounds, stbg_rect image_rect, stbg_color color, int image_id);
+        public void draw_images(Span<stbg_draw_image_rect> rects, int image_id);
+        public void draw_text(stbg_rect bounds, stbg_render_text_parameters text_parameters);
+
+        // Text measurement methods
+
+        public stbg_size measure_text(ReadOnlySpan<char> text, stbg_font font, stbg_font_style style, STBG_MEASURE_TEXT_OPTIONS measure_options);
+
+        public stbg_position get_character_position_in_text(ReadOnlySpan<char> text, stbg_font font, stbg_font_style style, STBG_MEASURE_TEXT_OPTIONS options, int character_index);
+
+        // Destroy method
+        public void destroy();
     }
 
 
@@ -848,22 +849,9 @@ public partial class StbGui
     public struct stbg_external_dependencies
     {
         /// <summary>
-        /// Measure text
-        /// </summary>
-        public delegate stbg_size stbg_measure_text_delegate(ReadOnlySpan<char> text, stbg_font font, stbg_font_style style, STBG_MEASURE_TEXT_OPTIONS measure_options);
-        public stbg_measure_text_delegate measure_text;
-
-        /// <summary>
-        /// Get character position in text
-        /// </summary>
-        public delegate stbg_position stbg_get_character_position_in_text_delegate(ReadOnlySpan<char> text, stbg_font font, stbg_font_style style, STBG_MEASURE_TEXT_OPTIONS options, int character_index);
-        public stbg_get_character_position_in_text_delegate get_character_position_in_text;
-
-        /// <summary>
         /// Render
         /// </summary>
-        public delegate void stbg_render_delegate(Span<stbg_render_command> commands);
-        public stbg_render_delegate render;
+        public stbg_render_adapter render_adapter;
 
         /// <summary>
         /// Set input method editor (show keyboard)

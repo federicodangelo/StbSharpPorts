@@ -180,6 +180,16 @@ public partial class StbGui
 
     [ExcludeFromCodeCoverage]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static stbg_position stbg_translate_position(stbg_position position, float dx, float dy)
+    {
+        position.x += dx;
+        position.y += dy;
+
+        return position;
+    }
+
+    [ExcludeFromCodeCoverage]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool stbg_rect_is_position_inside(stbg_rect rect, stbg_position position)
     {
         return

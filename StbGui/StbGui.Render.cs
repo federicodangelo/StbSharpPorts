@@ -20,8 +20,7 @@ public partial class StbGui
 
     public struct stbg_render_context
     {
-        public stbg_render_command[] render_commands_queue;
-        public int render_commands_queue_index;
+        public stbg_render_adapter render_adapter;
         public stbg_rect last_global_rect;
     }
 
@@ -34,35 +33,39 @@ public partial class StbGui
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void stbg__rc_draw_rectangle(stbg_rect rect, stbg_color color)
     {
-        stbg__rc_enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.RECTANGLE, bounds = rect, background_color = color });
+        rect = stbg_translate_rect(rect, context.render_context.last_global_rect.x0, context.render_context.last_global_rect.y0);
+        context.render_context.render_adapter.draw_rectangle(rect, color);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void stbg__rc_draw_border(stbg_rect rect, float border_size, stbg_color border_color, stbg_color background_color)
     {
-        stbg__rc_enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.BORDER, bounds = rect, size = border_size, color = border_color, background_color = background_color });
+        rect = stbg_translate_rect(rect, context.render_context.last_global_rect.x0, context.render_context.last_global_rect.y0);
+        context.render_context.render_adapter.draw_border(rect, (int) border_size, border_color, background_color);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void stbg__rc_draw_image(stbg_rect rect, stbg_image_info image, stbg_color color)
     {
-        stbg__rc_enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.IMAGE, bounds = rect, color = color, image_id = image.original_image_id, source_rect = image.rect });
+        rect = stbg_translate_rect(rect, context.render_context.last_global_rect.x0, context.render_context.last_global_rect.y0);
+        context.render_context.render_adapter.draw_image(rect, image.rect, color, image.original_image_id);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void stbg__rc_draw_line(stbg_position from, stbg_position to, stbg_color color, float line_width)
     {
-        stbg__rc_enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.LINE, bounds = stbg_build_rect(from.x, from.y, to.x, to.y), color = color, size = line_width });
+        from = stbg_translate_position(from, context.render_context.last_global_rect.x0, context.render_context.last_global_rect.y0);
+        to = stbg_translate_position(to, context.render_context.last_global_rect.x0, context.render_context.last_global_rect.y0);
+        context.render_context.render_adapter.draw_line(from, to, color, line_width);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void stbg__rc_draw_text(stbg_rect rect, stbg_text text, float horizontal_alignment = -1, float vertical_alignment = -1, STBG_MEASURE_TEXT_OPTIONS measure_options = STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE, STBG_RENDER_TEXT_OPTIONS render_options = STBG_RENDER_TEXT_OPTIONS.NONE)
     {
-        stbg__rc_enqueue_command(new()
-        {
-            type = STBG_RENDER_COMMAND_TYPE.TEXT,
-            bounds = rect,
-            text = new stbg_render_text_parameters
+        rect = stbg_translate_rect(rect, context.render_context.last_global_rect.x0, context.render_context.last_global_rect.y0);
+        context.render_context.render_adapter.draw_text(
+            rect,
+            new stbg_render_text_parameters
             {
                 text = text.text,
                 font_size = text.style.size,
@@ -77,18 +80,17 @@ public partial class StbGui
                     text_color = text.style.color,
                     font_style = text.style.style,
                 }
-            },
-        });
+            }
+        );
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void stbg__rc_draw_text(stbg_rect rect, ReadOnlyMemory<char> text, font_id font_id, float font_size, ReadOnlyMemory<stbg_render_text_style_range> style_ranges, float horizontal_alignment = -1, float vertical_alignment = -1, STBG_MEASURE_TEXT_OPTIONS measure_options = STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE, STBG_RENDER_TEXT_OPTIONS render_options = STBG_RENDER_TEXT_OPTIONS.NONE)
     {
-        stbg__rc_enqueue_command(new()
-        {
-            type = STBG_RENDER_COMMAND_TYPE.TEXT,
-            bounds = rect,
-            text = new stbg_render_text_parameters
+        rect = stbg_translate_rect(rect, context.render_context.last_global_rect.x0, context.render_context.last_global_rect.y0);
+        context.render_context.render_adapter.draw_text(
+            rect,
+            new stbg_render_text_parameters
             {
                 text = text,
                 font_id = font_id,
@@ -99,57 +101,24 @@ public partial class StbGui
                 render_options = render_options,
                 style_ranges = style_ranges,
             }
-        });
+        );
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void stbg__rc_push_clipping_rect(stbg_rect rect)
     {
-        stbg__rc_enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.PUSH_CLIPPING_RECT, bounds = rect });
+        rect = stbg_translate_rect(rect, context.render_context.last_global_rect.x0, context.render_context.last_global_rect.y0);
+        context.render_context.render_adapter.push_clip_rect(rect);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void stbg__rc_pop_clipping_rect()
     {
-        stbg__rc_enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.POP_CLIPPING_RECT });
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void stbg__rc_enqueue_command(stbg_render_command command)
-    {
-        ref var render_context = ref context.render_context;
-
-        if (command.type != STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME &&
-            command.type != STBG_RENDER_COMMAND_TYPE.END_FRAME &&
-            command.type != STBG_RENDER_COMMAND_TYPE.POP_CLIPPING_RECT)
-        {
-            ref var bounds = ref command.bounds;
-
-            // Apply global rect offset
-            bounds = stbg_translate_rect(bounds, render_context.last_global_rect.x0, render_context.last_global_rect.y0);
-        }
-
-        render_context.render_commands_queue[render_context.render_commands_queue_index] = command;
-        render_context.render_commands_queue_index++;
-
-        if (render_context.render_commands_queue_index == render_context.render_commands_queue.Length)
-            stbg__rc_flush_queue();
-    }
-
-    private static void stbg__rc_flush_queue()
-    {
-        ref var render_context = ref context.render_context;
-
-        if (render_context.render_commands_queue_index == 0) return;
-
-        context.external_dependencies.render(render_context.render_commands_queue.AsSpan(0, render_context.render_commands_queue_index));
-        render_context.render_commands_queue_index = 0;
+        context.render_context.render_adapter.pop_clip_rect();
     }
 
     private static bool stbg__render()
     {
-        stbg__assert_internal(context.render_context.render_commands_queue_index == 0, "Pending render commands left in render queue from a previous frame");
-
         bool force_render = context.init_options.force_always_render | stbg__process_force_render_queue();
 
         long render_hash = context.init_options.force_always_render ? 0 : stbg__get_render_hash();
@@ -166,15 +135,13 @@ public partial class StbGui
 
         var start_render_time = stbg__get_performance_counter();
 
-        stbg__rc_enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME, bounds = { x1 = context.screen_size.width, y1 = context.screen_size.height }, background_color = stbg_get_widget_style_color(STBG_WIDGET_STYLE.ROOT_BACKGROUND_COLOR) });
+        context.render_context.render_adapter.render_begin_frame(stbg_get_widget_style_color(STBG_WIDGET_STYLE.ROOT_BACKGROUND_COLOR));
 
         ref var root = ref stbg_get_widget_by_id(context.root_widget_id);
 
         stbg__render_widget(ref root, stbg_build_rect_infinite());
 
-        stbg__rc_enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.END_FRAME });
-
-        stbg__rc_flush_queue();
+        context.render_context.render_adapter.render_end_frame();
 
         context.frame_stats.render_skipped_due_to_same_hash = false;
         context.frame_stats.performance.render_time_us = ((stbg__get_performance_counter() - start_render_time) * MICROSECONDS) / stbg__get_performance_counter_frequency();

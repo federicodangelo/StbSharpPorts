@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 
 namespace StbSharp.Tests;
@@ -11,15 +10,11 @@ public class StbGuiTestsBase : IDisposable
     protected const int ScreenSizeHeight = 80;
 
     protected TestRenderScreen test_render_screen = new TestRenderScreen(ScreenSizeWidth, ScreenSizeHeight);
-    protected List<StbGui.stbg_render_command> render_commands_all = []; // All render commands
-    protected List<StbGui.stbg_render_command> render_commands = []; // Exclude begin and end frame commands
 
     public void Dispose()
     {
         AssertHierarchyConsistency();
         DestroyGui();
-        render_commands_all = [];
-        render_commands = [];
         test_render_screen.Clear();
     }
 
@@ -27,45 +22,9 @@ public class StbGuiTestsBase : IDisposable
     {
         return new StbGui.stbg_external_dependencies()
         {
-            measure_text = (text, font, style, options) => new StbGui.stbg_size() { width = text.Length * style.size, height = style.size },
-            render = (commands) =>
-            {
-                render_commands_all.AddRange(commands);
-                render_commands.AddRange(commands.ToArray().Where(c => c.type != StbGui.STBG_RENDER_COMMAND_TYPE.BEGIN_FRAME && c.type != StbGui.STBG_RENDER_COMMAND_TYPE.END_FRAME));
-            },
+            render_adapter = new TestScreenRenderAdapter(test_render_screen),
             copy_text_to_clipboard = (text) => { },
             get_clipboard_text = () => "",
-            get_character_position_in_text = (text, font, style, options, character_index) =>
-            {
-                int x = 0;
-                int y = 0;
-                var single_line = (options & StbGui.STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE) != 0;
-
-                for (int i = 0; i < character_index; i++)
-                {
-                    char c = text[i];
-                    if (i == character_index)
-                    {
-                        break;
-                    }
-                    if (c == '\n')
-                    {
-                        if (single_line)
-                        {
-                            c = ' ';
-                        }
-                        else
-                        {
-                            y += 1;
-                            x = 0;
-                            continue;
-                        }
-                    }
-                    x++;
-                }
-
-                return StbGui.stbg_build_position(x, y);
-            },
             set_input_method_editor = (info) => { },
             get_time_milliseconds = () => 0,
             get_performance_counter = () => 0,
@@ -75,10 +34,6 @@ public class StbGuiTestsBase : IDisposable
 
     protected void RenderCommandsToTestScreen()
     {
-        foreach (var cmd in render_commands_all)
-        {
-            test_render_screen.ProcessRenderCommand(cmd);
-        }
     }
 
     private TestRenderScreenPixel[][] ConvertExpectedLinesAndColorsToExpectedPixels(string[][] expectedLinesAndColors)

@@ -1,5 +1,7 @@
 namespace StbSharp;
 
+using image_id = int;
+
 public record class StbGuiFont : IDisposable
 {
     public readonly string name;
@@ -13,28 +15,27 @@ public record class StbGuiFont : IDisposable
     public readonly float font_scale;
     public readonly int oversampling;
     public readonly float oversampling_scale;
-    public readonly nint texture_id;
-
+    public readonly image_id image_id;
     private StbTrueType.stbtt_fontinfo font_info;
-    private readonly StbGuiRenderAdapter render_adapter;
+    private readonly StbGui.stbg_render_adapter render_adapter;
 
-    public StbGuiFont(string name, string filename, float font_size, int oversampling, bool use_bilinear_filtering, StbGuiRenderAdapter render_adapter)
+    public StbGuiFont(string name, string filename, float font_size, int oversampling, bool use_bilinear_filtering, StbGui.stbg_render_adapter render_adapter)
         : this(name, File.ReadAllBytes(filename), font_size, oversampling, use_bilinear_filtering, render_adapter)
     {
 
     }
 
-    public StbGuiFont(string name, byte[] font_bytes, float font_size, int oversampling, bool use_bilinear_filtering, StbGuiRenderAdapter render_adapter)
+    public StbGuiFont(string name, byte[] font_bytes, float font_size, int oversampling, bool use_bilinear_filtering, StbGui.stbg_render_adapter render_adapter)
     {
         Console.WriteLine($"Loading font {name} ({font_size})");
-
-        this.render_adapter = render_adapter;
 
         this.name = name;
         this.size = font_size;
 
         this.oversampling = oversampling;
         this.oversampling_scale = 1.0f / (float)oversampling;
+
+        this.render_adapter = render_adapter;
 
         StbTrueType.stbtt_InitFont(out font_info, font_bytes, 0);
 
@@ -48,10 +49,10 @@ public record class StbGuiFont : IDisposable
 
         baseline = (int)this.ascent;
 
-        CreateFontTexture(font_bytes, use_bilinear_filtering, out texture_id, out font_char_data);
+        CreateFontImage(font_bytes, use_bilinear_filtering, out image_id, out font_char_data, render_adapter);
     }
 
-    private void CreateFontTexture(byte[] fontBytes, bool use_bilinear_filtering, out nint texture_id, out StbTrueType.stbtt_packedchar[] font_char_data)
+    private void CreateFontImage(byte[] fontBytes, bool use_bilinear_filtering, out image_id image_id, out StbTrueType.stbtt_packedchar[] font_char_data, StbGui.stbg_render_adapter render_adapter)
     {
         var width = 512;
         var height = 512;
@@ -106,13 +107,14 @@ public record class StbGuiFont : IDisposable
             }
         }
 
-        texture_id = render_adapter.create_texture(width, height,
+        image_id = StbGui.stbg_add_image(width, height);
+
+        render_adapter.register_image(
+            image_id,
+            new() { bilinear_filtering = use_bilinear_filtering, },
             pixels,
-            4,
-            new StbGuiRenderAdapter.CreateTextureOptions()
-            {
-                use_bilinear_filtering = use_bilinear_filtering
-            }
+            width, height,
+            4
         );
     }
 
@@ -124,9 +126,10 @@ public record class StbGuiFont : IDisposable
 
     public void Dispose()
     {
-        if (texture_id != 0)
+        if (image_id != 0)
         {
-            render_adapter.destroy_texture(texture_id);
+            // TODO?
+            //render_adapter.destroy_texture(texture_id);
         }
     }
 }

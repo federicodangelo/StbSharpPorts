@@ -3,6 +3,8 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
+using image_id = int;
+
 namespace StbSharp;
 
 public class StbGuiTextHelper
@@ -216,7 +218,7 @@ public class StbGuiTextHelper
 
     private struct RectsBuffer
     {
-        public StbGuiRenderAdapter.Rect[] buffer;
+        public StbGui.stbg_draw_image_rect[] buffer;
         public int index;
     }
 
@@ -233,41 +235,41 @@ public class StbGuiTextHelper
         public float center_x_offset;
         public float center_y_offset;
         public float oversampling_scale;
-        public nint font_texture_id;
+        public image_id image_id;
         public RectsBuffer text_rect_buffer;
         public RectsBuffer background_rect_buffer;
-        public StbGuiRenderAdapter render_adapter;
+        public StbGui.stbg_render_adapter render_adapter;
     }
 
-    private static readonly StbGuiRenderAdapter.Rect[] draw_text_rects_buffer = new StbGuiRenderAdapter.Rect[MAX_RECTS_COUNT];
-    private static readonly StbGuiRenderAdapter.Rect[] draw_text_rects_buffer2 = new StbGuiRenderAdapter.Rect[MAX_RECTS_COUNT];
+    private static readonly StbGui.stbg_draw_image_rect[] draw_text_rects_buffer = new StbGui.stbg_draw_image_rect[MAX_RECTS_COUNT];
+    private static readonly StbGui.stbg_draw_image_rect[] draw_text_rects_buffer2 = new StbGui.stbg_draw_image_rect[MAX_RECTS_COUNT];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void add_draw_texture_to_rect_buffer(ref RectsBuffer rect_buffer, StbGui.stbg_rect tex_coords_rect, StbGui.stbg_rect rect, StbGui.stbg_color color)
+    private static void add_draw_image_to_rect_buffer(ref RectsBuffer rect_buffer, StbGui.stbg_rect image_rect, StbGui.stbg_rect bounds, StbGui.stbg_color color)
     {
-        rect_buffer.buffer[rect_buffer.index++] = new StbGuiRenderAdapter.Rect()
+        rect_buffer.buffer[rect_buffer.index++] = new StbGui.stbg_draw_image_rect()
         {
-            rect = rect,
-            tex_coord_rect = tex_coords_rect,
+            bounds = bounds,
+            image_rect = image_rect,
             color = color
         };
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void add_draw_rect_to_rect_buffer(ref RectsBuffer rect_buffer, StbGui.stbg_rect rect, StbGui.stbg_color color)
+    private static void add_draw_rect_to_rect_buffer(ref RectsBuffer rect_buffer, StbGui.stbg_rect bounds, StbGui.stbg_color color)
     {
-        rect_buffer.buffer[rect_buffer.index++] = new StbGuiRenderAdapter.Rect()
+        rect_buffer.buffer[rect_buffer.index++] = new StbGui.stbg_draw_image_rect()
         {
-            rect = rect,
+            bounds = bounds,
             color = color
         };
     }
 
-    private static void flush_render_buffer(ref RectsBuffer rects_buffer, nint texture_id, StbGuiRenderAdapter render_adapter)
+    private static void flush_render_buffer(ref RectsBuffer rects_buffer, image_id image_id, StbGui.stbg_render_adapter render_adapter)
     {
         if (rects_buffer.index > 0)
         {
-            render_adapter.draw_texture_rects(rects_buffer.buffer, rects_buffer.index, texture_id);
+            render_adapter.draw_images(rects_buffer.buffer.AsSpan().Slice(0, rects_buffer.index), image_id);
             rects_buffer.index = 0;
         }
     }
@@ -290,10 +292,10 @@ public class StbGuiTextHelper
             if (callback_data.text_rect_buffer.index + 1 == callback_data.text_rect_buffer.buffer.Length)
             {
                 flush_render_buffer(ref callback_data.background_rect_buffer, 0, callback_data.render_adapter);
-                flush_render_buffer(ref callback_data.text_rect_buffer, callback_data.font_texture_id, callback_data.render_adapter);
+                flush_render_buffer(ref callback_data.text_rect_buffer, callback_data.image_id, callback_data.render_adapter);
             }
 
-            add_draw_texture_to_rect_buffer(ref callback_data.text_rect_buffer, fromRect, toRect, data.text_color);
+            add_draw_image_to_rect_buffer(ref callback_data.text_rect_buffer, fromRect, toRect, data.text_color);
             if (data.background_color.a > 0)
             {
                 var background_rect = StbGui.stbg_build_rect(xpos, ypos - 1, xpos + data.dx, ypos + callback_data.line_height + 1);
@@ -304,13 +306,13 @@ public class StbGuiTextHelper
         else if (data.final)
         {
             flush_render_buffer(ref callback_data.background_rect_buffer, 0, callback_data.render_adapter);
-            flush_render_buffer(ref callback_data.text_rect_buffer, callback_data.font_texture_id, callback_data.render_adapter);
+            flush_render_buffer(ref callback_data.text_rect_buffer, callback_data.image_id, callback_data.render_adapter);
         }
 
         return false;
     }
 
-    public static void draw_text(StbGui.stbg_render_text_parameters parameters, StbGui.stbg_rect bounds, StbGuiFont font, StbGuiRenderAdapter render_adapter)
+    public static void draw_text(StbGui.stbg_render_text_parameters parameters, StbGui.stbg_rect bounds, StbGuiFont font, StbGui.stbg_render_adapter render_adapter)
     {
         float scale = parameters.font_size / font.size;
 
@@ -368,7 +370,7 @@ public class StbGuiTextHelper
                 buffer = draw_text_rects_buffer2,
                 index = 0
             },
-            font_texture_id = font.texture_id,
+            image_id = font.image_id,
             render_adapter = render_adapter,
         };
 

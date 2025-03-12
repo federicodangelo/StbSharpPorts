@@ -20,9 +20,7 @@ public partial class StbGui
         // Initialize the assert behavior first so all configuration related asserts work as expected
         context.init_options.assert_behavior = options.assert_behavior;
 
-        stbg__assert(external_dependencies.measure_text != null);
-        stbg__assert(external_dependencies.get_character_position_in_text != null);
-        stbg__assert(external_dependencies.render != null);
+        stbg__assert(external_dependencies.render_adapter != null);
         stbg__assert(external_dependencies.get_clipboard_text != null);
         stbg__assert(external_dependencies.copy_text_to_clipboard != null);
         stbg__assert(external_dependencies.set_input_method_editor != null);
@@ -53,7 +51,6 @@ public partial class StbGui
         var widgets_reference_properties = new stbg_widget_reference_properties[options.max_widgets + 1]; // first slot is never used (null widget)
         var hash_table = new stbg_hash_entry[options.hash_table_size];
         var fonts = new stbg_font[options.max_fonts + 1]; // first slot is never used (null font)
-        var render_commands_queue = new stbg_render_command[options.render_commands_queue_size];
         var images = new stbg_image_info[options.max_images + 1]; // first slot is never used (null image)
         var force_render_queue_entries = !options.force_always_render ?
              new stbg_force_render_queue_entry[Math.Max(options.max_widgets / 10, 100)] : // 10% of the widgets are forced to render at most];
@@ -87,7 +84,9 @@ public partial class StbGui
         context.init_options = options;
         context.external_dependencies = external_dependencies;
         context.theme.styles = new double[(int)STBG_WIDGET_STYLE.COUNT];
-        context.render_context.render_commands_queue = render_commands_queue;
+#pragma warning disable CS8601 // Possible null reference assignment.
+        context.render_context.render_adapter = external_dependencies.render_adapter;
+#pragma warning restore CS8601 // Possible null reference assignment.
         context.user_input_events_queue = new stbg_user_input_input_event[options.max_user_input_events_queue_size];
         context.force_render_queue.entries = force_render_queue_entries;
         stbg__string_memory_pool_init(ref context.string_memory_pool, options.string_memory_pool_size);
@@ -98,12 +97,12 @@ public partial class StbGui
 
     private static stbg_size stbg__measure_text(stbg_text text, STBG_MEASURE_TEXT_OPTIONS options)
     {
-        return context.external_dependencies.measure_text(text.text.Span, stbg_get_font_by_id(text.font_id), text.style, options);
+        return context.render_context.render_adapter.measure_text(text.text.Span, stbg_get_font_by_id(text.font_id), text.style, options);
     }
 
     private static stbg_position stbg__get_character_position_in_text(stbg_text text, int character_index, STBG_MEASURE_TEXT_OPTIONS options)
     {
-        return context.external_dependencies.get_character_position_in_text(text.text.Span, stbg_get_font_by_id(text.font_id), text.style, options, character_index);
+        return context.render_context.render_adapter.get_character_position_in_text(text.text.Span, stbg_get_font_by_id(text.font_id), text.style, options, character_index);
     }
 
     private static void stbg__destroy_unused_widgets(int amount_to_destroy)
