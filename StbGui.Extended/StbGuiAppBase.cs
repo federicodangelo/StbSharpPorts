@@ -125,7 +125,7 @@ public abstract class StbGuiAppBase : IDisposable
         Debug.Assert(pixels.Length == width * height * bytes_per_pixel);
 
         var image_id = StbGui.stbg_add_image(width, height);
-        render_adapter.register_image(image_id, new() {}, pixels, width, height, bytes_per_pixel);
+        render_adapter.register_image(image_id, new() { }, pixels, width, height, bytes_per_pixel);
 
         return image_id;
     }

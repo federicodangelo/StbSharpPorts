@@ -41,7 +41,7 @@ public partial class StbGui
     private static void stbg__rc_draw_border(stbg_rect rect, float border_size, stbg_color border_color, stbg_color background_color)
     {
         rect = stbg_translate_rect(rect, context.render_context.last_global_rect.x0, context.render_context.last_global_rect.y0);
-        context.render_context.render_adapter.draw_border(rect, (int) border_size, border_color, background_color);
+        context.render_context.render_adapter.draw_border(rect, (int)border_size, border_color, background_color);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -292,7 +292,7 @@ public partial class StbGui
         {
             // No need to enqueue if always render is enabled
             return;
-        }   
+        }
 
         ref var queue = ref context.force_render_queue;
 

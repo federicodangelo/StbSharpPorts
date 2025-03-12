@@ -136,7 +136,7 @@ public partial class StbGui
 
     [ExcludeFromCodeCoverage]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static stbg_color rgba(byte r, byte g, byte b, double a = 1) => stbg_build_color(r, g, b, (byte) (a * 255));
+    public static stbg_color rgba(byte r, byte g, byte b, double a = 1) => stbg_build_color(r, g, b, (byte)(a * 255));
 
     [ExcludeFromCodeCoverage]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

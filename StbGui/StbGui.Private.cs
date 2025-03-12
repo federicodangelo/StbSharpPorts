@@ -565,7 +565,7 @@ public partial class StbGui
         {
             // Only update the render time if we are not skipping the render due to the same hash
             // We hardcode the smoothing factor used here to 2 so it converges faster when most of the frames are skipped
-            int render_time_smoothing_factor = 2; 
+            int render_time_smoothing_factor = 2;
             if (!context.frame_stats.render_skipped_due_to_same_hash)
                 context.performance_metrics.render_time_us += (context.frame_stats.performance.render_time_us - context.performance_metrics.render_time_us) / render_time_smoothing_factor;
         }
