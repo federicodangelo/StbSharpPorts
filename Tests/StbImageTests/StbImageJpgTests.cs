@@ -22,7 +22,7 @@ public class StbImageJpgTests : StbImageTests
         TestImage(imageFileName);
     }
 
-    static private void TestImage(string imageFileName)
+    private static void TestImage(string imageFileName)
     {
         string expectedFileName = BuildExpectedFileName(imageFileName);
         string generatedFileName = BuildGeneratedFileName(imageFileName);
@@ -33,12 +33,12 @@ public class StbImageJpgTests : StbImageTests
         AssertImagesEqual(expectedFileName, generatedImage, generatedFileName, 0.01f);
     }
 
-    static private string BuildExpectedFileName(string fontFileName)
+    private static string BuildExpectedFileName(string fontFileName)
     {
         return Path.Combine(ExpectedPath, fontFileName);
     }
 
-    static private string BuildGeneratedFileName(string fontFileName)
+    private static string BuildGeneratedFileName(string fontFileName)
     {
         string expected = BuildExpectedFileName(fontFileName);
 

@@ -101,7 +101,7 @@ public class StbRectPack
     //
     // The function returns 1 if all of the rectangles were successfully
     // packed and 0 otherwise.
-    static public int stbrp_pack_rects(ref stbrp_context context, stbrp_rect[] rects, int num_rects)
+    public static int stbrp_pack_rects(ref stbrp_context context, stbrp_rect[] rects, int num_rects)
     {
         int i, all_rects_packed = 1;
 
@@ -185,7 +185,7 @@ public class StbRectPack
     //
     // If you do #2, then the non-quantized algorithm will be used, but the algorithm
     // may run out of temporary storage and be unable to pack some rectangles.
-    static public void stbrp_init_target(out stbrp_context context, int width, int height, stbrp_node[] nodes, int num_nodes)
+    public static void stbrp_init_target(out stbrp_context context, int width, int height, stbrp_node[] nodes, int num_nodes)
     {
         int i;
 
@@ -223,7 +223,7 @@ public class StbRectPack
         context.extra[1].next_index = -1;
     }
 
-    static public ref stbrp_node GetNode(ref stbrp_context context, int index)
+    public static ref stbrp_node GetNode(ref stbrp_context context, int index)
     {
         if (index >= context.num_nodes)
         {
@@ -235,7 +235,7 @@ public class StbRectPack
         }
     }
 
-    static public ref stbrp_node GetNextNode(ref stbrp_context context, int index)
+    public static ref stbrp_node GetNextNode(ref stbrp_context context, int index)
     {
         ref var node = ref GetNode(ref context, index);
 
@@ -246,7 +246,7 @@ public class StbRectPack
     // Optionally call this function after init but before doing any packing to
     // change the handling of the out-of-temp-memory scenario, described above.
     // If you call init again, this will be reset to the default (false).
-    static public void stbrp_setup_allow_out_of_mem(ref stbrp_context context, bool allow_out_of_mem)
+    public static void stbrp_setup_allow_out_of_mem(ref stbrp_context context, bool allow_out_of_mem)
     {
         if (allow_out_of_mem)
         {
@@ -273,7 +273,7 @@ public class StbRectPack
     // Optionally select which packing heuristic the library should use. Different
     // heuristics will produce better/worse results for different data sets.
     // If you call init again, this will be reset to the default.
-    static public void stbrp_setup_heuristic(ref stbrp_context context, STBRP_HEURISTIC heuristic)
+    public static void stbrp_setup_heuristic(ref stbrp_context context, STBRP_HEURISTIC heuristic)
     {
         switch (context.init_mode)
         {
@@ -339,7 +339,7 @@ public class StbRectPack
     //
 
     [Conditional("DEBUG")]
-    static private void STBRP_ASSERT([DoesNotReturnIf(false)] bool condition, [CallerArgumentExpression(nameof(condition))] string? message = null)
+    private static void STBRP_ASSERT([DoesNotReturnIf(false)] bool condition, [CallerArgumentExpression(nameof(condition))] string? message = null)
     {
         Debug.Assert(condition, message, string.Empty);
     }
@@ -681,7 +681,7 @@ public class StbRectPack
         return res;
     }
 
-    static private int rect_height_compare(ref stbrp_rect p, ref stbrp_rect q)
+    private static int rect_height_compare(ref stbrp_rect p, ref stbrp_rect q)
     {
         if (p.h > q.h)
             return -1;
@@ -690,7 +690,7 @@ public class StbRectPack
         return (p.w > q.w) ? -1 : (p.w < q.w) ? 1 : 0;
     }
 
-    static private int rect_original_order(ref stbrp_rect p, ref stbrp_rect q)
+    private static int rect_original_order(ref stbrp_rect p, ref stbrp_rect q)
     {
         return (p.was_packed < q.was_packed) ? -1 : (p.was_packed > q.was_packed) ? 1 : 0;
     }

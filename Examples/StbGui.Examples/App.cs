@@ -8,7 +8,7 @@ public class App
     // DefaultFontPath = "Fonts/ProggyClean.ttf", DefaultFontSize = 13
     // DefaultFontPath = "Fonts/ProggyTiny.ttf", DefaultFontSize = 10
 
-    static public StbGuiAppBase.StbGuiAppOptions options = new() { DefaultFontName = "Font", DefaultFontPath = "Fonts/ProggyClean.ttf", DefaultFontSize = 13 };
+    public static StbGuiAppBase.StbGuiAppOptions options = new() { DefaultFontName = "Font", DefaultFontPath = "Fonts/ProggyClean.ttf", DefaultFontSize = 13 };
 
     private readonly StbGuiAppBase appBase;
     public App(StbGuiAppBase appBase)

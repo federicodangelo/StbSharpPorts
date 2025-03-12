@@ -13,37 +13,37 @@ public readonly ref struct StbGuiString
         this.chars = chars;
     }
 
-    static public StbGuiString operator +(StbGuiString str1, ReadOnlySpan<char> chars)
+    public static StbGuiString operator +(StbGuiString str1, ReadOnlySpan<char> chars)
     {
         return str1.pool.Concat(str1.chars, chars);
     }
 
-    static public StbGuiString operator +(StbGuiString str1, int val)
+    public static StbGuiString operator +(StbGuiString str1, int val)
     {
         return str1.pool.Concat(str1.chars, val);
     }
 
-    static public StbGuiString operator +(StbGuiString str1, long val)
+    public static StbGuiString operator +(StbGuiString str1, long val)
     {
         return str1.pool.Concat(str1.chars, val);
     }
 
-    static public StbGuiString operator +(StbGuiString str1, float val)
+    public static StbGuiString operator +(StbGuiString str1, float val)
     {
         return str1.pool.Concat(str1.chars, val);
     }
 
-    static public StbGuiString operator +(StbGuiString str1, double val)
+    public static StbGuiString operator +(StbGuiString str1, double val)
     {
         return str1.pool.Concat(str1.chars, val);
     }
 
-    static public StbGuiString operator +(StbGuiString str1, bool val)
+    public static StbGuiString operator +(StbGuiString str1, bool val)
     {
         return str1.pool.Concat(str1.chars, val);
     }
 
-    static public implicit operator ReadOnlySpan<char>(StbGuiString str)
+    public static implicit operator ReadOnlySpan<char>(StbGuiString str)
     {
         return str.chars;
     }

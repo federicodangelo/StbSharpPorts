@@ -15,7 +15,7 @@ public class TestImagesWindow : TestWindow
         test_sub_images[3] = appBase.add_sub_image(test_image_id, 128, 128, 128, 128);
     }
 
-    static private byte[] GetResourceFileBytes(string fileName)
+    private static byte[] GetResourceFileBytes(string fileName)
     {
         var resourceName = "StbGui.Examples.Resources." + fileName.Replace("\\", ".").Replace("/", ".");
 

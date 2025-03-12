@@ -195,7 +195,7 @@ public abstract class WAAppBase : StbGuiAppBase
         { "PageDown", StbGui.STBG_KEYBOARD_KEY.PAGE_DOWN },
     };
 
-    static private Dictionary<string, StbGui.STBG_KEYBOARD_KEY>.AlternateLookup<ReadOnlySpan<char>> SDL_KEY_MAPPINGS_ALTERNATE_LOOKUP = SDL_KEY_MAPPINGS.GetAlternateLookup<ReadOnlySpan<char>>();
+    private static Dictionary<string, StbGui.STBG_KEYBOARD_KEY>.AlternateLookup<ReadOnlySpan<char>> SDL_KEY_MAPPINGS_ALTERNATE_LOOKUP = SDL_KEY_MAPPINGS.GetAlternateLookup<ReadOnlySpan<char>>();
 
     protected override void set_input_method_editor(StbGui.stbg_input_method_editor_info options)
     {

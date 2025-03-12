@@ -4,7 +4,7 @@ using StbSharp;
 
 public partial class CanvasInterop
 {
-    static public ulong BuildRGBA(StbGui.stbg_color color)
+    public static ulong BuildRGBA(StbGui.stbg_color color)
     {
         return ((ulong)color.a) << 24 |
                ((ulong)color.b) << 16 |

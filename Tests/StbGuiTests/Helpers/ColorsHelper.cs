@@ -32,12 +32,12 @@ public class ColorsHelper
     private const int ANSI_COLOR_BACKGROUND_WHITE = 47;
     private const int ANSI_COLOR_BACKGROUND_DEFAULT = 49;
 
-    static public string GetAnsiColorReset()
+    public static string GetAnsiColorReset()
     {
         return ANSI_COLOR_RESET;
     }
 
-    static public string GetAnsiColor(StbGui.stbg_color color, StbGui.stbg_color backgroundColor)
+    public static string GetAnsiColor(StbGui.stbg_color color, StbGui.stbg_color backgroundColor)
     {
         if (color.a == 0 && backgroundColor.a == 0)
             return "";
@@ -89,7 +89,7 @@ public class ColorsHelper
         return c;
     }
 
-    static private readonly Dictionary<StbGui.stbg_color, string> NICE_COLOR_NAMES = new() {
+    private static readonly Dictionary<StbGui.stbg_color, string> NICE_COLOR_NAMES = new() {
         { StbGui.STBG_COLOR_RED, "RED" },
         { StbGui.STBG_COLOR_GREEN, "GREEN" },
         { StbGui.STBG_COLOR_BLUE, "BLUE" },
@@ -101,11 +101,11 @@ public class ColorsHelper
         { StbGui.STBG_COLOR_TRANSPARENT, "TRANSPARENT" },
     };
 
-    static private readonly Dictionary<string, StbGui.stbg_color> NICE_COLOR_NAMES_REVERSE = new();
+    private static readonly Dictionary<string, StbGui.stbg_color> NICE_COLOR_NAMES_REVERSE = new();
 
-    static private readonly Dictionary<StbGui.stbg_color, char> NICE_COLOR_NAMES_SINGLE_CHAR = new();
+    private static readonly Dictionary<StbGui.stbg_color, char> NICE_COLOR_NAMES_SINGLE_CHAR = new();
 
-    static private readonly Dictionary<char, StbGui.stbg_color> NICE_COLOR_NAMES_SINGLE_CHAR_REVERSE = new();
+    private static readonly Dictionary<char, StbGui.stbg_color> NICE_COLOR_NAMES_SINGLE_CHAR_REVERSE = new();
 
     static ColorsHelper()
     {
@@ -122,21 +122,21 @@ public class ColorsHelper
         }
     }
 
-    static public string GetNiceColorName(StbGui.stbg_color color)
+    public static string GetNiceColorName(StbGui.stbg_color color)
     {
         Debug.Assert(NICE_COLOR_NAMES.ContainsKey(color), "Received color is not a nice color" + color);
 
         return NICE_COLOR_NAMES[color];
     }
 
-    static public char GetNiceColorNameSingleCharacter(StbGui.stbg_color color)
+    public static char GetNiceColorNameSingleCharacter(StbGui.stbg_color color)
     {
         Debug.Assert(NICE_COLOR_NAMES_SINGLE_CHAR.ContainsKey(color), "Received color is not a nice color" + color);
 
         return NICE_COLOR_NAMES_SINGLE_CHAR[color];
     }
 
-    static public StbGui.stbg_color GetColorFromSingleCharacterNiceColorName(char c)
+    public static StbGui.stbg_color GetColorFromSingleCharacterNiceColorName(char c)
     {
         Debug.Assert(NICE_COLOR_NAMES_SINGLE_CHAR_REVERSE.ContainsKey(c), "Received color is not a nice color" + c);
 

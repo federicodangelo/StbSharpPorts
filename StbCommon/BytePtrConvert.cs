@@ -37,7 +37,7 @@ public readonly struct BytePtrConvert<T2>(Memory<byte> elements) where T2 : stru
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public BytePtrConvert<T2> operator -(BytePtrConvert<T2> left, int offset)
+    public static BytePtrConvert<T2> operator -(BytePtrConvert<T2> left, int offset)
     {
         if (!MemoryMarshal.TryGetArray<byte>(left.elements, out var segmentLeft))
         {
@@ -49,47 +49,47 @@ public readonly struct BytePtrConvert<T2>(Memory<byte> elements) where T2 : stru
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public implicit operator BytePtrConvert<T2>(BytePtr left)
+    public static implicit operator BytePtrConvert<T2>(BytePtr left)
     {
         return new BytePtrConvert<T2>(left.Raw);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public BytePtrConvert<T2> operator +(BytePtrConvert<T2> left, int offset)
+    public static BytePtrConvert<T2> operator +(BytePtrConvert<T2> left, int offset)
     {
         return new BytePtrConvert<T2>(left.elements.Slice(offset));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public BytePtrConvert<T2> operator +(BytePtrConvert<T2> left, uint offset)
+    public static BytePtrConvert<T2> operator +(BytePtrConvert<T2> left, uint offset)
     {
         return new BytePtrConvert<T2>(left.elements.Slice((int)offset * Marshal.SizeOf<T2>()));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public BytePtrConvert<T2> operator ++(BytePtrConvert<T2> left)
+    public static BytePtrConvert<T2> operator ++(BytePtrConvert<T2> left)
     {
         return new BytePtrConvert<T2>(left.elements.Slice(1 * Marshal.SizeOf<T2>()));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public implicit operator BytePtrConvert<T2>(Memory<byte> left)
+    public static implicit operator BytePtrConvert<T2>(Memory<byte> left)
     {
         return new BytePtrConvert<T2>(left);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public implicit operator BytePtrConvert<T2>(byte[] left)
+    public static implicit operator BytePtrConvert<T2>(byte[] left)
     {
         return new BytePtrConvert<T2>(left);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public implicit operator Span<T2>(BytePtrConvert<T2> left)
+    public static implicit operator Span<T2>(BytePtrConvert<T2> left)
     {
         return left.Span;
     }
 
-    static public readonly BytePtrConvert<T2> Null = new(Memory<byte>.Empty);
+    public static readonly BytePtrConvert<T2> Null = new(Memory<byte>.Empty);
 
 }

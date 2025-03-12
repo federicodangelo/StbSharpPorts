@@ -9,7 +9,7 @@ public class StbImageTests
     protected const string ExpectedPath = "Expected";
     protected const string GeneratedPath = "Generated";
 
-    static protected BytePtr LoadStbiImage(string fileName, out int x, out int y, out StbImage.STBI_CHANNELS channels, StbImage.STBI_CHANNELS desired_channels = 0)
+    protected static BytePtr LoadStbiImage(string fileName, out int x, out int y, out StbImage.STBI_CHANNELS channels, StbImage.STBI_CHANNELS desired_channels = 0)
     {
         Assert.True(File.Exists(fileName), $"Missing expected image: {fileName}");
 
@@ -18,7 +18,7 @@ public class StbImageTests
         return StbImage.stbi_load_from_memory(bytes, bytes.Length, out x, out y, out channels, desired_channels);
     }
 
-    static protected MagickImage LoadStbiImage(string fileName)
+    protected static MagickImage LoadStbiImage(string fileName)
     {
         var pixelsPtr = LoadStbiImage(fileName, out int width, out int height, out StbImage.STBI_CHANNELS channels, 0);
 
@@ -51,7 +51,7 @@ public class StbImageTests
         return image;
     }
 
-    static protected Ptr<ushort> LoadStbiImage16(string fileName, out int x, out int y, out StbImage.STBI_CHANNELS channels, StbImage.STBI_CHANNELS desired_channels = 0)
+    protected static Ptr<ushort> LoadStbiImage16(string fileName, out int x, out int y, out StbImage.STBI_CHANNELS channels, StbImage.STBI_CHANNELS desired_channels = 0)
     {
         Assert.True(File.Exists(fileName), $"Missing expected image: {fileName}");
 
@@ -60,7 +60,7 @@ public class StbImageTests
         return StbImage.stbi_load_16_from_memory(bytes, bytes.Length, out x, out y, out channels, desired_channels);
     }
 
-    static protected MagickImage LoadStbiImage16(string fileName)
+    protected static MagickImage LoadStbiImage16(string fileName)
     {
         var pixelsPtr = LoadStbiImage16(fileName, out int width, out int height, out StbImage.STBI_CHANNELS channels, 0);
 
@@ -93,14 +93,14 @@ public class StbImageTests
         return image;
     }
 
-    static private MagickImage GetExpectedImage(string fileName)
+    private static MagickImage GetExpectedImage(string fileName)
     {
         Assert.True(File.Exists(fileName), "Missing expected test image: " + fileName);
 
         return new MagickImage(fileName);
     }
 
-    static protected void AssertImagesEqual(string expectedFileName, MagickImage actual, string actualFileName, float tolerance = 0)
+    protected static void AssertImagesEqual(string expectedFileName, MagickImage actual, string actualFileName, float tolerance = 0)
     {
         if (!File.Exists(expectedFileName))
         {
@@ -111,7 +111,7 @@ public class StbImageTests
         AssertImagesEqual(GetExpectedImage(expectedFileName), actual, actualFileName, tolerance);
     }
 
-    static protected void AssertImagesEqual(MagickImage expected, MagickImage actual, string actualFileName, float tolerance = 0)
+    protected static void AssertImagesEqual(MagickImage expected, MagickImage actual, string actualFileName, float tolerance = 0)
     {
         //Assert.NotEqual(expected, actual);
         Assert.Equal(expected.Width, actual.Width);
@@ -161,7 +161,7 @@ public class StbImageTests
         }
     }
 
-    static private string SaveImageDifference(MagickImage expected, MagickImage actual, string actualFileName)
+    private static string SaveImageDifference(MagickImage expected, MagickImage actual, string actualFileName)
     {
         MagickImage differenceImage = new MagickImage(MagickColors.Transparent, expected.Width, expected.Height);
 
@@ -193,7 +193,7 @@ public class StbImageTests
         return differenceFileName;
     }
 
-    static private void SaveGeneratedImage(string fileName, MagickImage image)
+    private static void SaveGeneratedImage(string fileName, MagickImage image)
     {
         if (!Directory.Exists(GeneratedPath))
         {

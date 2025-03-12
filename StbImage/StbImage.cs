@@ -470,7 +470,7 @@ public class StbImage
     // 8-bits-per-channel interface
     //
 
-    static public BytePtr stbi_load_from_memory(BytePtr buffer, int len, out int x, out int y, out STBI_CHANNELS channels_in_file, STBI_CHANNELS desired_channels)
+    public static BytePtr stbi_load_from_memory(BytePtr buffer, int len, out int x, out int y, out STBI_CHANNELS channels_in_file, STBI_CHANNELS desired_channels)
     {
         stbi__context s = new stbi__context();
         stbi__start_mem(ref s, buffer, len);
@@ -478,7 +478,7 @@ public class StbImage
     }
 
 
-    static public BytePtr stbi_load_from_callbacks(ref stbi_io_callbacks clbk, out int x, out int y, out STBI_CHANNELS channels_in_file, STBI_CHANNELS desired_channels)
+    public static BytePtr stbi_load_from_callbacks(ref stbi_io_callbacks clbk, out int x, out int y, out STBI_CHANNELS channels_in_file, STBI_CHANNELS desired_channels)
     {
         stbi__context s = new stbi__context();
         stbi__start_callbacks(ref s, ref clbk);
@@ -498,14 +498,14 @@ static public BytePtr stbi_load_gif_from_memory(BytePtr buffer, int len, out int
     // 16-bits-per-channel interface
     //
 
-    static public Ptr<stbi_us> stbi_load_16_from_memory(BytePtr buffer, int len, out int x, out int y, out STBI_CHANNELS channels_in_file, STBI_CHANNELS desired_channels)
+    public static Ptr<stbi_us> stbi_load_16_from_memory(BytePtr buffer, int len, out int x, out int y, out STBI_CHANNELS channels_in_file, STBI_CHANNELS desired_channels)
     {
         stbi__context s = new stbi__context();
         stbi__start_mem(ref s, buffer, len);
         return stbi__load_and_postprocess_16bit(ref s, out x, out y, out channels_in_file, desired_channels);
     }
 
-    static public Ptr<stbi_us> stbi_load_16_from_callbacks(ref stbi_io_callbacks clbk, out int x, out int y, out STBI_CHANNELS channels_in_file, STBI_CHANNELS desired_channels)
+    public static Ptr<stbi_us> stbi_load_16_from_callbacks(ref stbi_io_callbacks clbk, out int x, out int y, out STBI_CHANNELS channels_in_file, STBI_CHANNELS desired_channels)
     {
         stbi__context s = new stbi__context();
         stbi__start_callbacks(ref s, ref clbk);
@@ -542,7 +542,7 @@ static public stbi_us *stbi_load_from_file_16(FILE *f, out int x, out int y, out
 #endif // STBI_NO_LINEAR
 
     // stbi_is_hdr is always defined, but always returns false if STBI_NO_HDR
-    static public bool stbi_is_hdr_from_callbacks(ref stbi_io_callbacks clbk)
+    public static bool stbi_is_hdr_from_callbacks(ref stbi_io_callbacks clbk)
     {
 #if !STBI_NO_HDR
    stbi__context s;
@@ -555,7 +555,7 @@ static public stbi_us *stbi_load_from_file_16(FILE *f, out int x, out int y, out
 #endif
     }
 
-    static public bool stbi_is_hdr_from_memory(BytePtr buffer, int len)
+    public static bool stbi_is_hdr_from_memory(BytePtr buffer, int len)
     {
 #if !STBI_NO_HDR
    stbi__context s;
@@ -578,7 +578,7 @@ static public bool      stbi_is_hdr_from_file(FILE *f);
     // on most compilers (and ALL modern mainstream compilers) this is threadsafe
     static string stbi__g_failure_reason = "";
 
-    static public string stbi_failure_reason()
+    public static string stbi_failure_reason()
     {
         return stbi__g_failure_reason;
     }
@@ -621,34 +621,34 @@ static int  stbi__err(string x,string y) => stbi__err(y);
     }
 
     // free the loaded image -- this is just free()
-    static public void stbi_image_free(BytePtr retval_from_stbi_load)
+    public static void stbi_image_free(BytePtr retval_from_stbi_load)
     {
         //STBI_FREE(retval_from_stbi_load);
     }
 
     // get image dimensions & components without fully decoding
-    static public bool stbi_info_from_memory(BytePtr buffer, int len, out int x, out int y, out STBI_CHANNELS comp)
+    public static bool stbi_info_from_memory(BytePtr buffer, int len, out int x, out int y, out STBI_CHANNELS comp)
     {
         stbi__context s = new stbi__context();
         stbi__start_mem(ref s, buffer, len);
         return stbi__info_main(ref s, out x, out y, out comp);
     }
 
-    static public bool stbi_info_from_callbacks(ref stbi_io_callbacks c, out int x, out int y, out STBI_CHANNELS comp)
+    public static bool stbi_info_from_callbacks(ref stbi_io_callbacks c, out int x, out int y, out STBI_CHANNELS comp)
     {
         stbi__context s = new stbi__context();
         stbi__start_callbacks(ref s, ref c);
         return stbi__info_main(ref s, out x, out y, out comp);
     }
 
-    static public bool stbi_is_16_bit_from_memory(BytePtr buffer, int len)
+    public static bool stbi_is_16_bit_from_memory(BytePtr buffer, int len)
     {
         stbi__context s = new stbi__context();
         stbi__start_mem(ref s, buffer, len);
         return stbi__is_16_main(ref s);
     }
 
-    static public bool stbi_is_16_bit_from_callbacks(ref stbi_io_callbacks c)
+    public static bool stbi_is_16_bit_from_callbacks(ref stbi_io_callbacks c)
     {
         stbi__context s = new stbi__context();
         stbi__start_callbacks(ref s, ref c);
@@ -665,20 +665,20 @@ static public int      stbi_is_16_bit_from_file(FILE *f);
     // for image formats that explicitly notate that they have premultiplied alpha,
     // we just return the colors as stored in the file. set this flag to force
     // unpremultiplication. results are undefined if the unpremultiply overflow.
-    static public void stbi_set_unpremultiply_on_load(bool flag_true_if_should_unpremultiply)
+    public static void stbi_set_unpremultiply_on_load(bool flag_true_if_should_unpremultiply)
     {
         stbi__unpremultiply_on_load = flag_true_if_should_unpremultiply;
     }
 
     // indicate whether we should process iphone images back to canonical format,
     // or just pass them through "as-is"
-    static public void stbi_convert_iphone_png_to_rgb(bool flag_true_if_should_convert)
+    public static void stbi_convert_iphone_png_to_rgb(bool flag_true_if_should_convert)
     {
         stbi__de_iphone_flag = flag_true_if_should_convert;
     }
 
     // flip the image vertically, so the first pixel in the output array is the bottom left
-    static public void stbi_set_flip_vertically_on_load(bool flag_true_if_should_flip)
+    public static void stbi_set_flip_vertically_on_load(bool flag_true_if_should_flip)
     {
         stbi__vertically_flip_on_load = flag_true_if_should_flip;
 
@@ -699,7 +699,7 @@ static public int      stbi_is_16_bit_from_file(FILE *f);
     // ZLIB client - used by PNG, available for other purposes
 
 
-    static public BytePtr stbi_zlib_decode_malloc(BytePtr buffer, int len, out int outlen)
+    public static BytePtr stbi_zlib_decode_malloc(BytePtr buffer, int len, out int outlen)
     {
         return stbi_zlib_decode_malloc_guesssize(buffer, len, 16384, out outlen);
     }
@@ -728,7 +728,7 @@ static public int      stbi_is_16_bit_from_file(FILE *f);
         }
     }
 
-    static public int stbi_zlib_decode_buffer(BytePtr obuffer, int olen, BytePtr ibuffer, int ilen)
+    public static int stbi_zlib_decode_buffer(BytePtr obuffer, int olen, BytePtr ibuffer, int ilen)
     {
         stbi__zbuf a = new stbi__zbuf();
         a.zbuffer = ibuffer;
@@ -739,7 +739,7 @@ static public int      stbi_is_16_bit_from_file(FILE *f);
             return -1;
     }
 
-    static public BytePtr stbi_zlib_decode_noheader_malloc(BytePtr buffer, int len, out int outlen)
+    public static BytePtr stbi_zlib_decode_noheader_malloc(BytePtr buffer, int len, out int outlen)
     {
         stbi__zbuf a = new stbi__zbuf();
         BytePtr p = (BytePtr)stbi__malloc(16384);
@@ -763,7 +763,7 @@ static public int      stbi_is_16_bit_from_file(FILE *f);
         }
     }
 
-    static public int stbi_zlib_decode_noheader_buffer(BytePtr obuffer, int olen, BytePtr ibuffer, int ilen)
+    public static int stbi_zlib_decode_noheader_buffer(BytePtr obuffer, int olen, BytePtr ibuffer, int ilen)
     {
         stbi__zbuf a = new stbi__zbuf();
         a.zbuffer = (BytePtr)ibuffer;
@@ -779,7 +779,7 @@ static public int      stbi_is_16_bit_from_file(FILE *f);
     ////   end header file   /////////////////////////////////////////////////////
 
     [Conditional("DEBUG")]
-    static private void STBI_ASSERT([DoesNotReturnIf(false)] bool condition, [CallerArgumentExpression(nameof(condition))] string? message = null)
+    private static void STBI_ASSERT([DoesNotReturnIf(false)] bool condition, [CallerArgumentExpression(nameof(condition))] string? message = null)
     {
         Debug.Assert(condition, message, string.Empty);
     }
@@ -804,7 +804,7 @@ static public int      stbi_is_16_bit_from_file(FILE *f);
     // static private uint stbi_lrot(uint x,uint y)  => (((x) << (y)) | ((x) >> (-(y) & 31)));
     // C# 11 added logical right shift for uints !
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static private uint stbi_lrot(uint x, int y)
+    private static uint stbi_lrot(uint x, int y)
     {
         return (((x) << (y)) | ((x) >> (-(y) & 31)));
         //return x >>> y;
@@ -2379,8 +2379,8 @@ static public void   stbi_ldr_to_hdr_scale(float scale) { stbi__l2h_scale = scal
 
     static float stbi__h2l_gamma_i = 1.0f / 2.2f, stbi__h2l_scale_i = 1.0f;
 
-    static public void stbi_hdr_to_ldr_gamma(float gamma) { stbi__h2l_gamma_i = 1 / gamma; }
-    static public void stbi_hdr_to_ldr_scale(float scale) { stbi__h2l_scale_i = 1 / scale; }
+    public static void stbi_hdr_to_ldr_gamma(float gamma) { stbi__h2l_gamma_i = 1 / gamma; }
+    public static void stbi_hdr_to_ldr_scale(float scale) { stbi__h2l_scale_i = 1 / scale; }
 
 
     //////////////////////////////////////////////////////////////////////////////
@@ -5098,7 +5098,7 @@ static BytePtr stbi__hdr_to_ldr(float   *data, int x, int y, int comp)
 #endif
     }
 
-    static public BytePtr stbi_zlib_decode_malloc_guesssize(BytePtr buffer, int len, int initial_size, out int outlen)
+    public static BytePtr stbi_zlib_decode_malloc_guesssize(BytePtr buffer, int len, int initial_size, out int outlen)
     {
         stbi__zbuf a = new stbi__zbuf();
         BytePtr p = stbi__malloc(initial_size);

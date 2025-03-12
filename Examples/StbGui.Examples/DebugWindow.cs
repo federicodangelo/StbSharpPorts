@@ -1,8 +1,8 @@
 namespace StbSharp.Examples;
 
-static public class DebugWindow
+public static class DebugWindow
 {
-    static public void Render(StbGuiAppBase appBase, StbGuiStringMemoryPool mp)
+    public static void Render(StbGuiAppBase appBase, StbGuiStringMemoryPool mp)
     {
         var metrics = appBase.Metrics;
         StbGui.stbg_label(mp.Build("FPS: ") + appBase.Metrics.Fps + " Skipped Frames: " + metrics.SkippedFrames + " [" + appBase.RenderBackend + "]");

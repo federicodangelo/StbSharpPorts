@@ -27,7 +27,7 @@ internal partial class MyJsonContext : JsonSerializerContext
 
 public class BatchBuildFontsExample
 {
-    static public void BuildBitmapFonts()
+    public static void BuildBitmapFonts()
     {
         string[] SampleFonts = [
             "Fonts/Cousine-Regular.ttf",

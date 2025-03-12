@@ -199,7 +199,7 @@ STBIWDEF int stbiw_convert_wchar_to_utf8(char *buffer, size_t bufferlen, const w
 
     public delegate void stbi_write_func(Span<byte> data, int size);
 
-    static public bool stbi_write_png_to_func(stbi_write_func func, int x, int y, int comp, BytePtr data, int stride_bytes)
+    public static bool stbi_write_png_to_func(stbi_write_func func, int x, int y, int comp, BytePtr data, int stride_bytes)
     {
         int len;
         BytePtr png = stbi_write_png_to_mem(data, stride_bytes, x, y, comp, out len);
@@ -208,27 +208,27 @@ STBIWDEF int stbiw_convert_wchar_to_utf8(char *buffer, size_t bufferlen, const w
         STBIW_FREE(png);
         return true;
     }
-    static public bool stbi_write_bmp_to_func(stbi_write_func func, int x, int y, int comp, BytePtr data)
+    public static bool stbi_write_bmp_to_func(stbi_write_func func, int x, int y, int comp, BytePtr data)
     {
         stbi__write_context s = new stbi__write_context();
         stbi__start_write_callbacks(ref s, func);
         return stbi_write_bmp_core(ref s, x, y, comp, data);
     }
-    static public bool stbi_write_tga_to_func(stbi_write_func func, int x, int y, int comp, BytePtr data)
+    public static bool stbi_write_tga_to_func(stbi_write_func func, int x, int y, int comp, BytePtr data)
     {
         stbi__write_context s = new stbi__write_context();
         stbi__start_write_callbacks(ref s, func);
         return stbi_write_tga_core(ref s, x, y, comp, data);
     }
     //static public int stbi_write_hdr_to_func(stbi_write_func func, int w, int h, int comp, Ptr<float> data);
-    static public bool stbi_write_jpg_to_func(stbi_write_func func, int x, int y, int comp, BytePtr data, int quality)
+    public static bool stbi_write_jpg_to_func(stbi_write_func func, int x, int y, int comp, BytePtr data, int quality)
     {
         stbi__write_context s = new stbi__write_context();
         stbi__start_write_callbacks(ref s, func);
         return stbi_write_jpg_core(ref s, x, y, comp, data, quality);
     }
 
-    static public void stbi_flip_vertically_on_write(bool flag)
+    public static void stbi_flip_vertically_on_write(bool flag)
     {
         stbi__flip_vertically_on_write = flag;
     }
@@ -321,9 +321,9 @@ STBIWDEF int stbiw_convert_wchar_to_utf8(char *buffer, size_t bufferlen, const w
     }
 
 #if STB_IMAGE_WRITE_STATIC
-    static public int stbi_write_png_compression_level = 8;
-    static public bool stbi_write_tga_with_rle = true;
-    static public STBIW_PNG_FILTER stbi_write_force_png_filter = STBIW_PNG_FILTER.RUNTIME_DETECTED;
+    public static int stbi_write_png_compression_level = 8;
+    public static bool stbi_write_tga_with_rle = true;
+    public static STBIW_PNG_FILTER stbi_write_force_png_filter = STBIW_PNG_FILTER.RUNTIME_DETECTED;
 #else
 int stbi_write_png_compression_level = 8;
 int stbi_write_tga_with_rle = 1;

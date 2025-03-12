@@ -229,14 +229,14 @@ public class StbImagePngTests : StbImageTests
             TestImage(imageFileName, 0.1f);
     }
 
-    static private void TestLoadImageOnly(string imageFileName)
+    private static void TestLoadImageOnly(string imageFileName)
     {
         string expectedFileName = BuildExpectedFileName(imageFileName);
 
         LoadStbiImage(expectedFileName);
     }
 
-    static private void TestImage(string imageFileName, float tolerance = 0)
+    private static void TestImage(string imageFileName, float tolerance = 0)
     {
         string expectedFileName = BuildExpectedFileName(imageFileName);
         string generatedFileName = BuildGeneratedFileName(imageFileName);
@@ -246,7 +246,7 @@ public class StbImagePngTests : StbImageTests
         AssertImagesEqual(expectedFileName, generatedImage, generatedFileName, tolerance);
     }
 
-    static private void TestImage16(string imageFileName, float tolerance = 0)
+    private static void TestImage16(string imageFileName, float tolerance = 0)
     {
         string expectedFileName = BuildExpectedFileName(imageFileName);
         string generatedFileName = BuildGenerated16bitsFileName(imageFileName);
@@ -256,19 +256,19 @@ public class StbImagePngTests : StbImageTests
         AssertImagesEqual(expectedFileName, generatedImage, generatedFileName, tolerance);
     }
 
-    static private string BuildExpectedFileName(string fontFileName)
+    private static string BuildExpectedFileName(string fontFileName)
     {
         return Path.Combine(ExpectedPath, fontFileName);
     }
 
-    static private string BuildGeneratedFileName(string fontFileName)
+    private static string BuildGeneratedFileName(string fontFileName)
     {
         string expected = BuildExpectedFileName(fontFileName);
 
         return Path.Combine(GeneratedPath, $"{Path.GetFileNameWithoutExtension(expected)}.png");
     }
 
-    static private string BuildGenerated16bitsFileName(string fontFileName)
+    private static string BuildGenerated16bitsFileName(string fontFileName)
     {
         string expected = BuildExpectedFileName(fontFileName);
 

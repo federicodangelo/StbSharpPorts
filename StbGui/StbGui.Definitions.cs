@@ -774,6 +774,11 @@ public partial class StbGui
         TEXT,
 
         /// <summary>
+        /// Render a line using bounds (from x0,y0 to x1,y1), color (as tint color) and size (line width)
+        /// </summary>
+        LINE,
+
+        /// <summary>
         /// Push clipping rect using bounds
         /// </summary>
         PUSH_CLIPPING_RECT,

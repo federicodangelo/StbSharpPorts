@@ -29,7 +29,7 @@ public class StbGuiTextHelper
 
     private delegate bool IterateTextInternalDelegate<T>(ref TextIterationData data, ref T user_data);
 
-    static private void iterate_text_internal<T>(
+    private static void iterate_text_internal<T>(
         ReadOnlySpan<char> text,
         StbGuiFont font,
         float font_size,
@@ -162,7 +162,7 @@ public class StbGuiTextHelper
         }
     }
 
-    static private bool measure_text_callback(ref TextIterationData data, ref StbGui.stbg_size size)
+    private static bool measure_text_callback(ref TextIterationData data, ref StbGui.stbg_size size)
     {
         if (data.new_line || data.final)
         {
@@ -174,7 +174,7 @@ public class StbGuiTextHelper
     }
 
 
-    static public StbGui.stbg_size measure_text(ReadOnlySpan<char> text, StbGuiFont font, float font_size, ReadOnlySpan<StbGui.stbg_render_text_style_range> style_ranges, StbGui.STBG_MEASURE_TEXT_OPTIONS options)
+    public static StbGui.stbg_size measure_text(ReadOnlySpan<char> text, StbGuiFont font, float font_size, ReadOnlySpan<StbGui.stbg_render_text_style_range> style_ranges, StbGui.STBG_MEASURE_TEXT_OPTIONS options)
     {
         StbGui.stbg_size size = new StbGui.stbg_size();
 
@@ -189,7 +189,7 @@ public class StbGuiTextHelper
         public StbGui.stbg_position position;
     }
 
-    static private bool get_character_position_in_text_callback(ref TextIterationData data, ref GetCharacterPositionInTextCallbackData callback_data)
+    private static bool get_character_position_in_text_callback(ref TextIterationData data, ref GetCharacterPositionInTextCallbackData callback_data)
     {
         if (data.c_index + 1 == callback_data.character_index)
         {
@@ -201,7 +201,7 @@ public class StbGuiTextHelper
         return false;
     }
 
-    static public StbGui.stbg_position get_character_position_in_text(ReadOnlySpan<char> text, StbGuiFont font, float font_size, ReadOnlySpan<StbGui.stbg_render_text_style_range> style_ranges, StbGui.STBG_MEASURE_TEXT_OPTIONS options, int character_index)
+    public static StbGui.stbg_position get_character_position_in_text(ReadOnlySpan<char> text, StbGuiFont font, float font_size, ReadOnlySpan<StbGui.stbg_render_text_style_range> style_ranges, StbGui.STBG_MEASURE_TEXT_OPTIONS options, int character_index)
     {
         GetCharacterPositionInTextCallbackData callback_data = new()
         {
@@ -243,7 +243,7 @@ public class StbGuiTextHelper
     private static readonly StbGuiRenderAdapter.Rect[] draw_text_rects_buffer2 = new StbGuiRenderAdapter.Rect[MAX_RECTS_COUNT];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static private void add_draw_texture_to_rect_buffer(ref RectsBuffer rect_buffer, StbGui.stbg_rect tex_coords_rect, StbGui.stbg_rect rect, StbGui.stbg_color color)
+    private static void add_draw_texture_to_rect_buffer(ref RectsBuffer rect_buffer, StbGui.stbg_rect tex_coords_rect, StbGui.stbg_rect rect, StbGui.stbg_color color)
     {
         rect_buffer.buffer[rect_buffer.index++] = new StbGuiRenderAdapter.Rect()
         {
@@ -254,7 +254,7 @@ public class StbGuiTextHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static private void add_draw_rect_to_rect_buffer(ref RectsBuffer rect_buffer, StbGui.stbg_rect rect, StbGui.stbg_color color)
+    private static void add_draw_rect_to_rect_buffer(ref RectsBuffer rect_buffer, StbGui.stbg_rect rect, StbGui.stbg_color color)
     {
         rect_buffer.buffer[rect_buffer.index++] = new StbGuiRenderAdapter.Rect()
         {
@@ -263,7 +263,7 @@ public class StbGuiTextHelper
         };
     }
 
-    static private void flush_render_buffer(ref RectsBuffer rects_buffer, nint texture_id, StbGuiRenderAdapter render_adapter)
+    private static void flush_render_buffer(ref RectsBuffer rects_buffer, nint texture_id, StbGuiRenderAdapter render_adapter)
     {
         if (rects_buffer.index > 0)
         {
@@ -272,7 +272,7 @@ public class StbGuiTextHelper
         }
     }
 
-    static private bool draw_text_callback(ref TextIterationData data, ref DrawTextCallbackData callback_data)
+    private static bool draw_text_callback(ref TextIterationData data, ref DrawTextCallbackData callback_data)
     {
         if (!data.new_line && !data.final)
         {
@@ -310,7 +310,7 @@ public class StbGuiTextHelper
         return false;
     }
 
-    static public void draw_text(StbGui.stbg_render_text_parameters parameters, StbGui.stbg_rect bounds, StbGuiFont font, StbGuiRenderAdapter render_adapter)
+    public static void draw_text(StbGui.stbg_render_text_parameters parameters, StbGui.stbg_rect bounds, StbGuiFont font, StbGuiRenderAdapter render_adapter)
     {
         float scale = parameters.font_size / font.size;
 

@@ -18,13 +18,13 @@ public abstract class TestWindow
     public abstract void Render();
 }
 
-static public class TestWindows
+public static class TestWindows
 {
-    static public bool open = true;
-    static public bool initialized = false;
-    static private TestWindow[] windows = Array.Empty<TestWindow>();
+    public static bool open = true;
+    public static bool initialized = false;
+    private static TestWindow[] windows = Array.Empty<TestWindow>();
 
-    static public void Render(StbGuiAppBase appBase, StbGuiStringMemoryPool mp)
+    public static void Render(StbGuiAppBase appBase, StbGuiStringMemoryPool mp)
     {
         if (!initialized)
         {
@@ -58,7 +58,7 @@ static public class TestWindows
                 open = true;
     }
 
-    static public void WindowButton(TestWindow window, StbGuiStringMemoryPool mp)
+    public static void WindowButton(TestWindow window, StbGuiStringMemoryPool mp)
     {
         if (StbGui.stbg_button(mp.Build(window.open ? "Close " : "Open ") + window.title))
             window.open = !window.open;

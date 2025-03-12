@@ -2,7 +2,7 @@
 
 public class Program
 {
-    static public void Main(string[] args)
+    public static void Main(string[] args)
     {
         PrintCharacterAsciiArt.Run();
         PrintTextAsciiArt.Run();

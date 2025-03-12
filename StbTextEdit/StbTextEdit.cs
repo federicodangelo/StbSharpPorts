@@ -301,7 +301,7 @@ public class StbTextEdit
     }
 
     // the length of the string (ideally O(1))
-    static private int STB_TEXTEDIT_STRINGLEN(ref STB_TEXTEDIT_STRING str)
+    private static int STB_TEXTEDIT_STRINGLEN(ref STB_TEXTEDIT_STRING str)
     {
         return str.text_length;
     }
@@ -313,7 +313,7 @@ public class StbTextEdit
     // the height and the number of characters consumed. This allows this library
     // to traverse the entire layout incrementally. You need to compute word-wrapping
     // here.
-    static private void STB_TEXTEDIT_LAYOUTROW(out StbTexteditRow r, ref STB_TEXTEDIT_STRING str, int n)
+    private static void STB_TEXTEDIT_LAYOUTROW(out StbTexteditRow r, ref STB_TEXTEDIT_STRING str, int n)
     {
         r = str.layout_row(str, n);
     }
@@ -323,16 +323,16 @@ public class StbTextEdit
     // starting at character #n (i.e. accounts for kerning
     // with previous char)
     // Return STB_TEXTEDIT_GETWIDTH_NEWLINE if it's a new line character!!!
-    static private int STB_TEXTEDIT_GETWIDTH(ref STB_TEXTEDIT_STRING str, int n, int i)
+    private static int STB_TEXTEDIT_GETWIDTH(ref STB_TEXTEDIT_STRING str, int n, int i)
     {
         return str.get_width(str, n, i);
     }
 
-    static public int STB_TEXTEDIT_GETWIDTH_NEWLINE = -1;
+    public static int STB_TEXTEDIT_GETWIDTH_NEWLINE = -1;
 
     // maps a keyboard input to an insertable character
     // (return type is int, -1 means not valid to insert)
-    static private int STB_TEXTEDIT_KEYTOTEXT(STB_TEXTEDIT_KEYTYPE k)
+    private static int STB_TEXTEDIT_KEYTOTEXT(STB_TEXTEDIT_KEYTYPE k)
     {
         k &= STB_TEXTEDIT_CHARS_MASK;
 
@@ -343,20 +343,20 @@ public class StbTextEdit
     }
 
     // returns the i'th character of obj, 0-based
-    static private STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_GETCHAR(ref STB_TEXTEDIT_STRING str, int i)
+    private static STB_TEXTEDIT_CHARTYPE STB_TEXTEDIT_GETCHAR(ref STB_TEXTEDIT_STRING str, int i)
     {
         return str.text.Span[i];
     }
 
     // delete n characters starting at i
-    static public void STB_TEXTEDIT_DELETECHARS(ref STB_TEXTEDIT_STRING str, int i, int n)
+    public static void STB_TEXTEDIT_DELETECHARS(ref STB_TEXTEDIT_STRING str, int i, int n)
     {
         str.text.Slice(i + n).CopyTo(str.text.Slice(i));
         str.text_length -= n;
     }
 
     // insert n characters at i (pointed to by STB_TEXTEDIT_CHARTYPE*)
-    static public bool STB_TEXTEDIT_INSERTCHARS(ref STB_TEXTEDIT_STRING str, int i, ReadOnlySpan<STB_TEXTEDIT_CHARTYPE> c, int n)
+    public static bool STB_TEXTEDIT_INSERTCHARS(ref STB_TEXTEDIT_STRING str, int i, ReadOnlySpan<STB_TEXTEDIT_CHARTYPE> c, int n)
     {
         // TODO: Validation for bounds?
         str.text.Slice(i, str.text_length).CopyTo(str.text.Slice(i + n));
@@ -366,7 +366,7 @@ public class StbTextEdit
         return true;
     }
 
-    static public bool STB_TEXTEDIT_IS_SPACE(STB_TEXTEDIT_CHARTYPE ch)
+    public static bool STB_TEXTEDIT_IS_SPACE(STB_TEXTEDIT_CHARTYPE ch)
     {
         return ch == ' ';
     }

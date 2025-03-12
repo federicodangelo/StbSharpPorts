@@ -74,7 +74,7 @@ public readonly struct BytePtr(Memory<byte> bytes)
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public BytePtr operator -(BytePtr left, int offset)
+    public static BytePtr operator -(BytePtr left, int offset)
     {
         if (!MemoryMarshal.TryGetArray<byte>(left.bytes, out var segmentLeft))
         {
@@ -99,42 +99,42 @@ public readonly struct BytePtr(Memory<byte> bytes)
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public BytePtr operator +(BytePtr left, int offset)
+    public static BytePtr operator +(BytePtr left, int offset)
     {
         return new BytePtr(left.bytes.Slice(offset));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public BytePtr operator +(BytePtr left, uint offset)
+    public static BytePtr operator +(BytePtr left, uint offset)
     {
         return new BytePtr(left.bytes.Slice((int)offset));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public BytePtr operator ++(BytePtr left)
+    public static BytePtr operator ++(BytePtr left)
     {
         return new BytePtr(left.bytes.Slice(1));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public implicit operator BytePtr(Memory<byte> left)
+    public static implicit operator BytePtr(Memory<byte> left)
     {
         return new BytePtr(left);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public implicit operator BytePtr(byte[] left)
+    public static implicit operator BytePtr(byte[] left)
     {
         return new BytePtr(left);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public implicit operator Span<byte>(BytePtr left)
+    public static implicit operator Span<byte>(BytePtr left)
     {
         return left.Span;
     }
 
-    static public readonly BytePtr Null = new(Memory<byte>.Empty);
+    public static readonly BytePtr Null = new(Memory<byte>.Empty);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(BytePtr left, BytePtr right)

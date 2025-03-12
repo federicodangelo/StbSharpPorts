@@ -11,9 +11,9 @@ using StbSharp.StbCommon;
 
 namespace StbSharp.Examples;
 
-static public class Program
+public static class Program
 {
-    static public void Main()
+    public static void Main()
     {
         var texture = LoadTexture("Images\\ProjectUtumno_full.png");
 

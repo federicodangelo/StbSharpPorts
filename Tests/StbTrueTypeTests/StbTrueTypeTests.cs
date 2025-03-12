@@ -8,7 +8,7 @@ public class StbTrueTypeTests
     protected const string ExpectedPath = "Expected";
     protected const string GeneratedPath = "Generated";
 
-    static protected byte[] GetFontFile(string fileName)
+    protected static byte[] GetFontFile(string fileName)
     {
         var fullPath = Path.Combine(FontsPath, fileName);
 
@@ -19,14 +19,14 @@ public class StbTrueTypeTests
         return bytes;
     }
 
-    static private MagickImage GetExpectedFontImage(string fileName)
+    private static MagickImage GetExpectedFontImage(string fileName)
     {
         Assert.True(File.Exists(fileName), "Missing expected test image: " + fileName);
 
         return new MagickImage(fileName);
     }
 
-    static protected MagickImage GenerateImageFromFontBitmap(Span<byte> bitmap, int width, int height)
+    protected static MagickImage GenerateImageFromFontBitmap(Span<byte> bitmap, int width, int height)
     {
         var image = new MagickImage(MagickColors.Transparent, (uint)width, (uint)height);
 
@@ -45,7 +45,7 @@ public class StbTrueTypeTests
         return image;
     }
 
-    static protected void AssertImagesEqual(string expectedFileName, MagickImage actual, string actualFileName)
+    protected static void AssertImagesEqual(string expectedFileName, MagickImage actual, string actualFileName)
     {
         if (!File.Exists(expectedFileName))
         {
@@ -56,7 +56,7 @@ public class StbTrueTypeTests
         AssertImagesEqual(GetExpectedFontImage(expectedFileName), actual, actualFileName);
     }
 
-    static protected void AssertImagesEqual(MagickImage expected, MagickImage actual, string actualFileName)
+    protected static void AssertImagesEqual(MagickImage expected, MagickImage actual, string actualFileName)
     {
         //Assert.NotEqual(expected, actual);
         Assert.Equal(expected.Width, actual.Width);
@@ -83,7 +83,7 @@ public class StbTrueTypeTests
         }
     }
 
-    static private string SaveImageDifference(MagickImage expected, MagickImage actual, string actualFileName)
+    private static string SaveImageDifference(MagickImage expected, MagickImage actual, string actualFileName)
     {
         MagickImage differenceImage = new MagickImage(MagickColors.Transparent, expected.Width, expected.Height);
 
@@ -115,7 +115,7 @@ public class StbTrueTypeTests
         return differenceFileName;
     }
 
-    static private void SaveGeneratedImage(string fileName, MagickImage image)
+    private static void SaveGeneratedImage(string fileName, MagickImage image)
     {
         if (!Directory.Exists(GeneratedPath))
         {

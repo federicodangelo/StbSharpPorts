@@ -7,9 +7,9 @@ namespace StbSharp.Examples;
 //
 // Complete program: print "Hello World!" banner, with bugs
 //
-static public class PrintTextAsciiArt
+public static class PrintTextAsciiArt
 {
-    static public void Run(string text = "hello World", string fileName = "Fonts/Karla-Regular.ttf", int fontSize = 20)
+    public static void Run(string text = "hello World", string fileName = "Fonts/Karla-Regular.ttf", int fontSize = 20)
     {
         int ScreenWidth = 100;
         int ScreenHeight = fontSize;

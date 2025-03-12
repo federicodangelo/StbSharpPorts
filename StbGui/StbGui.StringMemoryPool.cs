@@ -4,19 +4,19 @@ namespace StbSharp;
 
 public partial class StbGui
 {
-    static private void stbg__string_memory_pool_init(ref stbg_string_memory_pool pool, int size)
+    private static void stbg__string_memory_pool_init(ref stbg_string_memory_pool pool, int size)
     {
         stbg__assert(size >= 0);
         pool.memory_pool = new Memory<char>(new char[size]);
         pool.offset = 0;
     }
 
-    static private void stbg__string_memory_pool_reset(ref stbg_string_memory_pool pool)
+    private static void stbg__string_memory_pool_reset(ref stbg_string_memory_pool pool)
     {
         pool.offset = 0;
     }
 
-    static private ReadOnlyMemory<char> stbg__add_string(ReadOnlySpan<char> str)
+    private static ReadOnlyMemory<char> stbg__add_string(ReadOnlySpan<char> str)
     {
         ref var pool = ref context.string_memory_pool;
 

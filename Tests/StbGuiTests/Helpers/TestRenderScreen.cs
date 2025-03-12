@@ -219,7 +219,7 @@ public class TestRenderScreen
         clipping_rects.Pop();
     }
 
-    static public string[] ConvertPixelsToStrings(TestRenderScreenPixel[][] pixels, bool color)
+    public static string[] ConvertPixelsToStrings(TestRenderScreenPixel[][] pixels, bool color)
     {
         string[] lines = new string[pixels.Length];
 

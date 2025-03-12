@@ -5,7 +5,7 @@ using StbSharp;
 
 public class TestBenchmarksWindow : TestWindow
 {
-    static public StbGui.stbg_textbox_text_to_edit last_benchmark_result = StbGui.stbg_textbox_build_text_to_edit(1024);
+    public static StbGui.stbg_textbox_text_to_edit last_benchmark_result = StbGui.stbg_textbox_build_text_to_edit(1024);
 
     public const string TITLE = "Test Benchmarks";
 
@@ -91,7 +91,7 @@ public class TestBenchmarksWindow : TestWindow
         LogResult($"DOTNET [int] - Sum: {sum} Time: {sw.Elapsed.TotalMilliseconds}ms");
     }
 
-    static public void LogResult(string result)
+    public static void LogResult(string result)
     {
         Console.WriteLine(result);
         StbGui.stbg_textbox_set_text_to_edit(ref last_benchmark_result, result);

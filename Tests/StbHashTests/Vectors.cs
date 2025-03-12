@@ -2,7 +2,7 @@ namespace StbSharp.Tests;
 
 public class StbHashTestsVectors
 {
-    static public byte[][] vectors_sip64 = [
+    public static byte[][] vectors_sip64 = [
     [
         0x31,
         0x0e,
@@ -644,7 +644,7 @@ public class StbHashTestsVectors
         0x95,
     ],
 ];
-    static public byte[][] vectors_sip128 = [
+    public static byte[][] vectors_sip128 = [
 
         [
             0xa3,
@@ -1800,7 +1800,7 @@ public class StbHashTestsVectors
         0x7c,
     ],
 ];
-    static public byte[][] vectors_hsip32 = [
+    public static byte[][] vectors_hsip32 = [
         [
         0xa9,
         0x35,
@@ -2186,7 +2186,7 @@ public class StbHashTestsVectors
         0x74,
     ],
 ];
-    static public byte[][] vectors_hsip64 = [
+    public static byte[][] vectors_hsip64 = [
         [
         0x21,
         0x8d,

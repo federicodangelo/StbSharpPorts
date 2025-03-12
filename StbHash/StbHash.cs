@@ -87,7 +87,7 @@ public class StbHash
         v2 = ROTL_32(v2, 16);
     }
 
-    static public void stbh_siphash(ReadOnlySpan<byte> inputBytes, ReadOnlySpan<byte> inputKey, Span<byte> output)
+    public static void stbh_siphash(ReadOnlySpan<byte> inputBytes, ReadOnlySpan<byte> inputKey, Span<byte> output)
     {
         int outlen = output.Length;
         int inlen = inputBytes.Length;
@@ -190,7 +190,7 @@ public class StbHash
         }
     }
 
-    static public long stbh_halfsiphash_long(ReadOnlySpan<byte> inputBytes, long key)
+    public static long stbh_halfsiphash_long(ReadOnlySpan<byte> inputBytes, long key)
     {
         long output = 0;
 
@@ -202,12 +202,12 @@ public class StbHash
         return output;
     }
 
-    static public long stbh_halfsiphash_long<T>(T input, long key) where T : struct
+    public static long stbh_halfsiphash_long<T>(T input, long key) where T : struct
     {
         return stbh_halfsiphash_long(MemoryMarshal.AsBytes(new Span<T>(ref input)), key);
     }
 
-    static public void stbh_halfsiphash(ReadOnlySpan<byte> inputBytes, ReadOnlySpan<byte> inputKey, Span<byte> output)
+    public static void stbh_halfsiphash(ReadOnlySpan<byte> inputBytes, ReadOnlySpan<byte> inputKey, Span<byte> output)
     {
         int outlen = output.Length;
         int inlen = inputBytes.Length;

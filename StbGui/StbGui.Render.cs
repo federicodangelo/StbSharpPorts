@@ -26,31 +26,31 @@ public partial class StbGui
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static private void stbg__rc_set_global_rect(stbg_rect global_rect)
+    private static void stbg__rc_set_global_rect(stbg_rect global_rect)
     {
         context.render_context.last_global_rect = global_rect;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static private void stbg__rc_draw_rectangle(stbg_rect rect, stbg_color color)
+    private static void stbg__rc_draw_rectangle(stbg_rect rect, stbg_color color)
     {
         stbg__rc_enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.RECTANGLE, bounds = rect, background_color = color });
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static private void stbg__rc_draw_border(stbg_rect rect, float border_size, stbg_color border_color, stbg_color background_color)
+    private static void stbg__rc_draw_border(stbg_rect rect, float border_size, stbg_color border_color, stbg_color background_color)
     {
         stbg__rc_enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.BORDER, bounds = rect, size = border_size, color = border_color, background_color = background_color });
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static private void stbg__rc_draw_image(stbg_rect rect, stbg_image_info image, stbg_color color)
+    private static void stbg__rc_draw_image(stbg_rect rect, stbg_image_info image, stbg_color color)
     {
         stbg__rc_enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.IMAGE, bounds = rect, color = color, image_id = image.original_image_id, source_rect = image.rect });
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static private void stbg__rc_draw_text(stbg_rect rect, stbg_text text, float horizontal_alignment = -1, float vertical_alignment = -1, STBG_MEASURE_TEXT_OPTIONS measure_options = STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE, STBG_RENDER_TEXT_OPTIONS render_options = STBG_RENDER_TEXT_OPTIONS.NONE)
+    private static void stbg__rc_draw_text(stbg_rect rect, stbg_text text, float horizontal_alignment = -1, float vertical_alignment = -1, STBG_MEASURE_TEXT_OPTIONS measure_options = STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE, STBG_RENDER_TEXT_OPTIONS render_options = STBG_RENDER_TEXT_OPTIONS.NONE)
     {
         stbg__rc_enqueue_command(new()
         {
@@ -76,7 +76,7 @@ public partial class StbGui
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static private void stbg__rc_draw_text(stbg_rect rect, ReadOnlyMemory<char> text, font_id font_id, float font_size, ReadOnlyMemory<stbg_render_text_style_range> style_ranges, float horizontal_alignment = -1, float vertical_alignment = -1, STBG_MEASURE_TEXT_OPTIONS measure_options = STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE, STBG_RENDER_TEXT_OPTIONS render_options = STBG_RENDER_TEXT_OPTIONS.NONE)
+    private static void stbg__rc_draw_text(stbg_rect rect, ReadOnlyMemory<char> text, font_id font_id, float font_size, ReadOnlyMemory<stbg_render_text_style_range> style_ranges, float horizontal_alignment = -1, float vertical_alignment = -1, STBG_MEASURE_TEXT_OPTIONS measure_options = STBG_MEASURE_TEXT_OPTIONS.USE_ONLY_BASELINE_FOR_FIRST_LINE, STBG_RENDER_TEXT_OPTIONS render_options = STBG_RENDER_TEXT_OPTIONS.NONE)
     {
         stbg__rc_enqueue_command(new()
         {
@@ -97,19 +97,19 @@ public partial class StbGui
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static private void stbg__rc_push_clipping_rect(stbg_rect rect)
+    private static void stbg__rc_push_clipping_rect(stbg_rect rect)
     {
         stbg__rc_enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.PUSH_CLIPPING_RECT, bounds = rect });
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static private void stbg__rc_pop_clipping_rect()
+    private static void stbg__rc_pop_clipping_rect()
     {
         stbg__rc_enqueue_command(new() { type = STBG_RENDER_COMMAND_TYPE.POP_CLIPPING_RECT });
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static private void stbg__rc_enqueue_command(stbg_render_command command)
+    private static void stbg__rc_enqueue_command(stbg_render_command command)
     {
         ref var render_context = ref context.render_context;
 
@@ -130,7 +130,7 @@ public partial class StbGui
             stbg__rc_flush_queue();
     }
 
-    static private void stbg__rc_flush_queue()
+    private static void stbg__rc_flush_queue()
     {
         ref var render_context = ref context.render_context;
 
@@ -140,7 +140,7 @@ public partial class StbGui
         render_context.render_commands_queue_index = 0;
     }
 
-    static private bool stbg__render()
+    private static bool stbg__render()
     {
         stbg__assert_internal(context.render_context.render_commands_queue_index == 0, "Pending render commands left in render queue from a previous frame");
 

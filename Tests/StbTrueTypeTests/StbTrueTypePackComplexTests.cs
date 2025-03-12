@@ -52,12 +52,12 @@ public class StbTrueTypePackComplexTests : StbTrueTypeTests
         AssertImagesEqual(expectedFileName, generatedImage, generatedFileName);
     }
 
-    static private string BuildExpectedPackedComplexImageFileName(string fontFileName, float fontSize, int rangeFrom, int rangeTo)
+    private static string BuildExpectedPackedComplexImageFileName(string fontFileName, float fontSize, int rangeFrom, int rangeTo)
     {
         return Path.Combine(ExpectedPath, $"PackedComplex_{Path.GetFileNameWithoutExtension(fontFileName)}_{fontSize}_{rangeFrom}-{rangeTo}.png");
     }
 
-    static private string BuildGeneratedPackedComplexImageFileName(string fontFileName, float fontSize, int rangeFrom, int rangeTo)
+    private static string BuildGeneratedPackedComplexImageFileName(string fontFileName, float fontSize, int rangeFrom, int rangeTo)
     {
         string expected = BuildExpectedPackedComplexImageFileName(fontFileName, fontSize, rangeFrom, rangeTo);
 

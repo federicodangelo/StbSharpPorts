@@ -205,7 +205,7 @@ public class SDLRenderAdapter : StbGuiRenderAdapterBase
         }
     }
 
-    static public SDL.Rect StbgRectToSdlRect(StbGui.stbg_rect rect)
+    public static SDL.Rect StbgRectToSdlRect(StbGui.stbg_rect rect)
     {
         return new SDL.Rect { X = (int)rect.x0, Y = (int)rect.y0, W = (int)(rect.x1 - rect.x0), H = (int)(rect.y1 - rect.y0) };
     }

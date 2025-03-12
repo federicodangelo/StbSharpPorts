@@ -32,12 +32,12 @@ public class StbTrueTypeCharacterTests : StbTrueTypeTests
         AssertImagesEqual(expectedFileName, generatedImage, generatedFileName);
     }
 
-    static private string BuildExpectedSingleCharacterImageFileName(string fontFileName, float fontSize, char character)
+    private static string BuildExpectedSingleCharacterImageFileName(string fontFileName, float fontSize, char character)
     {
         return Path.Combine(ExpectedPath, $"SingleCharacter_{Path.GetFileNameWithoutExtension(fontFileName)}_{fontSize}_{(int)character}.png");
     }
 
-    static private string BuildGeneratedSingleCharacterImageFileName(string fontFileName, float fontSize, char character)
+    private static string BuildGeneratedSingleCharacterImageFileName(string fontFileName, float fontSize, char character)
     {
         string expected = BuildExpectedSingleCharacterImageFileName(fontFileName, fontSize, character);
 

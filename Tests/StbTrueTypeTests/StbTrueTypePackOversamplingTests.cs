@@ -49,12 +49,12 @@ public class StbTrueTypePackOversamplingTests : StbTrueTypeTests
         AssertImagesEqual(expectedFileName, generatedImage, generatedFileName);
     }
 
-    static private string BuildExpectedFileName(string fontFileName, float fontSize, int rangeFrom, int rangeTo)
+    private static string BuildExpectedFileName(string fontFileName, float fontSize, int rangeFrom, int rangeTo)
     {
         return Path.Combine(ExpectedPath, $"PackedOversampling_{Path.GetFileNameWithoutExtension(fontFileName)}_{fontSize}_{rangeFrom}-{rangeTo}.png");
     }
 
-    static private string BuildGeneratedFileName(string fontFileName, float fontSize, int rangeFrom, int rangeTo)
+    private static string BuildGeneratedFileName(string fontFileName, float fontSize, int rangeFrom, int rangeTo)
     {
         string expected = BuildExpectedFileName(fontFileName, fontSize, rangeFrom, rangeTo);
 

@@ -37,49 +37,49 @@ public readonly ref struct SpanPtr<T>(Span<T> elements) where T : struct
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public SpanPtr<T> operator +(SpanPtr<T> left, int offset)
+    public static SpanPtr<T> operator +(SpanPtr<T> left, int offset)
     {
         return new SpanPtr<T>(left.elements.Slice(offset));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public SpanPtr<T> operator +(SpanPtr<T> left, uint offset)
+    public static SpanPtr<T> operator +(SpanPtr<T> left, uint offset)
     {
         return new SpanPtr<T>(left.elements.Slice((int)offset));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public SpanPtr<T> operator ++(SpanPtr<T> left)
+    public static SpanPtr<T> operator ++(SpanPtr<T> left)
     {
         return new SpanPtr<T>(left.elements.Slice(1));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public implicit operator SpanPtr<T>(Memory<T> left)
+    public static implicit operator SpanPtr<T>(Memory<T> left)
     {
         return new SpanPtr<T>(left.Span);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public implicit operator SpanPtr<T>(T[] left)
+    public static implicit operator SpanPtr<T>(T[] left)
     {
         return new SpanPtr<T>(left);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public implicit operator Span<T>(SpanPtr<T> left)
+    public static implicit operator Span<T>(SpanPtr<T> left)
     {
         return left.Span;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public implicit operator SpanPtr<T>(Span<T> left)
+    public static implicit operator SpanPtr<T>(Span<T> left)
     {
         return new SpanPtr<T>(left);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public implicit operator SpanPtr<T>(BytePtr left)
+    public static implicit operator SpanPtr<T>(BytePtr left)
     {
         return new SpanPtr<T>(MemoryMarshal.Cast<byte, T>(left.Span));
     }

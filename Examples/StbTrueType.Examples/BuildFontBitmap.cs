@@ -6,7 +6,7 @@ namespace StbSharp.Examples;
 //  Incomplete text-in-3d-api example, which draws quads properly aligned to be lossless.
 //  See "tests/truetype_demo_win32.c" for a complete version.
 
-static public class BuildFontBitmapExample
+public static class BuildFontBitmapExample
 {
     public class FontOptions
     {
@@ -45,7 +45,7 @@ static public class BuildFontBitmapExample
         Better,
     }
 
-    static public BuildFontBitmapOutput? BuildFontBitmap(FontOptions fontOptions, BitmapOptions bitmapOptions, PackFormat packFormat)
+    public static BuildFontBitmapOutput? BuildFontBitmap(FontOptions fontOptions, BitmapOptions bitmapOptions, PackFormat packFormat)
     {
         var fontBytes = File.ReadAllBytes(fontOptions.fontFilename);
 

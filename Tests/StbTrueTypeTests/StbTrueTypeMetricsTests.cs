@@ -66,12 +66,12 @@ public class StbTrueTypeMetricsTests : StbTrueTypeTests
         AssertImagesEqual(expectedFileName, generatedImage, generatedFileName);
     }
 
-    static private string BuildExpectedFileName(string fontFileName, float fontSize)
+    private static string BuildExpectedFileName(string fontFileName, float fontSize)
     {
         return Path.Combine(ExpectedPath, $"Metrics_{Path.GetFileNameWithoutExtension(fontFileName)}_{fontSize}_.png");
     }
 
-    static private string BuildGeneratedFileName(string fontFileName, float fontSize)
+    private static string BuildGeneratedFileName(string fontFileName, float fontSize)
     {
         string expected = BuildExpectedFileName(fontFileName, fontSize);
 

@@ -22,7 +22,7 @@ public class StbImageWriteTests
         Jpeg
     }
 
-    static protected BytePtr SaveStbiImage(MagickImage image, StbiFormat format, int components)
+    protected static BytePtr SaveStbiImage(MagickImage image, StbiFormat format, int components)
     {
         byte[] pixels = new byte[image.Width * image.Height * components];
 
@@ -116,14 +116,14 @@ public class StbImageWriteTests
         return output.ToArray();
     }
 
-    static protected MagickImage GetExpectedImage(string fileName)
+    protected static MagickImage GetExpectedImage(string fileName)
     {
         Assert.True(File.Exists(fileName), "Missing expected test image: " + fileName);
 
         return new MagickImage(fileName);
     }
 
-    static protected void AssertImagesEqual(MagickImage expected, MagickImage actual, string actualFileName, float tolerance)
+    protected static void AssertImagesEqual(MagickImage expected, MagickImage actual, string actualFileName, float tolerance)
     {
         //Assert.NotEqual(expected, actual);
         Assert.Equal(expected.Width, actual.Width);
@@ -173,7 +173,7 @@ public class StbImageWriteTests
         }
     }
 
-    static private string SaveImageDifference(MagickImage expected, MagickImage actual, string actualFileName)
+    private static string SaveImageDifference(MagickImage expected, MagickImage actual, string actualFileName)
     {
         MagickImage differenceImage = new MagickImage(MagickColors.Transparent, expected.Width, expected.Height);
 
@@ -205,7 +205,7 @@ public class StbImageWriteTests
         return differenceFileName;
     }
 
-    static protected void SaveGeneratedImage(string fileName, MagickImage image)
+    protected static void SaveGeneratedImage(string fileName, MagickImage image)
     {
         if (!Directory.Exists(GeneratedPath))
         {
@@ -217,7 +217,7 @@ public class StbImageWriteTests
     }
 
 
-    static protected void SaveGeneratedImage(string fileName, BytePtr bytes)
+    protected static void SaveGeneratedImage(string fileName, BytePtr bytes)
     {
         if (!Directory.Exists(GeneratedPath))
         {
@@ -228,7 +228,7 @@ public class StbImageWriteTests
     }
 
 
-    static protected void TestImage(string imageFileName, StbiFormat format, int channels, float tolerance)
+    protected static void TestImage(string imageFileName, StbiFormat format, int channels, float tolerance)
     {
         string expectedFileName = BuildExpectedFileName(imageFileName);
         string generatedFileName = BuildGeneratedFileName(imageFileName, format);
@@ -262,7 +262,7 @@ public class StbImageWriteTests
         AssertImagesEqual(expectedImage, generatedImage, generatedFileName, tolerance);
     }
 
-    static private string GetExtension(StbiFormat format)
+    private static string GetExtension(StbiFormat format)
     {
         switch (format)
         {
@@ -279,12 +279,12 @@ public class StbImageWriteTests
         return "";
     }
 
-    static private string BuildExpectedFileName(string fontFileName)
+    private static string BuildExpectedFileName(string fontFileName)
     {
         return Path.Combine(ExpectedPath, fontFileName);
     }
 
-    static private string BuildGeneratedFileName(string fontFileName, StbiFormat format)
+    private static string BuildGeneratedFileName(string fontFileName, StbiFormat format)
     {
         string expected = BuildExpectedFileName(fontFileName);
 

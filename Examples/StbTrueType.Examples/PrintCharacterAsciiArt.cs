@@ -7,9 +7,9 @@ namespace StbSharp.Examples;
 //
 // Complete program (this compiles): get a single bitmap, print as ASCII art
 //
-static public class PrintCharacterAsciiArt
+public static class PrintCharacterAsciiArt
 {
-    static public void Run(char character = 'a', string fileName = "Fonts/Karla-Regular.ttf", int fontSize = 20)
+    public static void Run(char character = 'a', string fileName = "Fonts/Karla-Regular.ttf", int fontSize = 20)
     {
         var ttf_buffer = File.ReadAllBytes(fileName); ;
 

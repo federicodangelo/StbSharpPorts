@@ -40,7 +40,7 @@ public readonly struct Ptr<T>(Memory<T> elements)
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public Ptr<T> operator -(Ptr<T> left, int offset)
+    public static Ptr<T> operator -(Ptr<T> left, int offset)
     {
         if (!MemoryMarshal.TryGetArray<T>(left.elements, out var segmentLeft))
         {
@@ -52,42 +52,42 @@ public readonly struct Ptr<T>(Memory<T> elements)
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public Ptr<T> operator +(Ptr<T> left, int offset)
+    public static Ptr<T> operator +(Ptr<T> left, int offset)
     {
         return new Ptr<T>(left.elements.Slice(offset));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public Ptr<T> operator +(Ptr<T> left, uint offset)
+    public static Ptr<T> operator +(Ptr<T> left, uint offset)
     {
         return new Ptr<T>(left.elements.Slice((int)offset));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public Ptr<T> operator ++(Ptr<T> left)
+    public static Ptr<T> operator ++(Ptr<T> left)
     {
         return new Ptr<T>(left.elements.Slice(1));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public implicit operator Ptr<T>(Memory<T> left)
+    public static implicit operator Ptr<T>(Memory<T> left)
     {
         return new Ptr<T>(left);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public implicit operator Ptr<T>(T[] left)
+    public static implicit operator Ptr<T>(T[] left)
     {
         return new Ptr<T>(left);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static public implicit operator Span<T>(Ptr<T> left)
+    public static implicit operator Span<T>(Ptr<T> left)
     {
         return left.Span;
     }
 
-    static public readonly Ptr<T> Null = new(Memory<T>.Empty);
+    public static readonly Ptr<T> Null = new(Memory<T>.Empty);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator <(Ptr<T> left, Ptr<T> right)
