@@ -98,9 +98,9 @@ public partial class StbGui
         public bool dont_nest_non_window_root_elements_into_debug_window;
 
         /// <summary>
-        /// Disables the rendering optimization that skips rendering if the hash of the widgets didn't change
+        /// Rendering options (can also be updated using stbg_set_render_options)
         /// </summary>
-        public bool force_always_render;
+        public STBG_RENDER_OPTIONS render_options;
     }
 
     public record struct stbg_padding
@@ -658,6 +658,13 @@ public partial class StbGui
         public int count;
     }
 
+    [Flags]
+    public enum STBG_RENDER_OPTIONS
+    {
+        NONE = 0,
+        DISABLE_SKIP_RENDERING_OPTIMIZATION = 1 << 0,
+    }
+
     public struct stbg_context
     {
         public stbg_widget[] widgets;
@@ -724,6 +731,8 @@ public partial class StbGui
         public long last_render_hash;
 
         public stbg_force_render_queue force_render_queue;
+
+        public STBG_RENDER_OPTIONS render_options;
     }
 
     public enum STBG_ASSERT_BEHAVIOR

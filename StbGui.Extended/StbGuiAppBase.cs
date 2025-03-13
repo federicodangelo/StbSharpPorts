@@ -134,7 +134,12 @@ public abstract class StbGuiAppBase : IDisposable
     {
         var screen_size = get_screen_size();
 
-        StbGui.stbg_init(build_external_dependencies(), new() { force_always_render = options.ForceAlwaysRender });
+        StbGui.stbg_init(build_external_dependencies(), new()
+        {
+            render_options =
+                StbGui.STBG_RENDER_OPTIONS.NONE &
+                (options.ForceAlwaysRender ? StbGui.STBG_RENDER_OPTIONS.DISABLE_SKIP_RENDERING_OPTIMIZATION : StbGui.STBG_RENDER_OPTIONS.NONE)
+        });
         StbGui.stbg_set_screen_size((int)screen_size.width, (int)screen_size.height);
 
         int default_font_id = add_font(options.DefaultFontName, GetResourceFileBytes(options.DefaultFontPath), options.DefaultFontSize, options.FontRenderingOversampling, options.FontRenderingBilinear);

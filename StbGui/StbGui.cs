@@ -324,14 +324,33 @@ public partial class StbGui
         context.frame_stats.performance.layout_widgets_time_us = ((stbg__get_performance_counter() - start_layout_widgets_time) * MICROSECONDS) / stbg__get_performance_counter_frequency();
     }
 
+    /// <summary>
+    /// Returns the current frame stats
+    /// </summary>
+    /// <returns></returns>
     public static stbg_context_frame_stats stbg_get_frame_stats()
     {
         return context.prev_frame_stats;
     }
 
+    /// <summary>
+    /// Returns the average performance metrics (values are averaged over half a second)
+    /// </summary>
+    /// <returns></returns>
     public static stbg_performance_metrics stbg_get_average_performance_metrics()
     {
         return context.performance_metrics;
+    }
+
+    /// <summary>
+    /// Updates the render options flags
+    /// </summary>
+    public static void stbg_set_render_options_flag(STBG_RENDER_OPTIONS flag, bool value)
+    {
+        if (value)
+            context.render_options |= flag;
+        else
+            context.render_options &= ~flag;
     }
 
     /// <summary>
@@ -715,9 +734,12 @@ public partial class StbGui
     /// Adds a checkbox.
     /// </summary>
     /// <param name="label">Checkbox label, must be unique in the parent</param>
-    public static void stbg_checkbox(ReadOnlySpan<char> label, ref bool value)
+    /// <param name="value">Checkbox value</param>
+    /// <returns>Returns true if the checkbox value changed</returns>
+    public static bool stbg_checkbox(ReadOnlySpan<char> label, ref bool value)
     {
-        stbg__checkbox_create(label, ref value);
+        stbg__checkbox_create(label, ref value, out var updated);
+        return updated;
     }
 
     /// <summary>

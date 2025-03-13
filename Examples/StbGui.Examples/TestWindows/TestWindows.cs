@@ -23,6 +23,7 @@ public static class TestWindows
     public static bool open = true;
     public static bool initialized = false;
     private static TestWindow[] windows = Array.Empty<TestWindow>();
+    private static bool disable_skip_rendering_optimization = false;
 
     public static void Render(StbGuiAppBase appBase, StbGuiStringMemoryPool mp)
     {
@@ -36,11 +37,17 @@ public static class TestWindows
                 new TestTextboxesWindow(appBase, mp),
                 new TestBenchmarksWindow(appBase, mp),
             ];
+            StbGui.stbg_set_render_options_flag(StbGui.STBG_RENDER_OPTIONS.DISABLE_SKIP_RENDERING_OPTIMIZATION, disable_skip_rendering_optimization);
         }
 
         if (StbGui.stbg_begin_window("Test Windows", ref open))
         {
             StbGui.stbg_set_last_widget_position_if_new(5, 205);
+
+            if (StbGui.stbg_checkbox("Disable skip rendering optimization", ref disable_skip_rendering_optimization))
+            {
+                StbGui.stbg_set_render_options_flag(StbGui.STBG_RENDER_OPTIONS.DISABLE_SKIP_RENDERING_OPTIMIZATION, disable_skip_rendering_optimization);
+            }
 
             for (var i = 0; i < windows.Length; i++)
             {

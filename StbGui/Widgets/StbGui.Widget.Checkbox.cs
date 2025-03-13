@@ -39,7 +39,7 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.CHECKBOX_CHECKED_BACKGROUND_COLOR, rgb(44, 62, 80));
     }
 
-    private static ref stbg_widget stbg__checkbox_create(ReadOnlySpan<char> label, ref bool value)
+    private static ref stbg_widget stbg__checkbox_create(ReadOnlySpan<char> label, ref bool value, out bool updated)
     {
         ref var checkbox = ref stbg__add_widget(STBG_WIDGET_TYPE.CHECKBOX, label, out var is_new);
         ref var checkbox_ref_props = ref stbg__get_widget_ref_props_by_id_internal(checkbox.id);
@@ -62,12 +62,15 @@ public partial class StbGui
 
         layout.intrinsic_size.size = text_size;
 
-        if (is_new || (checkbox.properties.input_flags & STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED) == 0)
+        updated = (checkbox.properties.input_flags & STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED) != 0;
+
+        if (is_new || !updated)
         {
             checkbox.properties.value.b = value;
         }
         else
         {
+            
             value = checkbox.properties.value.b;
             checkbox.properties.input_flags &= ~STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED;
         }

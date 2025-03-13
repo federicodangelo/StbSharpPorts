@@ -52,9 +52,7 @@ public partial class StbGui
         var hash_table = new stbg_hash_entry[options.hash_table_size];
         var fonts = new stbg_font[options.max_fonts + 1]; // first slot is never used (null font)
         var images = new stbg_image_info[options.max_images + 1]; // first slot is never used (null image)
-        var force_render_queue_entries = !options.force_always_render ?
-             new stbg_force_render_queue_entry[Math.Max(options.max_widgets / 10, 100)] : // 10% of the widgets are forced to render at most];
-             [];
+        var force_render_queue_entries = new stbg_force_render_queue_entry[Math.Max(options.max_widgets / 10, 100)]; // 10% of the widgets are forced to render at most];
 
         // init ids and flags
         for (int i = 0; i < widgets.Length; i++)
@@ -550,24 +548,50 @@ public partial class StbGui
         if (context.time_between_frames_milliseconds == 0)
             return;
 
+        if (context.current_frame < 20)
+        {
+            // Skip the first few frames
+            return;
+        }
+
+        if (context.current_frame == 20)
+        {
+            // First frame that we care about, just copy the values. 
+            // After this frame, we start averaging
+            context.performance_metrics = context.frame_stats.performance;
+            return;
+        }
+
         int instant_fps = 1000 / (int)context.time_between_frames_milliseconds;
         int smoothing_factor = Math.Max(instant_fps / 2, 1);
 
-        context.performance_metrics.process_input_time_us += (context.performance_metrics.process_input_time_us - context.frame_stats.performance.process_input_time_us) / smoothing_factor;
-        context.performance_metrics.layout_widgets_time_us += (context.frame_stats.performance.layout_widgets_time_us - context.performance_metrics.layout_widgets_time_us) / smoothing_factor;
-        context.performance_metrics.hash_time_us += (context.frame_stats.performance.hash_time_us - context.performance_metrics.hash_time_us) / smoothing_factor;
+        bool disable_skip_rendering_optimization = (context.render_options & STBG_RENDER_OPTIONS.DISABLE_SKIP_RENDERING_OPTIMIZATION) != 0;
+        bool render_skipped_due_to_same_hash = context.frame_stats.render_skipped_due_to_same_hash;
 
-        if (context.init_options.force_always_render)
-        {
-            context.performance_metrics.render_time_us += (context.frame_stats.performance.render_time_us - context.performance_metrics.render_time_us) / smoothing_factor;
-        }
-        else
+        ref var average_metrics = ref context.performance_metrics;
+        ref var frame_metrics = ref context.frame_stats.performance;
+
+        average_metrics.process_input_time_us += (frame_metrics.process_input_time_us - average_metrics.process_input_time_us) / smoothing_factor;
+        average_metrics.layout_widgets_time_us += (frame_metrics.layout_widgets_time_us - average_metrics.layout_widgets_time_us) / smoothing_factor;
+
+        if (!disable_skip_rendering_optimization)
         {
             // Only update the render time if we are not skipping the render due to the same hash
             // We hardcode the smoothing factor used here to 2 so it converges faster when most of the frames are skipped
             int render_time_smoothing_factor = 2;
-            if (!context.frame_stats.render_skipped_due_to_same_hash)
-                context.performance_metrics.render_time_us += (context.frame_stats.performance.render_time_us - context.performance_metrics.render_time_us) / render_time_smoothing_factor;
+            if (!render_skipped_due_to_same_hash)
+                average_metrics.render_time_us += (frame_metrics.render_time_us - average_metrics.render_time_us) / render_time_smoothing_factor;
+
+            // Don't average the hash time if the current average is 0, which can happen when the skip rendering optimization is toggled on and then off again
+            if (average_metrics.hash_time_us == 0)
+                average_metrics.hash_time_us = frame_metrics.hash_time_us;
+            else
+                average_metrics.hash_time_us += (frame_metrics.hash_time_us - average_metrics.hash_time_us) / smoothing_factor;
+        }
+        else
+        {
+            average_metrics.render_time_us += (frame_metrics.render_time_us - average_metrics.render_time_us) / smoothing_factor;
+            average_metrics.hash_time_us = 0;
         }
     }
 }

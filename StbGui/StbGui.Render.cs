@@ -3,6 +3,8 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+using Microsoft.VisualBasic;
+
 namespace StbSharp;
 
 using font_id = int;
@@ -119,9 +121,22 @@ public partial class StbGui
 
     private static bool stbg__render()
     {
-        bool force_render = context.init_options.force_always_render | stbg__process_force_render_queue();
+        var disable_skip_rendering_optimization = (context.render_options & STBG_RENDER_OPTIONS.DISABLE_SKIP_RENDERING_OPTIMIZATION) != 0;
 
-        long render_hash = context.init_options.force_always_render ? 0 : stbg__get_render_hash();
+        bool force_render;
+        long render_hash;
+
+        if (disable_skip_rendering_optimization)
+        {
+            force_render = true;
+            render_hash = 0;
+            stbg__clear_force_render_queue();
+        }
+        else
+        {
+            force_render = stbg__process_force_render_queue();
+            render_hash = stbg__get_render_hash();
+        }
 
         if (context.last_render_hash == render_hash && !force_render)
         {
@@ -193,6 +208,15 @@ public partial class StbGui
         }
 
         return force_render;
+    }
+
+    private static void stbg__clear_force_render_queue()
+    {
+        ref var queue = ref context.force_render_queue;
+
+        queue.count = 0;
+
+        return;
     }
 
     private static long stbg__get_render_hash()
@@ -288,7 +312,7 @@ public partial class StbGui
 
     private static void stbg__enqueue_force_render(ref stbg_widget widget, int delay_ms = 0)
     {
-        if (context.init_options.force_always_render)
+        if ((context.render_options & STBG_RENDER_OPTIONS.DISABLE_SKIP_RENDERING_OPTIMIZATION) != 0)
         {
             // No need to enqueue if always render is enabled
             return;

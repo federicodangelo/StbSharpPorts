@@ -1,10 +1,11 @@
+#pragma warning disable IDE1006 // Naming Styles
+
 namespace StbSharp.Examples;
 
 public class TestWindowsWindow : TestWindow
 {
     public TestWindowsWindow(StbGuiAppBase appBase, StbGuiStringMemoryPool mp) : base("Test Window", appBase, mp)
     {
-        open = true;
     }
 
     private bool show_title = true;
