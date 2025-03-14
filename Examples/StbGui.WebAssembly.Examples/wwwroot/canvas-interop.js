@@ -128,7 +128,7 @@ export function runBenchmarkJavascript() {
     var sum = 0;
 
     for (let i = 0; i < 100_000_000; i++) {
-        sum += Math.sqrt(i);
+        sum += i * 3.1415;
     }
 
     const end = performance.now();

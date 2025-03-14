@@ -26,6 +26,7 @@
     <PublishTrimmed>true</PublishTrimmed>
     <StackTraceSupport>false</StackTraceSupport>
     <BlazorWebAssemblyJiterpreter>false</BlazorWebAssemblyJiterpreter>
+    <WasmBuildNative>true</WasmBuildNative>
 
     <!-- Disable compression of generated files (saves around 10s of build time when publishing) -->
     <CompressionEnabled>false</CompressionEnabled>

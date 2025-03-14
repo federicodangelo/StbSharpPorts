@@ -53,7 +53,7 @@ public class TestBenchmarksWindow : TestWindow
         double sum = 0;
         for (int i = 0; i < 100_000_000; i++)
         {
-            sum += Math.Sqrt(i);
+            sum += i * 3.1415;
         }
 
         sw.Stop();
@@ -68,7 +68,7 @@ public class TestBenchmarksWindow : TestWindow
         float sum = 0;
         for (int i = 0; i < 100_000_000; i++)
         {
-            sum += MathF.Sqrt(i);
+            sum += i * 3.1415f;
         }
 
         sw.Stop();
@@ -83,7 +83,7 @@ public class TestBenchmarksWindow : TestWindow
         int sum = 0;
         for (int i = 0; i < 100_000_000; i++)
         {
-            sum += (int)MathF.Sqrt(i);
+            sum += i * 3;
         }
 
         sw.Stop();
