@@ -11,13 +11,14 @@ using widget_id = int;
 
 public partial class StbGui
 {
-    private struct stbg__scrollbar_parameters
+    private struct stbg__scrollbar_properties
     {
         public STBG_SCROLLBAR_DIRECTION direction;
         public bool integer;
         public float step_size;
         public float min_value;
         public float max_value;
+        public float value;
     }
 
     private static void stbg__scrollbar_init_default_theme()
@@ -48,37 +49,16 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.SCROLLBAR_BUTTON_PRESSED_COLOR, rgb(236, 240, 241));
     }
 
-    private static void stbg__scrollbar_set_parameters(ref stbg_widget widget, stbg__scrollbar_parameters parameters)
-    {
-        widget.properties.parameters.sub_type = (int)parameters.direction;
-        widget.properties.parameters.parameter1.b = parameters.integer;
-        widget.properties.parameters.parameter2.f = parameters.step_size;
-        widget.properties.parameters.min_value.f = parameters.min_value;
-        widget.properties.parameters.max_value.f = parameters.max_value;
-    }
-
-    private static void stbg__scrollbar_get_parameters(ref stbg_widget widget, out stbg__scrollbar_parameters parameters)
-    {
-        parameters = new stbg__scrollbar_parameters();
-        parameters.direction = (STBG_SCROLLBAR_DIRECTION)widget.properties.parameters.sub_type;
-        parameters.integer = widget.properties.parameters.parameter1.b;
-        parameters.step_size = widget.properties.parameters.parameter2.f;
-        parameters.min_value = widget.properties.parameters.min_value.f;
-        parameters.max_value = widget.properties.parameters.max_value.f;
-    }
-
     private static ref stbg_widget stbg__scrollbar_create(ReadOnlySpan<char> identifier, STBG_SCROLLBAR_DIRECTION direction, ref float value, float min_value, float max_value, float step_size, bool integer)
     {
         ref var scrollbar = ref stbg__add_widget(STBG_WIDGET_TYPE.SCROLLBAR, identifier, out var is_new);
+        ref var scrollbar_properties = ref stbg__add_widget_custom_properties_by_id_internal<stbg__scrollbar_properties>(scrollbar.id, is_new);
 
-        var parameters = new stbg__scrollbar_parameters();
-        parameters.min_value = min_value;
-        parameters.max_value = max_value;
-        parameters.step_size = step_size;
-        parameters.integer = integer;
-        parameters.direction = direction;
-
-        stbg__scrollbar_set_parameters(ref scrollbar, parameters);
+        scrollbar_properties.min_value = min_value;
+        scrollbar_properties.max_value = max_value;
+        scrollbar_properties.step_size = step_size;
+        scrollbar_properties.integer = integer;
+        scrollbar_properties.direction = direction;
 
         ref var layout = ref scrollbar.properties.layout;
 
@@ -105,11 +85,11 @@ public partial class StbGui
 
         if (is_new || (scrollbar.properties.input_flags & STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED) == 0)
         {
-            stbg__scrollbar_update_value(ref scrollbar, parameters, value, false);
+            stbg__scrollbar_update_value(ref scrollbar, ref scrollbar_properties, value, false);
         }
         else
         {
-            value = stbg_clamp(scrollbar.properties.value.f, min_value, max_value);
+            value = stbg_clamp(scrollbar_properties.value, min_value, max_value);
             scrollbar.properties.input_flags &= ~STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED;
         }
 
@@ -128,9 +108,9 @@ public partial class StbGui
 
         var bounds = scrollbar.properties.computed_bounds.global_rect;
 
-        stbg__scrollbar_get_parameters(ref scrollbar, out var parameters);
+        ref var scrollbar_properties = ref stbg__get_widget_custom_properties_by_id_internal<stbg__scrollbar_properties>(scrollbar.id);
 
-        stbg__scrollbar_get_parts(scrollbar, parameters, bounds, out stbg_rect min_button_rect, out stbg_rect max_button_rect, out stbg_rect thumb_rect);
+        stbg__scrollbar_get_parts(scrollbar, scrollbar_properties, bounds, out stbg_rect min_button_rect, out stbg_rect max_button_rect, out stbg_rect thumb_rect);
 
         var sub_widget_part =
             stbg_rect_is_position_inside(min_button_rect, context.input.mouse_position) ?
@@ -151,7 +131,7 @@ public partial class StbGui
 
             var delta = (context.input.mouse_wheel_scroll_amount.y != 0 ? -context.input.mouse_wheel_scroll_amount.y : context.input.mouse_wheel_scroll_amount.x);
 
-            stbg__scrollbar_update_value(ref scrollbar, parameters, scrollbar.properties.value.f + delta * parameters.step_size, true);
+            stbg__scrollbar_update_value(ref scrollbar, ref scrollbar_properties, scrollbar_properties.value + delta * scrollbar_properties.step_size, true);
         }
 
         if (context.input.mouse_button_1_down)
@@ -172,14 +152,14 @@ public partial class StbGui
             // Dragging thumb!! Update value
             var new_value = stbg__scrollbar_get_value_from_thumb_position(
                 scrollbar,
-                parameters,
+                scrollbar_properties,
                 bounds,
-                parameters.direction == STBG_SCROLLBAR_DIRECTION.HORIZONTAL ?
+                scrollbar_properties.direction == STBG_SCROLLBAR_DIRECTION.HORIZONTAL ?
                     context.input.mouse_position.x - bounds.x0 - context.input_feedback.drag_from_widget_x :
                     context.input.mouse_position.y - bounds.y0 - context.input_feedback.drag_from_widget_y
              );
 
-            stbg__scrollbar_update_value(ref scrollbar, parameters, new_value, true);
+            stbg__scrollbar_update_value(ref scrollbar, ref scrollbar_properties, new_value, true);
 
             if (context.input.mouse_button_1_up)
             {
@@ -201,14 +181,14 @@ public partial class StbGui
             switch (sub_widget_part)
             {
                 case SUB_WIDGET_PART_MIN_BUTTON:
-                    delta = -parameters.step_size;
+                    delta = -scrollbar_properties.step_size;
                     break;
                 case SUB_WIDGET_PART_MAX_BUTTON:
-                    delta = parameters.step_size;
+                    delta = scrollbar_properties.step_size;
                     break;
             }
 
-            stbg__scrollbar_update_value(ref scrollbar, parameters, scrollbar.properties.value.f + delta, true);
+            stbg__scrollbar_update_value(ref scrollbar, ref scrollbar_properties, scrollbar_properties.value + delta, true);
 
             context.input_feedback.pressed_widget_id = STBG_WIDGET_ID_NULL;
         }
@@ -221,16 +201,16 @@ public partial class StbGui
             context.input.mouse_wheel_scroll_amount.y != 0;
     }
 
-    private static void stbg__scrollbar_update_value(ref stbg_widget scrollbar, stbg__scrollbar_parameters parameters, float new_value, bool set_updated)
+    private static void stbg__scrollbar_update_value(ref stbg_widget scrollbar, ref stbg__scrollbar_properties properties, float new_value, bool set_updated)
     {
-        var old_value = scrollbar.properties.value.f;
-        new_value = stbg_clamp(new_value, parameters.min_value, parameters.max_value);
-        if (parameters.integer)
+        var old_value = properties.value;
+        new_value = stbg_clamp(new_value, properties.min_value, properties.max_value);
+        if (properties.integer)
             new_value = (int)new_value;
 
         if (new_value != old_value)
         {
-            scrollbar.properties.value.f = new_value;
+            properties.value = new_value;
             if (set_updated)
                 scrollbar.properties.input_flags |= STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED;
         }
@@ -244,9 +224,9 @@ public partial class StbGui
 
         var bounds = stbg_build_rect(0, 0, scrollbar.properties.computed_bounds.size.width, scrollbar.properties.computed_bounds.size.height);
 
-        stbg__scrollbar_get_parameters(ref scrollbar, out var parameters);
+        ref var scrollbar_properties = ref stbg__get_widget_custom_properties_by_id_internal<stbg__scrollbar_properties>(scrollbar.id);
 
-        stbg__scrollbar_get_parts(scrollbar, parameters, bounds, out stbg_rect min_button_rect, out stbg_rect max_button_rect, out stbg_rect thumb_rect);
+        stbg__scrollbar_get_parts(scrollbar, scrollbar_properties, bounds, out stbg_rect min_button_rect, out stbg_rect max_button_rect, out stbg_rect thumb_rect);
 
         stbg__rc_draw_rectangle(bounds, stbg_get_widget_style_color(STBG_WIDGET_STYLE.SCROLLBAR_BACKGROUND_COLOR));
 
@@ -272,14 +252,14 @@ public partial class StbGui
 
             if (p == SUB_WIDGET_PART_MIN_BUTTON)
             {
-                if (parameters.direction == STBG_SCROLLBAR_DIRECTION.HORIZONTAL)
+                if (scrollbar_properties.direction == STBG_SCROLLBAR_DIRECTION.HORIZONTAL)
                     stbg__rc_draw_text(rect, stbg__build_text(STBG__SCROLLBAR_ARROW_LEFT, color), 0, 0, STBG_MEASURE_TEXT_OPTIONS.IGNORE_METRICS);
                 else
                     stbg__rc_draw_text(rect, stbg__build_text(STBG__SCROLLBAR_ARROW_UP, color), 0, 0, STBG_MEASURE_TEXT_OPTIONS.IGNORE_METRICS);
             }
             else if (p == SUB_WIDGET_PART_MAX_BUTTON)
             {
-                if (parameters.direction == STBG_SCROLLBAR_DIRECTION.HORIZONTAL)
+                if (scrollbar_properties.direction == STBG_SCROLLBAR_DIRECTION.HORIZONTAL)
                     stbg__rc_draw_text(rect, stbg__build_text(STBG__SCROLLBAR_ARROW_RIGHT, color), 0, 0, STBG_MEASURE_TEXT_OPTIONS.IGNORE_METRICS);
                 else
                     stbg__rc_draw_text(rect, stbg__build_text(STBG__SCROLLBAR_ARROW_DOWN, color), 0, 0, STBG_MEASURE_TEXT_OPTIONS.IGNORE_METRICS);
@@ -292,39 +272,39 @@ public partial class StbGui
     private static readonly ReadOnlyMemory<char> STBG__SCROLLBAR_ARROW_UP = "^".AsMemory();
     private static readonly ReadOnlyMemory<char> STBG__SCROLLBAR_ARROW_DOWN = "v".AsMemory();
 
-    private static void stbg__scrollbar_get_parts(stbg_widget scrollbar, stbg__scrollbar_parameters parameters, stbg_rect bounds, out stbg_rect min_button_rect, out stbg_rect max_button_rect, out stbg_rect thumb_rect)
+    private static void stbg__scrollbar_get_parts(stbg_widget scrollbar, stbg__scrollbar_properties properties, stbg_rect bounds, out stbg_rect min_button_rect, out stbg_rect max_button_rect, out stbg_rect thumb_rect)
     {
         var size = stbg_build_size(bounds.x1 - bounds.x0, bounds.y1 - bounds.y0);
 
-        var button_size = parameters.direction == STBG_SCROLLBAR_DIRECTION.HORIZONTAL ? size.height : size.width;
+        var button_size = properties.direction == STBG_SCROLLBAR_DIRECTION.HORIZONTAL ? size.height : size.width;
 
         min_button_rect = stbg_build_rect(bounds.x0, bounds.y0, bounds.x0 + button_size, bounds.y0 + button_size);
-        max_button_rect = parameters.direction == STBG_SCROLLBAR_DIRECTION.HORIZONTAL ?
+        max_button_rect = properties.direction == STBG_SCROLLBAR_DIRECTION.HORIZONTAL ?
                 stbg_build_rect(bounds.x1 - button_size, bounds.y0, bounds.x1, bounds.y1) :
                 stbg_build_rect(bounds.x0, bounds.y1 - button_size, bounds.x1, bounds.y1);
         var min_thumb_size = stbg__sum_styles(STBG_WIDGET_STYLE.SCROLLBAR_THUMB_SIZE);
 
-        var scrolling_size_available = (parameters.direction == STBG_SCROLLBAR_DIRECTION.HORIZONTAL ? size.width : size.height) - button_size * 2;
+        var scrolling_size_available = (properties.direction == STBG_SCROLLBAR_DIRECTION.HORIZONTAL ? size.width : size.height) - button_size * 2;
 
-        var scrolling_range_value = parameters.max_value - parameters.min_value;
+        var scrolling_range_value = properties.max_value - properties.min_value;
 
-        var scrolling_value = scrollbar.properties.value.f - parameters.min_value;
+        var scrolling_value = properties.value - properties.min_value;
 
         var scrolling_percent = scrolling_range_value != 0 ? scrolling_value / scrolling_range_value : 1;
 
-        var thumb_size = parameters.integer ? stbg_clamp(scrolling_size_available - scrolling_range_value, min_thumb_size, scrolling_size_available) : min_thumb_size;
+        var thumb_size = properties.integer ? stbg_clamp(scrolling_size_available - scrolling_range_value, min_thumb_size, scrolling_size_available) : min_thumb_size;
 
         var scrolling_size = scrolling_size_available - thumb_size;
 
-        var scrolling_position = (parameters.direction == STBG_SCROLLBAR_DIRECTION.HORIZONTAL ? bounds.x0 : bounds.y0) + scrolling_percent * scrolling_size + button_size;
+        var scrolling_position = (properties.direction == STBG_SCROLLBAR_DIRECTION.HORIZONTAL ? bounds.x0 : bounds.y0) + scrolling_percent * scrolling_size + button_size;
 
-        thumb_rect = parameters.direction == STBG_SCROLLBAR_DIRECTION.HORIZONTAL ?
+        thumb_rect = properties.direction == STBG_SCROLLBAR_DIRECTION.HORIZONTAL ?
             stbg_build_rect(scrolling_position, bounds.y0, scrolling_position + thumb_size, bounds.y1) :
             stbg_build_rect(bounds.x0, scrolling_position, bounds.x1, scrolling_position + thumb_size);
     }
 
 
-    private static float stbg__scrollbar_get_value_from_thumb_position(stbg_widget scrollbar, stbg__scrollbar_parameters parameters, stbg_rect bounds, float thumb_position)
+    private static float stbg__scrollbar_get_value_from_thumb_position(stbg_widget scrollbar, stbg__scrollbar_properties parameters, stbg_rect bounds, float thumb_position)
     {
         var size = stbg_build_size(bounds.x1 - bounds.x0, bounds.y1 - bounds.y0);
 

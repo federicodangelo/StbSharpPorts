@@ -10,6 +10,11 @@ using widget_id = int;
 
 public partial class StbGui
 {
+    private struct stbg__checkbox_properties
+    {
+        public bool value;
+    }
+
     private static void stbg__checkbox_init_default_theme()
     {
         var font_style = context.theme.default_font_style;
@@ -43,6 +48,7 @@ public partial class StbGui
     {
         ref var checkbox = ref stbg__add_widget(STBG_WIDGET_TYPE.CHECKBOX, label, out var is_new);
         ref var checkbox_ref_props = ref stbg__get_widget_ref_props_by_id_internal(checkbox.id);
+        ref var checkbox_props = ref stbg__add_widget_custom_properties_by_id_internal<stbg__checkbox_properties>(checkbox.id, is_new);
 
         checkbox_ref_props.text = stbg__add_string(label);
 
@@ -66,12 +72,12 @@ public partial class StbGui
 
         if (is_new || !updated)
         {
-            checkbox.properties.value.b = value;
+            checkbox_props.value = value;
         }
         else
         {
             
-            value = checkbox.properties.value.b;
+            value = checkbox_props.value;
             checkbox.properties.input_flags &= ~STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED;
         }
 
@@ -83,13 +89,15 @@ public partial class StbGui
         if (context.input_feedback.hovered_widget_id != checkbox.id)
             return false;
 
+        ref var checkbox_props = ref stbg__get_widget_custom_properties_by_id_internal<stbg__checkbox_properties>(checkbox.id);
+
         if (context.input.mouse_button_1_down)
             context.input_feedback.pressed_widget_id = checkbox.id;
 
         if (context.input.mouse_button_1_up && context.input_feedback.pressed_widget_id == checkbox.id)
         {
             checkbox.properties.input_flags |= STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED;
-            checkbox.properties.value.b = !checkbox.properties.value.b;
+            checkbox_props.value = !checkbox_props.value;
             context.input_feedback.pressed_widget_id = STBG_WIDGET_ID_NULL;
         }
 
@@ -103,9 +111,10 @@ public partial class StbGui
     {
         var size = checkbox.properties.computed_bounds.size;
         ref var checkbox_ref_props = ref stbg__get_widget_ref_props_by_id_internal(checkbox.id);
+        ref var checkbox_props = ref stbg__get_widget_custom_properties_by_id_internal<stbg__checkbox_properties>(checkbox.id);
 
         bool hovered = context.input_feedback.hovered_widget_id == checkbox.id;
-        bool is_checked = checkbox.properties.value.b;
+        bool is_checked = checkbox_props.value;
 
         var border_color = stbg_get_widget_style_color(is_checked ? STBG_WIDGET_STYLE.CHECKBOX_CHECKED_BORDER_COLOR : hovered ? STBG_WIDGET_STYLE.CHECKBOX_HOVERED_BORDER_COLOR : STBG_WIDGET_STYLE.CHECKBOX_BORDER_COLOR);
         var background_color = stbg_get_widget_style_color(is_checked ? STBG_WIDGET_STYLE.CHECKBOX_CHECKED_BACKGROUND_COLOR : hovered ? STBG_WIDGET_STYLE.CHECKBOX_HOVERED_BACKGROUND_COLOR : STBG_WIDGET_STYLE.CHECKBOX_BACKGROUND_COLOR);

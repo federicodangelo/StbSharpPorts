@@ -3,6 +3,7 @@
 namespace StbSharp;
 
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -40,6 +41,9 @@ public partial class StbGui
 
         if (options.string_memory_pool_size == 0)
             options.string_memory_pool_size = DEFAULT_STRING_MEMORY_POOL_SIZE;
+
+        if (options.custom_properties_memory_pool_size == 0)
+            options.custom_properties_memory_pool_size = DEFAULT_CUSTOM_PROPERTIES_MEMORY_POOL_SIZE;
 
         if (options.render_commands_queue_size == 0)
             options.render_commands_queue_size = DEFAULT_RENDER_QUEUE_SIZE;
@@ -90,6 +94,8 @@ public partial class StbGui
         context.user_input_events_queue = new stbg_user_input_input_event[options.max_user_input_events_queue_size];
         context.force_render_queue.entries = force_render_queue_entries;
         stbg__string_memory_pool_init(ref context.string_memory_pool, options.string_memory_pool_size);
+        stbg__custom_properties_memory_pool_init(ref context.custom_properties_memory_pool, options.custom_properties_memory_pool_size);
+        stbg__custom_properties_memory_pool_init(ref context.custom_properties_memory_pool_previous_frame, options.custom_properties_memory_pool_size);
 
         for (var i = 0; i < STBG__WIDGET_INIT_CONTEXT_LIST.Length; i++)
             STBG__WIDGET_INIT_CONTEXT_LIST[i](ref context);
@@ -135,11 +141,12 @@ public partial class StbGui
     private static ref stbg_widget stbg__get_or_create_debug_window()
     {
         ref var debug_window = ref stbg__add_widget(debug_window_hash, STBG_WIDGET_TYPE.WINDOW, context.root_widget_id, out var is_new, out var is_already_created_in_same_frame, STBG__WIDGET_ADD_OPTIONS.IGNORE_DUPLICATED);
+        ref var debug_window_properties = ref stbg__add_widget_custom_properties_by_id_internal<stbg__window_properties>(debug_window.id, is_new);
 
         if (!is_already_created_in_same_frame)
         {
             var is_open = true;
-            stbg__window_init(ref debug_window, ref is_open, is_new, DEBUG_WINDOW_TITLE, STBG_WINDOW_OPTIONS.DEFAULT);
+            stbg__window_init(ref debug_window, ref debug_window_properties, ref is_open, is_new, DEBUG_WINDOW_TITLE, STBG_WINDOW_OPTIONS.DEFAULT);
         }
 
         if (is_new)
@@ -156,7 +163,7 @@ public partial class StbGui
 
         return ref widget;
     }
-
+    
     private static ref stbg_widget stbg__add_widget(STBG_WIDGET_TYPE type, ReadOnlySpan<char> identifier, out bool is_new, out bool is_already_created_in_same_frame)
     {
         ref var widget = ref stbg__add_widget(stbg__calculate_hash(type, identifier), type, context.current_widget_id, out is_new, out is_already_created_in_same_frame, STBG__WIDGET_ADD_OPTIONS.IGNORE_DUPLICATED);
@@ -478,6 +485,41 @@ public partial class StbGui
         stbg__assert_internal(id != STBG_WIDGET_ID_NULL);
         return ref context.widgets_frame_properties[id];
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static ref T stbg__get_widget_custom_properties_by_id_internal<T>(widget_id id) where T : unmanaged
+    {
+        stbg__assert_internal(id != STBG_WIDGET_ID_NULL);
+
+        var memory = context.widgets_reference_properties[id].custom;
+
+        stbg__assert_internal(memory.Length >= Marshal.SizeOf<T>(), "Invalid custom property");
+
+        return ref stbg__get_custom_properties<T>(memory);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static ref T stbg__add_widget_custom_properties_by_id_internal<T>(widget_id id, bool is_new) where T : unmanaged
+    {
+        ref var ref_props = ref stbg__get_widget_ref_props_by_id_internal(id);
+        T value;
+
+        if (is_new)
+        {
+            // We are creating a new widget, so we need to allocate the custom properties
+            stbg__assert_internal(ref_props.custom.Length == 0, "Custom properties already allocated");
+            value = default;
+        }
+        else
+        {
+            // We are reusing an existing widget, get previous frame custom properties
+            stbg__assert_internal(ref_props.custom.Length == Marshal.SizeOf<T>(), "Invalid custom property");
+            value = stbg__get_custom_properties<T>(ref_props.custom);
+        }
+
+        return ref stbg__add_custom_properties<T>(value, out ref_props.custom);
+    }
+
 
     private static bool stbg__find_widget_by_hash(widget_hash hash, out widget_id found_id)
     {

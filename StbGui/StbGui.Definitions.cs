@@ -48,6 +48,8 @@ public partial class StbGui
 
     public const int DEFAULT_STRING_MEMORY_POOL_SIZE = 1024 * 1024;
 
+    public const int DEFAULT_CUSTOM_PROPERTIES_MEMORY_POOL_SIZE = 1024 * 1024;
+
     public const int DEFAULT_MAX_USER_INPUT_EVENTS_QUEUE_SIZE = 128;
 
     public struct stbg_init_options
@@ -66,6 +68,11 @@ public partial class StbGui
         /// Size of string memory pool, defaults to DEFAULT_STRING_MEMORY_POOL_SIZE
         /// </summary>
         public int string_memory_pool_size;
+
+        /// <summary>
+        /// Size of widgets custom properties memory pool, defaults to DEFAULT_CUSTOM_PROPERTIES_MEMORY_POOL_SIZE
+        /// </summary>
+        public int custom_properties_memory_pool_size;
 
         /// <summary>
         /// Max number of loaded fonts, defaults to DEFAULT_MAX_FONTS
@@ -478,34 +485,13 @@ public partial class StbGui
         public widget_id prev_same_bucket;
     }
 
-    public struct stbg_widget_value
-    {
-        public float f;
-        public bool b;
-        public int i;
-    }
-
-    public struct stbg_widget_parameters
-    {
-        public int sub_type;
-        public int flags;
-        public stbg_widget_value parameter1;
-        public stbg_widget_value parameter2;
-        public stbg_widget_value min_value;
-        public stbg_widget_value max_value;
-    }
-
     public struct stbg_widget_properties
     {
-        public stbg_widget_parameters parameters;
-
         public stbg_widget_layout layout;
 
         public stbg_widget_computed_bounds computed_bounds;
 
         public image_id image;
-
-        public stbg_widget_value value;
 
         public float mouse_tolerance;
 
@@ -517,6 +503,7 @@ public partial class StbGui
     {
         public stbg_textbox_text_to_edit text_to_edit;
         public ReadOnlyMemory<char> text;
+        public Memory<byte> custom;
     }
 
     // Widget frame dependant properties
@@ -610,6 +597,8 @@ public partial class StbGui
         public int duplicated_widgets_ids;
         public int string_memory_pool_used_characters;
         public int string_memory_pool_overflowed_characters;
+        public int custom_properties_memory_pool_used_bytes;
+        public int custom_properties_memory_pool_overflowed_bytes;
         public stbg_performance_metrics performance;
         public bool render_skipped_due_to_same_hash;
     }
@@ -636,6 +625,12 @@ public partial class StbGui
     public struct stbg_string_memory_pool
     {
         public Memory<char> memory_pool;
+        public int offset;
+    }
+
+    public struct stbg_custom_properties_memory_pool
+    {
+        public Memory<byte> memory_pool;
         public int offset;
     }
 
@@ -730,6 +725,10 @@ public partial class StbGui
         public STBG_ACTIVE_CURSOR_TYPE active_cursor;
 
         public stbg_string_memory_pool string_memory_pool;
+
+        public stbg_custom_properties_memory_pool custom_properties_memory_pool;
+
+        public stbg_custom_properties_memory_pool custom_properties_memory_pool_previous_frame;
 
         public stbg_text_edit text_edit;
 

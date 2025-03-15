@@ -10,9 +10,10 @@ using widget_id = int;
 
 public partial class StbGui
 {
-    private struct stbg__window_parameters
+    private struct stbg__window_properties
     {
         public STBG_WINDOW_OPTIONS options;
+        public bool open;
     }
 
     private static void stbg__window_init_default_theme()
@@ -79,45 +80,30 @@ public partial class StbGui
         stbg_set_widget_style(STBG_WIDGET_STYLE.DEBUG_WINDOW_POSITION_Y, 5);
     }
 
-    private static void stbg__winddow_set_parameters(ref stbg_widget widget, stbg__window_parameters parameters)
-    {
-        widget.properties.parameters.flags = (int)parameters.options;
-    }
-
-    private static void stbg__winddow_get_parameters(ref stbg_widget widget, out stbg__window_parameters parameters)
-    {
-        parameters = new stbg__window_parameters();
-        parameters.options = (STBG_WINDOW_OPTIONS)widget.properties.parameters.flags;
-    }
-
     private static ref stbg_widget stbg__window_create(ReadOnlySpan<char> title, ref bool is_open, STBG_WINDOW_OPTIONS options)
     {
         ref var window = ref stbg__add_widget(STBG_WIDGET_TYPE.WINDOW, title, out var is_new, out var is_already_created_in_same_frame);
+        ref var window_properties = ref stbg__add_widget_custom_properties_by_id_internal<stbg__window_properties>(window.id, is_new);
 
         if (!is_already_created_in_same_frame)
-            stbg__window_init(ref window, ref is_open, is_new, title, options);
+            stbg__window_init(ref window, ref window_properties, ref is_open, is_new, title, options);
         else
-            is_open = window.properties.value.b;
+            is_open = window_properties.open;
 
         return ref window;
     }
 
-    private static void stbg__window_init(ref stbg_widget window, ref bool is_open, bool is_new, ReadOnlySpan<char> title, STBG_WINDOW_OPTIONS options)
+    private static void stbg__window_init(ref stbg_widget window, ref stbg__window_properties window_properties, ref bool is_open, bool is_new, ReadOnlySpan<char> title, STBG_WINDOW_OPTIONS options)
     {
         ref var window_ref_props = ref stbg__get_widget_ref_props_by_id_internal(window.id);
-
+        
         window_ref_props.text = stbg__add_string(title);
         window.flags |= STBG_WIDGET_FLAGS.ALLOW_CHILDREN;
 
-        var parameters = new stbg__window_parameters()
-        {
-            options = options
-        };
+        window_properties.options = options;
 
-        stbg__winddow_set_parameters(ref window, parameters);
-
-        var has_title = (parameters.options & STBG_WINDOW_OPTIONS.NO_TITLE) == 0;
-        var can_resize = (parameters.options & STBG_WINDOW_OPTIONS.NO_RESIZE) == 0;
+        var has_title = (window_properties.options & STBG_WINDOW_OPTIONS.NO_TITLE) == 0;
+        var can_resize = (window_properties.options & STBG_WINDOW_OPTIONS.NO_RESIZE) == 0;
 
         ref var layout = ref window.properties.layout;
 
@@ -166,11 +152,11 @@ public partial class StbGui
 
         if (is_new || (window.properties.input_flags & STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED) == 0)
         {
-            window.properties.value.b = is_open;
+            window_properties.open = is_open;
         }
         else
         {
-            is_open = window.properties.value.b;
+            is_open = window_properties.open;
             window.properties.input_flags &= ~STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED;
         }
 
@@ -180,7 +166,7 @@ public partial class StbGui
             window.flags |= STBG_WIDGET_FLAGS.IGNORE;
 
         // Add scrollbars if required
-        if (stbg__window_get_children_scrolling_info(ref window, parameters, out var needs_horizontal_bar, out var needs_vertical_bar, out var horizontal_size, out var vertical_size) && !is_new)
+        if (stbg__window_get_children_scrolling_info(ref window, window_properties, out var needs_horizontal_bar, out var needs_vertical_bar, out var horizontal_size, out var vertical_size) && !is_new)
         {
             var scrollbar_size = stbg__sum_styles(STBG_WIDGET_STYLE.SCROLLBAR_SIZE);
 
@@ -252,7 +238,7 @@ public partial class StbGui
         }
     }
 
-    private static bool stbg__window_get_children_scrolling_info(ref stbg_widget window, stbg__window_parameters parameters, out bool needs_horizontal_bar, out bool needs_vertical_bar, out float horizontal_size, out float vertical_size)
+    private static bool stbg__window_get_children_scrolling_info(ref stbg_widget window, stbg__window_properties parameters, out bool needs_horizontal_bar, out bool needs_vertical_bar, out float horizontal_size, out float vertical_size)
     {
         ref var layout = ref window.properties.layout;
         ref var computed_bounds = ref window.properties.computed_bounds;
@@ -306,7 +292,7 @@ public partial class StbGui
             return false;
         }
 
-        stbg__winddow_get_parameters(ref window, out var parameters);
+        ref var window_properties = ref stbg__get_widget_custom_properties_by_id_internal<stbg__window_properties>(window.id);
 
         var parent = stbg_get_widget_by_id(window.hierarchy.parent_id);
 
@@ -316,10 +302,10 @@ public partial class StbGui
 
         float resize_x, resize_y;
 
-        bool allow_resize = (parameters.options & STBG_WINDOW_OPTIONS.NO_RESIZE) == 0;
-        bool allow_move = (parameters.options & STBG_WINDOW_OPTIONS.NO_MOVE) == 0;
-        bool has_title = (parameters.options & STBG_WINDOW_OPTIONS.NO_TITLE) == 0;
-        bool has_close_button = (parameters.options & STBG_WINDOW_OPTIONS.CLOSE_BUTTON) != 0;
+        bool allow_resize = (window_properties.options & STBG_WINDOW_OPTIONS.NO_RESIZE) == 0;
+        bool allow_move = (window_properties.options & STBG_WINDOW_OPTIONS.NO_MOVE) == 0;
+        bool has_title = (window_properties.options & STBG_WINDOW_OPTIONS.NO_TITLE) == 0;
+        bool has_close_button = (window_properties.options & STBG_WINDOW_OPTIONS.CLOSE_BUTTON) != 0;
 
         if (context.input_feedback.pressed_widget_id == window.id)
         {
@@ -373,7 +359,7 @@ public partial class StbGui
                 if (has_close_button && context.input_feedback.pressed_sub_widget_part == 1 && mouse_over_close_button)
                 {
                     // Close button pressed
-                    window.properties.value.b = false;
+                    window_properties.open = false;
                     window.properties.input_flags |= STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED;
                 }
             }
@@ -459,7 +445,7 @@ public partial class StbGui
 
     private static bool stbg__window_update_input_scrolling(ref stbg_widget window)
     {
-        stbg__winddow_get_parameters(ref window, out var parameters);
+        ref var window_properties = ref stbg__get_widget_custom_properties_by_id_internal<stbg__window_properties>(window.id);
 
         if (context.input.mouse_wheel_scroll_amount.x != 0 || context.input.mouse_wheel_scroll_amount.y != 0)
         {
@@ -467,7 +453,7 @@ public partial class StbGui
             if (!stbg__find_widget_parent_by_type(context.input_feedback.hovered_widget_id, STBG_WIDGET_TYPE.WINDOW, out var hovered_parent_id) || hovered_parent_id != window.id)
                 return false;
 
-            if (stbg__window_get_children_scrolling_info(ref window, parameters, out var needs_horizontal_bar, out var needs_vertical_bar, out var horizontal_size, out var vertical_size))
+            if (stbg__window_get_children_scrolling_info(ref window, window_properties, out var needs_horizontal_bar, out var needs_vertical_bar, out var horizontal_size, out var vertical_size))
             {
                 var scroll_lines_amount = stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_SCROLL_LINES_AMOUNT);
 
@@ -564,10 +550,10 @@ public partial class StbGui
     private static void stbg__window_render(ref stbg_widget window)
     {
         ref var window_ref_props = ref stbg__get_widget_ref_props_by_id_internal(window.id);
+        ref var window_properties = ref stbg__get_widget_custom_properties_by_id_internal<stbg__window_properties>(window.id);
 
-        stbg__winddow_get_parameters(ref window, out var parameters);
-        var has_title = (parameters.options & STBG_WINDOW_OPTIONS.NO_TITLE) == 0;
-        var has_close_button = (parameters.options & STBG_WINDOW_OPTIONS.CLOSE_BUTTON) != 0;
+        var has_title = (window_properties.options & STBG_WINDOW_OPTIONS.NO_TITLE) == 0;
+        var has_close_button = (window_properties.options & STBG_WINDOW_OPTIONS.CLOSE_BUTTON) != 0;
 
         var size = window.properties.computed_bounds.size;
 

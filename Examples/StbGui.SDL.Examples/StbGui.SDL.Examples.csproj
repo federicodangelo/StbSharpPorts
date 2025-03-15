@@ -6,9 +6,19 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <OptimizationPreference>Speed</OptimizationPreference>
-    <PublishAot>true</PublishAot>
     <TrimMode>full</TrimMode>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+
+
+    <!-- 
+        AOT builds are allocating memory every frame for some reason.. but they don't do that in Release / Debug builds, so
+         we must be using something that the AOT compiler uses different.. this became even more troublesome after I started
+         using custom properties with memory references.
+         I will use <PublishSingleFile> until I find a fix for this  
+    -->
+    <!-- <PublishAot>true</PublishAot> -->
+
+    <PublishSingleFile>true</PublishSingleFile>
 
     <!-- Use Invariant Globalization only -->
     <InvariantGlobalization>true</InvariantGlobalization>

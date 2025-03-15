@@ -11,8 +11,9 @@ using widget_id = int;
 
 public partial class StbGui
 {
-    private struct stbg__button_image_parameters
+    private struct stbg__button_image_properties
     {
+        public image_id image;
         public image_id image_hover;
         public image_id image_pressed;
         public bool border;
@@ -23,33 +24,15 @@ public partial class StbGui
     }
 
 
-    private static void stbg__button_image_set_parameters(ref stbg_widget widget, stbg__button_image_parameters parameters)
-    {
-        widget.properties.parameters.parameter1.i = parameters.image_hover;
-        widget.properties.parameters.parameter2.i = parameters.image_pressed;
-        widget.properties.parameters.parameter1.b = parameters.border;
-    }
-
-    private static void stbg__button_image_get_parameters(ref stbg_widget widget, out stbg__button_image_parameters parameters)
-    {
-        parameters = new stbg__button_image_parameters();
-        parameters.image_hover = widget.properties.parameters.parameter1.i;
-        parameters.image_pressed = widget.properties.parameters.parameter2.i;
-        parameters.border = widget.properties.parameters.parameter1.b;
-    }
-
     private static ref stbg_widget stbg__button_image_create(ReadOnlySpan<char> identifier, image_id image, image_id image_hover, image_id image_pressed, bool border, float scale)
     {
-        ref var button_image = ref stbg__add_widget(STBG_WIDGET_TYPE.BUTTON_IMAGE, identifier, out _);
+        ref var button_image = ref stbg__add_widget(STBG_WIDGET_TYPE.BUTTON_IMAGE, identifier, out var is_new);
+        ref var button_props = ref stbg__add_widget_custom_properties_by_id_internal<stbg__button_image_properties>(button_image.id, is_new);
 
-        stbg__button_image_set_parameters(ref button_image,
-            new stbg__button_image_parameters()
-            {
-                image_hover = image_hover,
-                image_pressed = image_pressed,
-                border = border
-            }
-        );
+        button_props.image = image;
+        button_props.image_hover = image_hover;
+        button_props.image_pressed = image_pressed;
+        button_props.border = border;
 
         button_image.properties.image = image;
 
@@ -89,7 +72,7 @@ public partial class StbGui
         bool hovered = context.input_feedback.hovered_widget_id == button_image.id;
         bool pressed = context.input_feedback.pressed_widget_id == button_image.id;
 
-        stbg__button_image_get_parameters(ref button_image, out var parameters);
+        ref var parameters = ref stbg__get_widget_custom_properties_by_id_internal<stbg__button_image_properties>(button_image.id);
 
         bool has_hovered_image = parameters.image_hover != STBG_IMAGE_ID_NULL;
         bool has_pressed_image = parameters.image_pressed != STBG_IMAGE_ID_NULL;
@@ -97,7 +80,7 @@ public partial class StbGui
         var image_id =
             (pressed && has_pressed_image) ? parameters.image_pressed :
             (hovered && has_hovered_image) ? parameters.image_hover :
-            button_image.properties.image;
+            parameters.image;
 
         ref var image = ref context.images[image_id];
 

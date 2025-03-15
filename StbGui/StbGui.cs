@@ -293,6 +293,14 @@ public partial class StbGui
 
         stbg__string_memory_pool_reset(ref context.string_memory_pool);
 
+        // Swap current and previous custom properties memory pool, so we can reuse the memory while being able to access
+        // previous frame properties if for some reason we have to persist values between frames
+        var tmp = context.custom_properties_memory_pool;
+        context.custom_properties_memory_pool = context.custom_properties_memory_pool_previous_frame;
+        context.custom_properties_memory_pool_previous_frame = tmp;
+
+        stbg__custom_properties_memory_pool_reset(ref context.custom_properties_memory_pool);
+
         ref var root = ref stbg__add_widget(STBG_WIDGET_TYPE.ROOT, "root", out _);
         root.properties.layout.constrains.max = context.screen_size;
         root.flags |= STBG_WIDGET_FLAGS.ALLOW_CHILDREN;

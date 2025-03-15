@@ -11,7 +11,7 @@ using widget_id = int;
 
 public partial class StbGui
 {
-    private struct stbg__textbox_parameters
+    private struct stbg__textbox_properties
     {
         public bool single_line;
     }
@@ -49,30 +49,13 @@ public partial class StbGui
         str.layout_row = stbg__textbox_text_edit_layout_row;
     }
 
-    private static void stbg__textbox_set_parameters(ref stbg_widget widget, stbg__textbox_parameters parameters)
-    {
-        widget.properties.parameters.parameter1.b = parameters.single_line;
-    }
-
-    private static void stbg__textbox_get_parameters(ref stbg_widget widget, out stbg__textbox_parameters parameters)
-    {
-        parameters = new stbg__textbox_parameters();
-        parameters.single_line = widget.properties.parameters.parameter1.b;
-    }
-
     private static ref stbg_widget stbg__textbox_create(ReadOnlySpan<char> identifier, ref stbg_textbox_text_to_edit text_to_edit, int visible_lines)
     {
         ref var textbox = ref stbg__add_widget(STBG_WIDGET_TYPE.TEXTBOX, identifier, out var is_new);
         ref var textbox_ref_props = ref stbg__get_widget_ref_props_by_id_internal(textbox.id);
+        ref var textbox_properties = ref stbg__add_widget_custom_properties_by_id_internal<stbg__textbox_properties>(textbox.id, is_new);
 
-        var parameters = new stbg__textbox_parameters()
-        {
-            single_line = visible_lines == 1
-        };
-
-        textbox_ref_props.text_to_edit.text = text_to_edit.text;
-
-        stbg__textbox_set_parameters(ref textbox, parameters);
+        textbox_properties.single_line = visible_lines == 1;
 
         ref var layout = ref textbox.properties.layout;
 
@@ -90,7 +73,7 @@ public partial class StbGui
 
         if (is_new || (textbox.properties.input_flags & STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED) == 0)
         {
-            textbox_ref_props.text_to_edit.length = text_to_edit.length;
+            textbox_ref_props.text_to_edit = text_to_edit;
         }
         else
         {
@@ -105,8 +88,8 @@ public partial class StbGui
     {
         ref var textbox = ref stbg_get_widget_by_id(context.text_edit.widget_id);
         stbg__assert_internal(textbox.type == STBG_WIDGET_TYPE.TEXTBOX);
-        stbg__textbox_get_parameters(ref textbox, out var parameters);
-        var measure_text_options = parameters.single_line ? STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE : STBG_MEASURE_TEXT_OPTIONS.NONE;
+        ref var textbox_properties = ref stbg__get_widget_custom_properties_by_id_internal<stbg__textbox_properties>(textbox.id);
+        var measure_text_options = textbox_properties.single_line ? STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE : STBG_MEASURE_TEXT_OPTIONS.NONE;
 
         if (str.text.Span[n + i] == '\n')
             return StbTextEdit.STB_TEXTEDIT_GETWIDTH_NEWLINE;
@@ -120,8 +103,8 @@ public partial class StbGui
     {
         ref var textbox = ref stbg_get_widget_by_id(context.text_edit.widget_id);
         stbg__assert_internal(textbox.type == STBG_WIDGET_TYPE.TEXTBOX);
-        stbg__textbox_get_parameters(ref textbox, out var parameters);
-        var single_line = parameters.single_line;
+        ref var textbox_properties = ref stbg__get_widget_custom_properties_by_id_internal<stbg__textbox_properties>(textbox.id);
+        var single_line = textbox_properties.single_line;
         var measure_text_options = single_line ? STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE : STBG_MEASURE_TEXT_OPTIONS.NONE;
 
         var row = new StbTextEdit.StbTexteditRow();
@@ -150,6 +133,7 @@ public partial class StbGui
     private static bool stbg__textbox_update_input(ref stbg_widget textbox)
     {
         ref var textbox_ref_props = ref stbg__get_widget_ref_props_by_id_internal(textbox.id);
+        ref var textbox_properties = ref stbg__get_widget_custom_properties_by_id_internal<stbg__textbox_properties>(textbox.id);
 
         if (context.input_feedback.hovered_widget_id == textbox.id &&
             context.input.mouse_button_1_down &&
@@ -167,12 +151,11 @@ public partial class StbGui
             {
                 context.text_edit.widget_id = textbox.id;
                 context.text_edit.widget_hash = textbox.hash;
-                stbg__textbox_get_parameters(ref textbox, out var parameters);
 
                 str.text = textbox_ref_props.text_to_edit.text;
                 str.text_length = textbox_ref_props.text_to_edit.length;
 
-                StbTextEdit.stb_textedit_initialize_state(ref state, parameters.single_line);
+                StbTextEdit.stb_textedit_initialize_state(ref state, textbox_properties.single_line);
             }
 
             var stop_editing = false;
@@ -424,12 +407,12 @@ public partial class StbGui
         var size = textbox.properties.computed_bounds.size;
         var editing = context.input_feedback.editing_text_widget_id == textbox.id;
         var text = textbox_ref_props.text_to_edit.text.Slice(0, textbox_ref_props.text_to_edit.length);
-        stbg__textbox_get_parameters(ref textbox, out var parameters);
+        ref var textbox_properties = ref stbg__get_widget_custom_properties_by_id_internal<stbg__textbox_properties>(textbox.id);
 
         var needs_clipping = editing;
 
         var text_render_options = needs_clipping ? STBG_RENDER_TEXT_OPTIONS.DONT_CLIP : STBG_RENDER_TEXT_OPTIONS.NONE; // No need to use clipping IF we are already clipping the whole textbox
-        var text_measure_options = parameters.single_line ? STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE : STBG_MEASURE_TEXT_OPTIONS.NONE;
+        var text_measure_options = textbox_properties.single_line ? STBG_MEASURE_TEXT_OPTIONS.SINGLE_LINE : STBG_MEASURE_TEXT_OPTIONS.NONE;
 
         float cursor_x, cursor_y;
         float line_height = context.theme.default_font_style.size;
