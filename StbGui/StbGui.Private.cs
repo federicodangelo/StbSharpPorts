@@ -49,6 +49,7 @@ public partial class StbGui
 
         var widgets = new stbg_widget[options.max_widgets + 1]; // first slot is never used (null widget)
         var widgets_reference_properties = new stbg_widget_reference_properties[options.max_widgets + 1]; // first slot is never used (null widget)
+        var widgets_frame_properties = new stbg_widget_frame_properties[options.max_widgets + 1]; // first slot is never used (null widget)
         var hash_table = new stbg_hash_entry[options.hash_table_size];
         var fonts = new stbg_font[options.max_fonts + 1]; // first slot is never used (null font)
         var images = new stbg_image_info[options.max_images + 1]; // first slot is never used (null image)
@@ -73,6 +74,7 @@ public partial class StbGui
 
         context.widgets = widgets;
         context.widgets_reference_properties = widgets_reference_properties;
+        context.widgets_frame_properties = widgets_frame_properties;
         context.first_free_widget_id = context.widgets[1].id;
         context.hash_table = hash_table;
         context.fonts = fonts;
@@ -106,11 +108,11 @@ public partial class StbGui
     private static void stbg__destroy_unused_widgets(int amount_to_destroy)
     {
         var widgets = context.widgets;
-        var widgets_reference_properties = context.widgets_reference_properties;
+        var widgets_frame_properties = context.widgets_frame_properties;
 
         for (int i = 0; i < widgets.Length && amount_to_destroy > 0; i++)
         {
-            if ((widgets[i].flags & STBG_WIDGET_FLAGS.USED) != 0 && widgets_reference_properties[i].last_used_in_frame != context.current_frame)
+            if ((widgets[i].flags & STBG_WIDGET_FLAGS.USED) != 0 && widgets_frame_properties[i].last_used_in_frame != context.current_frame)
             {
                 stbg__destroy_widget(ref widgets[i]);
                 amount_to_destroy--;
@@ -175,7 +177,8 @@ public partial class StbGui
                 ref stbg__get_widget_by_id_internal(existingWidgetId) :
                 ref stbg__get_widget_by_id_internal(context.first_free_widget_id));
 
-        ref var widget_ref_props = ref stbg__get_widget_ref_props_by_id_internal(widget.id);
+        // ref var widget_ref_props = ref stbg__get_widget_ref_props_by_id_internal(widget.id);
+        ref var widget_frame_props = ref stbg__get_widget_frame_props_by_id_internal(widget.id);
 
         is_already_created_in_same_frame = false;
 
@@ -220,7 +223,7 @@ public partial class StbGui
         {
             // Reused widget!
             is_new = false;
-            is_already_created_in_same_frame = widget_ref_props.last_used_in_frame == context.current_frame;
+            is_already_created_in_same_frame = widget_frame_props.last_used_in_frame == context.current_frame;
             if (!is_already_created_in_same_frame)
             {
                 context.frame_stats.reused_widgets++;
@@ -232,9 +235,9 @@ public partial class StbGui
         if (is_already_created_in_same_frame && (options & STBG__WIDGET_ADD_OPTIONS.IGNORE_DUPLICATED) == 0)
         {
             context.frame_stats.duplicated_widgets_ids++;
-            stbg__assert(widget_ref_props.last_used_in_frame != context.current_frame, "Duplicated widget identifier!!");
+            stbg__assert(widget_frame_props.last_used_in_frame != context.current_frame, "Duplicated widget identifier!!");
         }
-        widget_ref_props.last_used_in_frame = context.current_frame;
+        widget_frame_props.last_used_in_frame = context.current_frame;
 
         // If the parent is root and we are not creating a window, use the debug window
         if (type != STBG_WIDGET_TYPE.WINDOW &&
@@ -372,10 +375,11 @@ public partial class StbGui
     private static void stbg__destroy_widget(ref stbg_widget widget)
     {
         ref var widget_ref_props = ref stbg__get_widget_ref_props_by_id_internal(widget.id);
+        ref var widget_frame_props = ref stbg__get_widget_frame_props_by_id_internal(widget.id);
 
         stbg__assert_internal(!context.inside_frame);
         stbg__assert_internal((widget.flags & STBG_WIDGET_FLAGS.USED) != 0);
-        stbg__assert_internal(widget_ref_props.last_used_in_frame != context.current_frame);
+        stbg__assert_internal(widget_frame_props.last_used_in_frame != context.current_frame);
 
         // Reset hierarchy
         widget.hierarchy = new stbg_widget_hierarchy();
@@ -418,6 +422,7 @@ public partial class StbGui
         // Clear widget properties
         widget.properties = new stbg_widget_properties();
         widget_ref_props = new stbg_widget_reference_properties();
+        widget_frame_props = new stbg_widget_frame_properties();
 
         // Remove widget from input feedback
         if (context.input_feedback.dragged_widget_id == widget.id)
@@ -465,6 +470,13 @@ public partial class StbGui
     {
         stbg__assert_internal(id != STBG_WIDGET_ID_NULL);
         return ref context.widgets_reference_properties[id];
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static ref stbg_widget_frame_properties stbg__get_widget_frame_props_by_id_internal(widget_id id)
+    {
+        stbg__assert_internal(id != STBG_WIDGET_ID_NULL);
+        return ref context.widgets_frame_properties[id];
     }
 
     private static bool stbg__find_widget_by_hash(widget_hash hash, out widget_id found_id)

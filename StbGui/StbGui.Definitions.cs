@@ -512,12 +512,16 @@ public partial class StbGui
         public STBG_WIDGET_INPUT_FLAGS input_flags;
     }
 
-    // Widget frame dependant properties and external references
+    // Widget reference properties
     public struct stbg_widget_reference_properties
     {
         public stbg_textbox_text_to_edit text_to_edit;
         public ReadOnlyMemory<char> text;
+    }
 
+    // Widget frame dependant properties
+    public struct stbg_widget_frame_properties
+    {
         // Last frame in which this widget was used
         public int last_used_in_frame;
 
@@ -669,6 +673,7 @@ public partial class StbGui
     {
         public stbg_widget[] widgets;
         public stbg_widget_reference_properties[] widgets_reference_properties;
+        public stbg_widget_frame_properties[] widgets_frame_properties;
 
         public stbg_hash_entry[] hash_table;
 
