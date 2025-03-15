@@ -107,7 +107,7 @@ public partial class StbGui
 
         ref var layout = ref window.properties.layout;
 
-        window.properties.mouse_tolerance = stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_RESIZE_TOLERANCE);
+        window.properties.input_tolerance = stbg_get_widget_style(STBG_WIDGET_STYLE.WINDOW_BORDER_RESIZE_TOLERANCE);
 
         layout.inner_padding = new stbg_padding()
         {

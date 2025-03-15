@@ -40,7 +40,7 @@ public partial class StbGui
         else
         {
             var new_hover = context.input.mouse_position_valid ?
-                stbg__get_widget_id_at_position(ref stbg_get_widget_by_id(context.root_widget_id), context.input.mouse_position, stbg_build_rect_infinite()) :
+                stbg__get_widget_id_at_position(ref stbg_get_widget_by_id(context.root_widget_id), context.input.mouse_position, stbg_build_rect_infinite(), true) :
                 STBG_WIDGET_ID_NULL;
 
             if (new_hover != context.input_feedback.hovered_widget_id)
@@ -171,19 +171,19 @@ public partial class StbGui
         return false;
     }
 
-    private static widget_id stbg__get_widget_id_at_position(ref stbg_widget widget, stbg_position position, stbg_rect parent_global_rect)
+    private static widget_id stbg__get_widget_id_at_position(ref stbg_widget widget, stbg_position position, stbg_rect parent_global_rect, bool use_input_tolerance)
     {
         if ((widget.flags & STBG_WIDGET_FLAGS.IGNORE) != 0)
             return STBG_WIDGET_ID_NULL;
 
-        var mouse_tolerance = widget.properties.mouse_tolerance;
+        var input_tolerance = use_input_tolerance ? widget.properties.input_tolerance : 0;
 
         var global_rect = stbg_clamp_rect(widget.properties.computed_bounds.global_rect, parent_global_rect);
 
-        if (position.x < global_rect.x0 - mouse_tolerance ||
-            position.y < global_rect.y0 - mouse_tolerance ||
-            position.x >= global_rect.x1 + mouse_tolerance ||
-            position.y >= global_rect.y1 + mouse_tolerance)
+        if (position.x < global_rect.x0 - input_tolerance ||
+            position.y < global_rect.y0 - input_tolerance ||
+            position.x >= global_rect.x1 + input_tolerance ||
+            position.y >= global_rect.y1 + input_tolerance)
         {
             return STBG_WIDGET_ID_NULL;
         }
@@ -193,7 +193,7 @@ public partial class StbGui
         while (children_id != STBG_WIDGET_ID_NULL)
         {
             ref var children = ref stbg_get_widget_by_id(children_id);
-            var children_at_position = stbg__get_widget_id_at_position(ref children, position, global_rect);
+            var children_at_position = stbg__get_widget_id_at_position(ref children, position, global_rect, use_input_tolerance);
 
             if (children_at_position != STBG_WIDGET_ID_NULL)
                 return children_at_position;

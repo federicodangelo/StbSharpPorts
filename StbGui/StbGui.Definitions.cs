@@ -493,7 +493,7 @@ public partial class StbGui
 
         public image_id image;
 
-        public float mouse_tolerance;
+        public float input_tolerance;
 
         public STBG_WIDGET_INPUT_FLAGS input_flags;
     }
