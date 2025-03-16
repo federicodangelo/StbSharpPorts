@@ -493,7 +493,7 @@ public partial class StbGui
 
         var memory = context.widgets_reference_properties[id].custom;
 
-        stbg__assert_internal(memory.Length >= Marshal.SizeOf<T>(), "Invalid custom property");
+        stbg__assert_internal(memory.Length >= stbg__get_marshal_info<T>().size, "Invalid custom property");
 
         return ref stbg__get_custom_properties<T>(memory);
     }
@@ -513,7 +513,7 @@ public partial class StbGui
         else
         {
             // We are reusing an existing widget, get previous frame custom properties
-            stbg__assert_internal(ref_props.custom.Length == Marshal.SizeOf<T>(), "Invalid custom property");
+            stbg__assert_internal(ref_props.custom.Length == stbg__get_marshal_info<T>().size, "Invalid custom property");
             value = stbg__get_custom_properties<T>(ref_props.custom);
         }
 

@@ -257,7 +257,7 @@ public partial class StbGui
 
     private static long stbg__hash_widgets(long previous_hash)
     {
-        var widget_size_bytes = Marshal.SizeOf<stbg_widget>();
+        var widget_size_bytes = stbg__get_marshal_info<stbg_widget>().size;
         var widgets_bytes = MemoryMarshal.AsBytes(context.widgets.AsSpan());
 
         var hash = stbg__hash_widget(context.root_widget_id, widgets_bytes, widget_size_bytes, previous_hash);

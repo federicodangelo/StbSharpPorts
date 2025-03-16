@@ -19,44 +19,29 @@ public partial class StbGui
         pool.offset = 0;
     }
 
-    // Taken from https://stackoverflow.com/questions/77212211/how-do-i-find-the-alignment-of-a-struct-in-c
-    private struct AlignmentHelper<T> where T : unmanaged
-    {
-        #pragma warning disable CS0649
-        public byte padding;
-        public T target;
-        #pragma warning restore CS0649
-    }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int stbg__alignment_of<T>() where T : unmanaged
-    {
-        return (int)Marshal.OffsetOf<AlignmentHelper<T>>(nameof(AlignmentHelper<T>.target));
-    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static ref T stbg__add_custom_properties<T>(T properties, out Memory<byte> memory) where T : unmanaged
     {
         ref var pool = ref context.custom_properties_memory_pool;
 
-        var alignment = stbg__alignment_of<T>();
-
-        var size = Marshal.SizeOf<T>();
+        var info = stbg__get_marshal_info<T>();
 
         var offset = pool.offset;
 
         // Align the offset to the size of the type
-        offset += alignment - (offset % alignment);
+        offset += info.alignment - (offset % info.alignment);
 
-        if (offset + size >= pool.memory_pool.Length)
+        if (offset + info.size >= pool.memory_pool.Length)
         {
-            context.frame_stats.custom_properties_memory_pool_overflowed_bytes += size;
-            memory = new Memory<byte>(new byte[size]);
+            context.frame_stats.custom_properties_memory_pool_overflowed_bytes += info.size;
+            memory = new Memory<byte>(new byte[info.size]);
         }
         else
         {
-            memory = pool.memory_pool.Slice(offset, size);
-            pool.offset = offset + size;
+            memory = pool.memory_pool.Slice(offset, info.size);
+            pool.offset = offset + info.size;
             context.frame_stats.custom_properties_memory_pool_used_bytes = pool.offset;
         }
 
