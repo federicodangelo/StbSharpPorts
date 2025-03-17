@@ -240,6 +240,7 @@ public class SDLRenderAdapter : StbGui.stbg_render_adapter
         SDL.SetRenderDrawColor(renderer, background_color.r, background_color.g, background_color.b, background_color.a);
         SDL.RenderClear(renderer);
         SDL.SetRenderDrawBlendMode(renderer, SDL.BlendMode.Blend);
+        SDL.SetTextureBlendMode(renderer, SDL.BlendMode.Blend);
     }
 
     public void render_end_frame()
