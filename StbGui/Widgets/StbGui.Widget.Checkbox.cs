@@ -15,6 +15,8 @@ public partial class StbGui
         public bool value;
     }
 
+    private static stbg__marshal_info<stbg__checkbox_properties> stbg__checkbox_properties_marshal_info = new();
+
     private static void stbg__checkbox_init_default_theme()
     {
         var font_style = context.theme.default_font_style;
@@ -48,7 +50,7 @@ public partial class StbGui
     {
         ref var checkbox = ref stbg__add_widget(STBG_WIDGET_TYPE.CHECKBOX, label, out var is_new);
         ref var checkbox_ref_props = ref stbg__get_widget_ref_props_by_id_internal(checkbox.id);
-        ref var checkbox_props = ref stbg__add_widget_custom_properties_by_id_internal<stbg__checkbox_properties>(checkbox.id, is_new);
+        ref var checkbox_props = ref stbg__add_widget_custom_properties_by_id_internal(stbg__checkbox_properties_marshal_info, checkbox.id, is_new);
 
         checkbox_ref_props.text = stbg__add_string(label);
 

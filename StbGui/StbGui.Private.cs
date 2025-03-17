@@ -16,6 +16,8 @@ public partial class StbGui
 {
     private static stbg_context context;
 
+    private static stbg__marshal_info<stbg_widget> stbg__widget_marshal_info = new ();
+
     private static void stbg_init_context(ref stbg_context context, stbg_external_dependencies external_dependencies, stbg_init_options options)
     {
         // Initialize the assert behavior first so all configuration related asserts work as expected
@@ -141,7 +143,7 @@ public partial class StbGui
     private static ref stbg_widget stbg__get_or_create_debug_window()
     {
         ref var debug_window = ref stbg__add_widget(debug_window_hash, STBG_WIDGET_TYPE.WINDOW, context.root_widget_id, out var is_new, out var is_already_created_in_same_frame, STBG__WIDGET_ADD_OPTIONS.IGNORE_DUPLICATED);
-        ref var debug_window_properties = ref stbg__add_widget_custom_properties_by_id_internal<stbg__window_properties>(debug_window.id, is_new);
+        ref var debug_window_properties = ref stbg__add_widget_custom_properties_by_id_internal(stbg__window_properties_marshal_info, debug_window.id, is_new);
 
         if (!is_already_created_in_same_frame)
         {
@@ -493,13 +495,11 @@ public partial class StbGui
 
         var memory = context.widgets_reference_properties[id].custom;
 
-        stbg__assert_internal(memory.Length >= stbg__get_marshal_info<T>().size, "Invalid custom property");
-
         return ref stbg__get_custom_properties<T>(memory);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static ref T stbg__add_widget_custom_properties_by_id_internal<T>(widget_id id, bool is_new) where T : unmanaged
+    private static ref T stbg__add_widget_custom_properties_by_id_internal<T>(stbg__marshal_info<T> marshal_info, widget_id id, bool is_new) where T : unmanaged
     {
         ref var ref_props = ref stbg__get_widget_ref_props_by_id_internal(id);
         T value;
@@ -513,11 +513,11 @@ public partial class StbGui
         else
         {
             // We are reusing an existing widget, get previous frame custom properties
-            stbg__assert_internal(ref_props.custom.Length == stbg__get_marshal_info<T>().size, "Invalid custom property");
+            stbg__assert_internal(ref_props.custom.Length == marshal_info.size, "Invalid custom property");
             value = stbg__get_custom_properties<T>(ref_props.custom);
         }
 
-        return ref stbg__add_custom_properties<T>(value, out ref_props.custom);
+        return ref stbg__add_custom_properties<T>(marshal_info, value, out ref_props.custom);
     }
 
 

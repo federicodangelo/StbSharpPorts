@@ -22,26 +22,24 @@ public partial class StbGui
 
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static ref T stbg__add_custom_properties<T>(T properties, out Memory<byte> memory) where T : unmanaged
+    private static ref T stbg__add_custom_properties<T>(stbg__marshal_info<T> marshal_info, T properties, out Memory<byte> memory) where T : unmanaged
     {
         ref var pool = ref context.custom_properties_memory_pool;
-
-        var info = stbg__get_marshal_info<T>();
 
         var offset = pool.offset;
 
         // Align the offset to the size of the type
-        offset += info.alignment - (offset % info.alignment);
+        offset += marshal_info.alignment - (offset % marshal_info.alignment);
 
-        if (offset + info.size >= pool.memory_pool.Length)
+        if (offset + marshal_info.size >= pool.memory_pool.Length)
         {
-            context.frame_stats.custom_properties_memory_pool_overflowed_bytes += info.size;
-            memory = new Memory<byte>(new byte[info.size]);
+            context.frame_stats.custom_properties_memory_pool_overflowed_bytes += marshal_info.size;
+            memory = new Memory<byte>(new byte[marshal_info.size]);
         }
         else
         {
-            memory = pool.memory_pool.Slice(offset, info.size);
-            pool.offset = offset + info.size;
+            memory = pool.memory_pool.Slice(offset, marshal_info.size);
+            pool.offset = offset + marshal_info.size;
             context.frame_stats.custom_properties_memory_pool_used_bytes = pool.offset;
         }
 

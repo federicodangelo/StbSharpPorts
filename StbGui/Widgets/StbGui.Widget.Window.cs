@@ -16,6 +16,8 @@ public partial class StbGui
         public bool open;
     }
 
+    private static stbg__marshal_info<stbg__window_properties> stbg__window_properties_marshal_info = new();
+
     private static void stbg__window_init_default_theme()
     {
         var font_style = context.theme.default_font_style;
@@ -83,7 +85,7 @@ public partial class StbGui
     private static ref stbg_widget stbg__window_create(ReadOnlySpan<char> title, ref bool is_open, STBG_WINDOW_OPTIONS options)
     {
         ref var window = ref stbg__add_widget(STBG_WIDGET_TYPE.WINDOW, title, out var is_new, out var is_already_created_in_same_frame);
-        ref var window_properties = ref stbg__add_widget_custom_properties_by_id_internal<stbg__window_properties>(window.id, is_new);
+        ref var window_properties = ref stbg__add_widget_custom_properties_by_id_internal(stbg__window_properties_marshal_info, window.id, is_new);
 
         if (!is_already_created_in_same_frame)
             stbg__window_init(ref window, ref window_properties, ref is_open, is_new, title, options);

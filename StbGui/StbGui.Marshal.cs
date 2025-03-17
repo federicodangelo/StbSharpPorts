@@ -22,25 +22,16 @@ public partial class StbGui
         return (int)Marshal.OffsetOf<AlignmentHelper<T>>(nameof(AlignmentHelper<T>.target));
     }
 
-    // We cache these values becase for some reason Marshal.OffsetOf() and Marshal.SizeOf() allocate memory in desktop AOT builds (but not in WebAssembly AOT ones..)
-    private struct stbg__marshal_info
+    // We cache these values because for some reason Marshal.OffsetOf() and Marshal.SizeOf() allocate memory in desktop AOT builds (but not in WebAssembly AOT ones..)
+    private struct stbg__marshal_info<T> where T : unmanaged
     {
         public int size;
         public int alignment;
-    }
 
-    private static Dictionary<Type, stbg__marshal_info> stbg__marshal_infos = [];
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static stbg__marshal_info stbg__get_marshal_info<T>() where T : unmanaged
-    {
-        if (!stbg__marshal_infos.TryGetValue(typeof(T), out var info))
+        public stbg__marshal_info()
         {
-            info.size = Marshal.SizeOf<T>();
-            info.alignment = stbg__alignment_of<T>();
-            stbg__marshal_infos[typeof(T)] = info;
+            size = Marshal.SizeOf<T>();
+            alignment = stbg__alignment_of<T>();
         }
-
-        return info;
     }
 }

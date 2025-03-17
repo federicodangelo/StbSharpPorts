@@ -16,6 +16,8 @@ public partial class StbGui
         public bool single_line;
     }
 
+    private static stbg__marshal_info<stbg__textbox_properties> stbg__textbox_properties_marshal_info = new();
+
     private static void stbg__textbox_init_default_theme()
     {
         var font_style = context.theme.default_font_style;
@@ -53,7 +55,7 @@ public partial class StbGui
     {
         ref var textbox = ref stbg__add_widget(STBG_WIDGET_TYPE.TEXTBOX, identifier, out var is_new);
         ref var textbox_ref_props = ref stbg__get_widget_ref_props_by_id_internal(textbox.id);
-        ref var textbox_properties = ref stbg__add_widget_custom_properties_by_id_internal<stbg__textbox_properties>(textbox.id, is_new);
+        ref var textbox_properties = ref stbg__add_widget_custom_properties_by_id_internal(stbg__textbox_properties_marshal_info, textbox.id, is_new);
 
         textbox_properties.single_line = visible_lines == 1;
 

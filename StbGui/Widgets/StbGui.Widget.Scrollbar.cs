@@ -21,6 +21,8 @@ public partial class StbGui
         public float value;
     }
 
+    private static stbg__marshal_info<stbg__scrollbar_properties> stbg__scrollbar_properties_marshal_info = new();
+
     private static void stbg__scrollbar_init_default_theme()
     {
         var font_style = context.theme.default_font_style;
@@ -52,7 +54,7 @@ public partial class StbGui
     private static ref stbg_widget stbg__scrollbar_create(ReadOnlySpan<char> identifier, STBG_SCROLLBAR_DIRECTION direction, ref float value, float min_value, float max_value, float step_size, bool integer)
     {
         ref var scrollbar = ref stbg__add_widget(STBG_WIDGET_TYPE.SCROLLBAR, identifier, out var is_new);
-        ref var scrollbar_properties = ref stbg__add_widget_custom_properties_by_id_internal<stbg__scrollbar_properties>(scrollbar.id, is_new);
+        ref var scrollbar_properties = ref stbg__add_widget_custom_properties_by_id_internal(stbg__scrollbar_properties_marshal_info, scrollbar.id, is_new);
 
         scrollbar_properties.min_value = min_value;
         scrollbar_properties.max_value = max_value;

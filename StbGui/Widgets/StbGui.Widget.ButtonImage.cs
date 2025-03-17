@@ -19,6 +19,8 @@ public partial class StbGui
         public bool border;
     }
 
+    private static stbg__marshal_info<stbg__button_image_properties> stbg__button_image_properties_marshal_info = new();
+
     private static void stbg__button_image_init_default_theme()
     {
     }
@@ -27,7 +29,7 @@ public partial class StbGui
     private static ref stbg_widget stbg__button_image_create(ReadOnlySpan<char> identifier, image_id image, image_id image_hover, image_id image_pressed, bool border, float scale)
     {
         ref var button_image = ref stbg__add_widget(STBG_WIDGET_TYPE.BUTTON_IMAGE, identifier, out var is_new);
-        ref var button_props = ref stbg__add_widget_custom_properties_by_id_internal<stbg__button_image_properties>(button_image.id, is_new);
+        ref var button_props = ref stbg__add_widget_custom_properties_by_id_internal(stbg__button_image_properties_marshal_info, button_image.id, is_new);
 
         button_props.image = image;
         button_props.image_hover = image_hover;

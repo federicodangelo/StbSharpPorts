@@ -257,22 +257,21 @@ public partial class StbGui
 
     private static long stbg__hash_widgets(long previous_hash)
     {
-        var widget_size_bytes = stbg__get_marshal_info<stbg_widget>().size;
         var widgets_bytes = MemoryMarshal.AsBytes(context.widgets.AsSpan());
 
-        var hash = stbg__hash_widget(context.root_widget_id, widgets_bytes, widget_size_bytes, previous_hash);
+        var hash = stbg__hash_widget(context.root_widget_id, widgets_bytes, previous_hash);
 
         return hash;
     }
 
-    private static long stbg__hash_widget(int widget_id, Span<byte> widgets_bytes, int widget_size_bytes, long previous_hash)
+    private static long stbg__hash_widget(int widget_id, Span<byte> widgets_bytes, long previous_hash)
     {
         ref var widget = ref stbg__get_widget_by_id_internal(widget_id);
         if ((widget.flags & STBG_WIDGET_FLAGS.IGNORE) != 0)
             return previous_hash;
 
-        var widget_offset = widget_id * widget_size_bytes;
-        var widget_bytes = widgets_bytes.Slice(widget_offset, widget_size_bytes);
+        var widget_offset = widget_id * stbg__widget_marshal_info.size;
+        var widget_bytes = widgets_bytes.Slice(widget_offset, stbg__widget_marshal_info.size);
 
         var hash = StbHash.stbh_halfsiphash_long(widget_bytes, previous_hash);
         hash = stbg__hash_widget_ref_props(widget_id, hash);
@@ -283,7 +282,7 @@ public partial class StbGui
 
             do
             {
-                hash = stbg__hash_widget(children_id, widgets_bytes, widget_size_bytes, hash);
+                hash = stbg__hash_widget(children_id, widgets_bytes, hash);
                 children_id = stbg_get_widget_by_id(children_id).hierarchy.next_sibling_id;
             } while (children_id != STBG_WIDGET_ID_NULL);
         }
