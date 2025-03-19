@@ -576,7 +576,7 @@ public partial class StbGui
         public bool mouse_button_2_up;
     }
 
-    public struct stbg_hash_entry
+    public struct stbg_hash_bucket
     {
         public widget_id first_widget_in_bucket;
     }
@@ -598,6 +598,7 @@ public partial class StbGui
         public int string_memory_pool_used_characters;
         public int string_memory_pool_overflowed_characters;
         public int custom_properties_memory_pool_used_bytes;
+        public int custom_properties_memory_pool_wasted_alignment_bytes;
         public int custom_properties_memory_pool_overflowed_bytes;
         public stbg_performance_metrics performance;
         public bool render_skipped_due_to_same_hash;
@@ -670,7 +671,7 @@ public partial class StbGui
         public stbg_widget_reference_properties[] widgets_reference_properties;
         public stbg_widget_frame_properties[] widgets_frame_properties;
 
-        public stbg_hash_entry[] hash_table;
+        public stbg_hash_bucket[] hash_table;
 
         public widget_id first_free_widget_id;
 

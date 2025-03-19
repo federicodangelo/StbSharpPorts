@@ -190,6 +190,7 @@ public class StbHash
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static long stbh_halfsiphash_long(ReadOnlySpan<byte> inputBytes, long key)
     {
         long output = 0;
@@ -202,6 +203,7 @@ public class StbHash
         return output;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static long stbh_halfsiphash_long<T>(T input, long key) where T : struct
     {
         return stbh_halfsiphash_long(MemoryMarshal.AsBytes(new Span<T>(ref input)), key);

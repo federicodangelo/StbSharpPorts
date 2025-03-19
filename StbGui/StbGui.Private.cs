@@ -16,7 +16,7 @@ public partial class StbGui
 {
     private static stbg_context context;
 
-    private static stbg__marshal_info<stbg_widget> stbg__widget_marshal_info = new ();
+    private static stbg__marshal_info<stbg_widget> stbg__widget_marshal_info = new();
 
     private static void stbg_init_context(ref stbg_context context, stbg_external_dependencies external_dependencies, stbg_init_options options)
     {
@@ -56,7 +56,7 @@ public partial class StbGui
         var widgets = new stbg_widget[options.max_widgets + 1]; // first slot is never used (null widget)
         var widgets_reference_properties = new stbg_widget_reference_properties[options.max_widgets + 1]; // first slot is never used (null widget)
         var widgets_frame_properties = new stbg_widget_frame_properties[options.max_widgets + 1]; // first slot is never used (null widget)
-        var hash_table = new stbg_hash_entry[options.hash_table_size];
+        var hash_table = new stbg_hash_bucket[options.hash_table_size];
         var fonts = new stbg_font[options.max_fonts + 1]; // first slot is never used (null font)
         var images = new stbg_image_info[options.max_images + 1]; // first slot is never used (null image)
         var force_render_queue_entries = new stbg_force_render_queue_entry[Math.Max(options.max_widgets / 10, 100)]; // 10% of the widgets are forced to render at most];
@@ -165,7 +165,7 @@ public partial class StbGui
 
         return ref widget;
     }
-    
+
     private static ref stbg_widget stbg__add_widget(STBG_WIDGET_TYPE type, ReadOnlySpan<char> identifier, out bool is_new, out bool is_already_created_in_same_frame)
     {
         ref var widget = ref stbg__add_widget(stbg__calculate_hash(type, identifier), type, context.current_widget_id, out is_new, out is_already_created_in_same_frame, STBG__WIDGET_ADD_OPTIONS.IGNORE_DUPLICATED);
@@ -207,7 +207,7 @@ public partial class StbGui
 
             // Add to the hash table
             widget.hash = hash;
-            ref var bucket = ref stbg__get_hash_entry_by_hash(hash);
+            ref var bucket = ref stbg__get_hash_bucket_by_hash(hash);
 
             if (bucket.first_widget_in_bucket != STBG_WIDGET_ID_NULL)
             {
@@ -400,7 +400,7 @@ public partial class StbGui
         if (widget.hash_chain.prev_same_bucket == STBG_WIDGET_ID_NULL)
         {
             // We are the first element in the bucket, make it point to the next element in our hash list
-            ref var bucket = ref stbg__get_hash_entry_by_hash(widget.hash);
+            ref var bucket = ref stbg__get_hash_bucket_by_hash(widget.hash);
 
             stbg__assert_internal(bucket.first_widget_in_bucket == widget.id);
 
@@ -523,7 +523,7 @@ public partial class StbGui
 
     private static bool stbg__find_widget_by_hash(widget_hash hash, out widget_id found_id)
     {
-        ref var bucket = ref stbg__get_hash_entry_by_hash(hash);
+        ref var bucket = ref stbg__get_hash_bucket_by_hash(hash);
 
         if (bucket.first_widget_in_bucket != STBG_WIDGET_ID_NULL)
         {
@@ -543,43 +543,6 @@ public partial class StbGui
 
         found_id = STBG_WIDGET_ID_NULL;
         return false;
-    }
-
-    private static ref stbg_hash_entry stbg__get_hash_entry_by_hash(widget_hash hash)
-    {
-        int index = Math.Abs(hash % context.hash_table.Length);
-        return ref context.hash_table[index];
-    }
-
-    private static widget_hash stbg__calculate_hash(STBG_WIDGET_TYPE type, ReadOnlySpan<char> identifier, bool ignore_parent = false)
-    {
-        return stbg__calculate_hash(type, MemoryMarshal.Cast<char, byte>(identifier), ignore_parent);
-    }
-
-    private static widget_hash stbg__calculate_hash(STBG_WIDGET_TYPE type, ReadOnlySpan<byte> identifier, bool ignore_parent = false)
-    {
-        Span<byte> key = stackalloc byte[sizeof(long)];
-        Span<byte> output = stackalloc byte[sizeof(widget_hash)];
-
-        if (context.current_widget_id == STBG_WIDGET_ID_NULL || ignore_parent)
-        {
-            BitConverter.TryWriteBytes(key, 0x1234567890123456UL);
-        }
-        else
-        {
-            var parent_hash = stbg__get_widget_by_id_internal(context.current_widget_id).hash;
-
-            BitConverter.TryWriteBytes(key, parent_hash);
-            BitConverter.TryWriteBytes(key.Slice(sizeof(widget_hash)), parent_hash);
-        }
-
-        key[0] += (byte)type; //Include the type of as part of the key, so changing the type produces a different hash
-
-        StbHash.stbh_halfsiphash(identifier, key, output);
-
-        widget_hash outputHash = BitConverter.ToInt32(output);
-
-        return outputHash;
     }
 
     private static long stbg__get_time_milliseconds()

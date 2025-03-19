@@ -29,18 +29,20 @@ public partial class StbGui
         var offset = pool.offset;
 
         // Align the offset to the size of the type
-        offset += marshal_info.alignment - (offset % marshal_info.alignment);
+        var alignment_offset = marshal_info.alignment - (offset % marshal_info.alignment);
 
-        if (offset + marshal_info.size >= pool.memory_pool.Length)
+        if (offset + alignment_offset + marshal_info.size >= pool.memory_pool.Length)
         {
             context.frame_stats.custom_properties_memory_pool_overflowed_bytes += marshal_info.size;
             memory = new Memory<byte>(new byte[marshal_info.size]);
         }
         else
         {
+            offset += alignment_offset;
             memory = pool.memory_pool.Slice(offset, marshal_info.size);
             pool.offset = offset + marshal_info.size;
             context.frame_stats.custom_properties_memory_pool_used_bytes = pool.offset;
+            context.frame_stats.custom_properties_memory_pool_wasted_alignment_bytes += alignment_offset;
         }
 
         ref var result = ref MemoryMarshal.AsRef<T>(memory.Span);
