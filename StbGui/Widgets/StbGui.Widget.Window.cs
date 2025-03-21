@@ -98,7 +98,7 @@ public partial class StbGui
     private static void stbg__window_init(ref stbg_widget window, ref stbg__window_properties window_properties, ref bool is_open, bool is_new, ReadOnlySpan<char> title, STBG_WINDOW_OPTIONS options)
     {
         ref var window_ref_props = ref stbg__get_widget_ref_props_by_id_internal(window.id);
-        
+
         window_ref_props.text = stbg__add_string(title);
         window.flags |= STBG_WIDGET_FLAGS.ALLOW_CHILDREN;
 
@@ -106,6 +106,7 @@ public partial class StbGui
 
         var has_title = (window_properties.options & STBG_WINDOW_OPTIONS.NO_TITLE) == 0;
         var can_resize = (window_properties.options & STBG_WINDOW_OPTIONS.NO_RESIZE) == 0;
+        var has_children_padding = (window_properties.options & STBG_WINDOW_OPTIONS.NO_CHILDREN_PADDING) == 0;
 
         ref var layout = ref window.properties.layout;
 
@@ -113,12 +114,15 @@ public partial class StbGui
 
         layout.inner_padding = new stbg_padding()
         {
-            top = (has_title ?
-                stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP, STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT, STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_BOTTOM) : 0) +
-                stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_TOP),
-            bottom = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_BOTTOM),
-            left = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_LEFT),
-            right = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_RIGHT),
+            top =
+                (has_title ? stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_TOP, STBG_WIDGET_STYLE.WINDOW_TITLE_HEIGHT, STBG_WIDGET_STYLE.WINDOW_TITLE_PADDING_BOTTOM) : 0) +
+                (has_children_padding ? stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE, STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_TOP) : (!has_title ? stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE) : 0)),
+            bottom = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE) +
+                (has_children_padding ? stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_BOTTOM) : 0),
+            left = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE) +
+                (has_children_padding ? stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_LEFT) : 0),
+            right = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE) + 
+                (has_children_padding ? stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_RIGHT) : 0)
         };
         layout.constrains = stbg_build_constrains_unconstrained();
         layout.constrains.min.height = layout.inner_padding.top + layout.inner_padding.bottom;

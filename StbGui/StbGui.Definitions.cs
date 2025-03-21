@@ -280,6 +280,13 @@ public partial class StbGui
         TEXTBOX_CURSOR_WIDTH,
         TEXTBOX_CURSOR_BLINKING_RATE, // how often (in milliseconds) the cursor blinks
 
+        // Nodes container
+        NODES_CONTAINER_BACKGROUND_COLOR,
+        NODES_CONTAINER_GRID_LINE_COLOR,
+        NODES_CONTAINER_GRID_LINE_WIDTH,
+        NODES_CONTAINER_GRID_LINE_SPACING,
+
+
         // ALWAYS LAST!!
         COUNT
     }
@@ -446,6 +453,7 @@ public partial class StbGui
         IMAGE,
         SCROLLBAR,
         TEXTBOX,
+        NODES_CONTAINER,
         COUNT, // MUST BE LAST
     }
 

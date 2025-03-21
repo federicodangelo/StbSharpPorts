@@ -307,7 +307,7 @@ public partial class StbGui
         {
             var tmp = max;
             max = min;
-            min = max;
+            min = tmp;
         }
 
         return value < min ? min : value > max ? max : value;

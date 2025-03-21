@@ -12,6 +12,7 @@ public class TestWindowsWindow : TestWindow
     private bool resizable = true;
     private bool show_scrollbars = true;
     private bool movable = true;
+    private bool children_padding = true;
 
     public override void Render()
     {
@@ -19,8 +20,9 @@ public class TestWindowsWindow : TestWindow
                 (show_title ? 0 : StbGui.STBG_WINDOW_OPTIONS.NO_TITLE) |
                 (resizable ? 0 : StbGui.STBG_WINDOW_OPTIONS.NO_RESIZE) |
                 (show_scrollbars ? 0 : StbGui.STBG_WINDOW_OPTIONS.NO_SCROLLBAR) |
-                (movable ? 0 : StbGui.STBG_WINDOW_OPTIONS.NO_MOVE))
-            )
+                (movable ? 0 : StbGui.STBG_WINDOW_OPTIONS.NO_MOVE) |
+                (children_padding ? 0 : StbGui.STBG_WINDOW_OPTIONS.NO_CHILDREN_PADDING)
+        ))
         {
             StbGui.stbg_checkbox("Title", ref show_title);
 
@@ -29,6 +31,8 @@ public class TestWindowsWindow : TestWindow
             StbGui.stbg_checkbox("Scrollbars", ref show_scrollbars);
 
             StbGui.stbg_checkbox("Movable", ref movable);
+
+            StbGui.stbg_checkbox("Children Padding", ref children_padding);
 
             for (int i = 0; i < 20; i++)
             {

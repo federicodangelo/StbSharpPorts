@@ -36,6 +36,7 @@ public static class TestWindows
                 new TestImagesWindow(appBase, mp),
                 new TestTextboxesWindow(appBase, mp),
                 new TestBenchmarksWindow(appBase, mp),
+                new TestNodesWindow(appBase, mp),
             ];
             StbGui.stbg_set_render_options_flag(StbGui.STBG_RENDER_OPTIONS.DISABLE_SKIP_RENDERING_OPTIMIZATION, disable_skip_rendering_optimization);
         }

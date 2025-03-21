@@ -24,12 +24,25 @@ public partial class StbGui
     {
         public stbg_render_adapter render_adapter;
         public stbg_rect last_global_rect;
+        public stbg_rect visible_local_bounds;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void stbg__rc_set_global_rect(stbg_rect global_rect)
     {
         context.render_context.last_global_rect = global_rect;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void stbg__rc_set_visible_local_bounds(stbg_rect visible_local_bounds)
+    {
+        context.render_context.visible_local_bounds = visible_local_bounds;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static stbg_rect stbg__rc_get_visible_local_bounds()
+    {
+        return context.render_context.visible_local_bounds;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -273,6 +286,7 @@ public partial class StbGui
         }
 
         stbg__rc_set_global_rect(global_rect);
+        stbg__rc_set_visible_local_bounds(stbg_translate_rect(clip_bounds, -global_rect.x0, -global_rect.y0));
 
         // Clear force render flag
         if ((widget.flags & STBG_WIDGET_FLAGS.FORCE_RENDER) != 0)

@@ -190,15 +190,28 @@ public partial class StbGui
 
         var children_id = widget.hierarchy.last_children_id;
 
-        while (children_id != STBG_WIDGET_ID_NULL)
+        if (children_id != STBG_WIDGET_ID_NULL)
         {
-            ref var children = ref stbg_get_widget_by_id(children_id);
-            var children_at_position = stbg__get_widget_id_at_position(ref children, position, global_rect, use_input_tolerance);
+            var padded_global_rect = stbg_build_rect(
+                    global_rect.x0 + widget.properties.layout.inner_padding.left,
+                    global_rect.y0 + widget.properties.layout.inner_padding.top,
+                    global_rect.x1 - widget.properties.layout.inner_padding.right,
+                    global_rect.y1 - widget.properties.layout.inner_padding.bottom
+                );
 
-            if (children_at_position != STBG_WIDGET_ID_NULL)
-                return children_at_position;
+            while (children_id != STBG_WIDGET_ID_NULL)
+            {
+                ref var children = ref stbg_get_widget_by_id(children_id);
 
-            children_id = children.hierarchy.prev_sibling_id;
+                bool parent_controlled = (children.properties.layout.flags & STBG_WIDGET_LAYOUT_FLAGS.PARENT_CONTROLLED) != 0;
+
+                var children_at_position = stbg__get_widget_id_at_position(ref children, position, parent_controlled ? global_rect : padded_global_rect, use_input_tolerance);
+
+                if (children_at_position != STBG_WIDGET_ID_NULL)
+                    return children_at_position;
+
+                children_id = children.hierarchy.prev_sibling_id;
+            }
         }
 
         return widget.id;

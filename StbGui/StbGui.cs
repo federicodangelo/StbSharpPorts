@@ -505,7 +505,8 @@ public partial class StbGui
         NO_RESIZE = 1 << 1,
         NO_SCROLLBAR = 1 << 2,
         NO_TITLE = 1 << 3,
-        CLOSE_BUTTON = 1 << 4,
+        NO_CHILDREN_PADDING = 1 << 4,
+        CLOSE_BUTTON = 1 << 5,
 
         DEFAULT = NONE,
     }
@@ -799,5 +800,28 @@ public partial class StbGui
     {
         stbg__assert(image_id > 0 && image_id < context.images.Length, "Invalid image_id");
         stbg__image_create(identifier, image_id, scale);
+    }
+
+    /// <summary>
+    /// Begins a new nodes container
+    /// </summary>
+    /// <param name="identifier">Container identifier (must be unique inside the parent widget)</param>
+    public static void stbg_begin_nodes_container(ReadOnlySpan<char> identifier)
+    {
+        ref var container = ref stbg__nodes_container_create(identifier);
+
+        context.current_widget_id = container.id;
+    }
+
+    /// <summary>
+    /// Ends the current nodes container.
+    /// </summary>
+    public static void stbg_end_nodes_container()
+    {
+        stbg__assert(context.inside_frame);
+        ref var container = ref stbg_get_widget_by_id(context.current_widget_id);
+        stbg__assert(container.type == STBG_WIDGET_TYPE.NODES_CONTAINER, "Unbalanced begin() / end() calls");
+
+        context.current_widget_id = container.hierarchy.parent_id;
     }
 }

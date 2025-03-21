@@ -24,6 +24,7 @@ public partial class StbGui
         { STBG_WIDGET_TYPE.SCROLLBAR, stbg__scrollbar_render },
         { STBG_WIDGET_TYPE.TEXTBOX, stbg__textbox_render },
         { STBG_WIDGET_TYPE.IMAGE, stbg__image_render },
+        { STBG_WIDGET_TYPE.NODES_CONTAINER, stbg__nodes_container_render },
     };
 
     private static readonly Dictionary<STBG_WIDGET_TYPE, stbg__widget_update_input_delegate?> STBG__WIDGET_UPDATE_INPUT_DICTIONARY = new() {
@@ -35,7 +36,7 @@ public partial class StbGui
         { STBG_WIDGET_TYPE.SCROLLBAR, stbg__scrollbar_update_input },
         { STBG_WIDGET_TYPE.TEXTBOX, stbg__textbox_update_input },
         { STBG_WIDGET_TYPE.IMAGE, null }, // Images don't handle any input
-        
+        { STBG_WIDGET_TYPE.NODES_CONTAINER, stbg__nodes_container_update_input },
     };
 
     private static readonly stbg__widget_init_default_theme_delegate[] STBG__WIDGET_INIT_DEFAULT_THEME_LIST = [
@@ -47,6 +48,7 @@ public partial class StbGui
         stbg__scrollbar_init_default_theme,
         stbg__textbox_init_default_theme,
         stbg__image_init_default_theme,
+        stbg__nodes_container_init_default_theme,
     ];
 
     private static readonly stbg__widget_init_context_delegate[] STBG__WIDGET_INIT_CONTEXT_LIST = [
