@@ -13,7 +13,9 @@ public partial class StbGui
 {
     private struct stbg__nodes_container_properties
     {
-
+        public float min_zoom_level;
+        public float max_zoom_level;
+        public float zoom_level;
     }
 
     private static stbg__marshal_info<stbg__nodes_container_properties> stbg__nodes_container_properties_marshal_info = new();
@@ -24,15 +26,22 @@ public partial class StbGui
         var nodesContainerLineSpacing = 64;
         var nodesContainerLineWidth = 1;
         stbg_set_widget_style(STBG_WIDGET_STYLE.NODES_CONTAINER_BACKGROUND_COLOR, rgb(236, 240, 241));
-        stbg_set_widget_style(STBG_WIDGET_STYLE.NODES_CONTAINER_GRID_LINE_COLOR, rgb(52, 152, 219));
+        stbg_set_widget_style(STBG_WIDGET_STYLE.NODES_CONTAINER_GRID_LINE_COLOR, rgba(52, 152, 219, 0.2));
         stbg_set_widget_style(STBG_WIDGET_STYLE.NODES_CONTAINER_GRID_LINE_WIDTH, nodesContainerLineWidth);
         stbg_set_widget_style(STBG_WIDGET_STYLE.NODES_CONTAINER_GRID_LINE_SPACING, nodesContainerLineSpacing);
     }
 
-    private static ref stbg_widget stbg__nodes_container_create(ReadOnlySpan<char> identifier)
+    private static ref stbg_widget stbg__nodes_container_create(ReadOnlySpan<char> identifier, float min_zoom_level, float max_zoom_level)
     {
         ref var nodes_container = ref stbg__add_widget(STBG_WIDGET_TYPE.NODES_CONTAINER, identifier, out var is_new);
         ref var nodes_container_props = ref stbg__add_widget_custom_properties_by_id_internal(stbg__nodes_container_properties_marshal_info, nodes_container.id, is_new);
+
+        nodes_container_props.min_zoom_level = min_zoom_level;
+        nodes_container_props.max_zoom_level = max_zoom_level;
+        if (is_new)
+            nodes_container_props.zoom_level = 1.0f;
+
+        nodes_container_props.zoom_level = stbg_clamp(nodes_container_props.zoom_level, min_zoom_level, max_zoom_level);
 
         ref var layout = ref nodes_container.properties.layout;
 
@@ -96,7 +105,20 @@ public partial class StbGui
                 context.input_feedback.drag_from_widget_x = mouse_position.x;
                 context.input_feedback.drag_from_widget_y = mouse_position.y;
             }
+        }
 
+        if (context.input.mouse_wheel_scroll_amount.y != 0)
+        {
+            // Zoom in / zoom out
+            var dy = context.theme.default_font_style.size * context.input.mouse_wheel_scroll_amount.y;
+
+            nodes_container_props.zoom_level = stbg_clamp(
+                nodes_container_props.zoom_level + dy,
+                nodes_container_props.min_zoom_level,
+                nodes_container_props.max_zoom_level
+            );
+
+            // TODO: Implement scaling in StbGui...
         }
 
         return

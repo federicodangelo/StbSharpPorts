@@ -806,9 +806,9 @@ public partial class StbGui
     /// Begins a new nodes container
     /// </summary>
     /// <param name="identifier">Container identifier (must be unique inside the parent widget)</param>
-    public static void stbg_begin_nodes_container(ReadOnlySpan<char> identifier)
+    public static void stbg_begin_nodes_container(ReadOnlySpan<char> identifier, float min_zoom_level = 0.1f, float max_zoom_level = 10.0f)
     {
-        ref var container = ref stbg__nodes_container_create(identifier);
+        ref var container = ref stbg__nodes_container_create(identifier, min_zoom_level, max_zoom_level);
 
         context.current_widget_id = container.id;
     }
