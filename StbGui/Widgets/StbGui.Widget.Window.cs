@@ -121,7 +121,7 @@ public partial class StbGui
                 (has_children_padding ? stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_BOTTOM) : 0),
             left = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE) +
                 (has_children_padding ? stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_LEFT) : 0),
-            right = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE) + 
+            right = stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_BORDER_SIZE) +
                 (has_children_padding ? stbg__sum_styles(STBG_WIDGET_STYLE.WINDOW_CHILDREN_PADDING_RIGHT) : 0)
         };
         layout.constrains = stbg_build_constrains_unconstrained();

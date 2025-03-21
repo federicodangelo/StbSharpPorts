@@ -78,7 +78,6 @@ public partial class StbGui
         }
         else
         {
-            
             value = checkbox_props.value;
             checkbox.properties.input_flags &= ~STBG_WIDGET_INPUT_FLAGS.VALUE_UPDATED;
         }

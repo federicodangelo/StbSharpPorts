@@ -95,7 +95,7 @@ public partial class StbGui
                 // Update the drag position
                 context.input_feedback.drag_from_widget_x = mouse_position.x;
                 context.input_feedback.drag_from_widget_y = mouse_position.y;
-           }
+            }
 
         }
 
