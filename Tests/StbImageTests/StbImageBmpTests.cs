@@ -86,6 +86,9 @@ public class StbImageBmpTests : StbImageTests
         if (Path.GetFileName(imageFileName).StartsWith("rle"))
             throw SkipException.ForSkip("Skip RLE tests (not implemented)");
 
+        if (Path.GetFileName(imageFileName).EndsWith("-topdown.bmp"))
+            throw SkipException.ForSkip("BMP compression format not supported by imagemagick");
+
         TestImage(imageFileName);
     }
 
