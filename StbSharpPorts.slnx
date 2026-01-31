@@ -1,0 +1,34 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Benchmarks/">
+    <Project Path="Benchmarks/StbGuiBenchmarks/StbGuiBenchmarks.csproj" />
+  </Folder>
+  <Folder Name="/Examples/">
+    <Project Path="Examples/StbGui.Examples/StbGui.Examples.csproj" />
+    <Project Path="Examples/StbGui.SDL.Examples/StbGui.SDL.Examples.csproj" />
+    <Project Path="Examples/StbImage.Examples/StbImage.Examples.csproj" />
+    <Project Path="Examples/StbImageWrite.Examples/StbImageWrite.Examples.csproj" />
+    <Project Path="Examples/StbTrueType.Examples/StbTrueType.Examples.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/StbGuiTests/StbGuiTests.csproj" />
+    <Project Path="Tests/StbHashTests/StbHashTests.csproj" />
+    <Project Path="Tests/StbImageTests/StbImageTests.csproj" />
+    <Project Path="Tests/StbImageWriteTests/StbImageWriteTests.csproj" />
+  </Folder>
+  <Project Path="Examples/StbGui.WebAssembly.Examples/StbGui.WebAssembly.Examples.csproj" />
+  <Project Path="StbCommon/StbCommon.csproj" />
+  <Project Path="StbGui.Extended/StbGui.Extended.csproj" />
+  <Project Path="StbGui/StbGui.csproj" />
+  <Project Path="StbHash/StbHash.csproj" />
+  <Project Path="StbImage/StbImage.csproj" />
+  <Project Path="StbImageWrite/StbImageWrite.csproj" />
+  <Project Path="StbRectPack/StbRectPack.csproj" />
+  <Project Path="StbTextEdit/StbTextEdit.csproj" />
+  <Project Path="StbTrueType/StbTrueType.csproj" />
+  <Project Path="Tests/StbTrueTypeTests/StbTrueTypeTests.csproj" />
+</Solution>
