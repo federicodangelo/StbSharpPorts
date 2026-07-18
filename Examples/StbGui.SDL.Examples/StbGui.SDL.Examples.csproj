@@ -36,7 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="SDL3-CS" Version="3.4.2" />
+    <PackageReference Include="SDL3-CS" Version="3.4.12.3" />
   </ItemGroup>
 
 </Project>
